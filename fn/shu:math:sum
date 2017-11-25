@@ -1,0 +1,37 @@
+# vim: set ft=zsh:
+
+##
+# Gives the sum of a series of numbers.
+#
+# @module math
+#
+# @param $1 ... One or more numbers.
+#
+# @return 0
+shu:math:sum() {
+	local sum nctx
+
+	# Normal context?
+	[[ $0 == shu:math:* ]] && nctx=1
+
+	[[ ${1:-} == -- ]] && shift
+
+	(( $# )) || shu::panic 'Too few arguments'
+
+	while (( $# )); do
+		(( nctx )) &&
+		[[ $1 != ${~SHU_PAT_MATH_NUM} ]] &&
+		shu::panic "Invalid arithmetic argument: ${1}"
+
+		(( sum += $1 ))
+		shift
+	done
+
+	# Normal context
+	(( nctx )) && {
+		printf '%s\n' ${sum%.}
+		return 0
+	}
+	# Arithmetic context
+	(( sum ))
+}

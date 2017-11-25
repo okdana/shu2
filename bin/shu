@@ -1,0 +1,104 @@
+#!/usr/bin/env zsh
+
+##
+# This script can be used to make arbitrary calls to shu2 functions from the
+# command line.
+#
+# Usage examples:
+#   % shu -l
+#   % shu puts hello
+#   % shu -v putf 'Hello %s\n' foo
+
+source "${0:h}/../lib"
+
+this:main() {
+	local    OPTARG OPTIND opt
+	local    mode verbosity=0 xtrace func ret o start end
+	local -a options
+
+	while getopts ':hlo:pqtTvx' opt; do
+		case $opt in
+			h)   mode=doc ;;
+			l)   mode=fns ;;
+			o)   options+=( $OPTARG ) ;;
+			p)   mode=fnpath ;;
+			q)   verbosity=-1 ;;
+			v)   verbosity=1 ;;
+			t|x) xtrace=t ;;
+			T)   xtrace=T ;;
+			'?') shu::panic "Invalid option: -${OPTARG}" ;;
+			':') shu::panic "Missing argument to option: -${OPTARG}" ;;
+		esac
+	done
+
+	shift $(( OPTIND - 1 ))
+
+	(( verbosity < 0 )) && {
+		shu:io:drop_output
+		shu::ignpanic -2
+	}
+
+	[[ $mode == fns ]] && {
+		shu:meta:fns ${1:-}
+		return $?
+	}
+
+	(( $# )) || shu::panic 'Expected function name'
+
+	func="${1#shu:}"
+	[[ $func == *:* ]] || func=":${func}"
+	func="shu:${func}"
+	shift
+
+	typeset -f $func &> /dev/null ||
+	shu::panic "Function not found: ${func}"
+
+	(( $#mode && $# )) &&
+	shu::panic 'Too many arguments'
+
+	[[ $mode == fnpath ]] && {
+		shu:meta:fnpath $func
+		return $?
+	}
+
+	[[ $mode == doc ]] && {
+		shu:meta:doc $func
+		return $?
+	}
+
+	for o in $options; do
+		[[ $o == 'SHU_'[A-Z0-9_]##'='* ]] ||
+		shu::panic "Illegal option assignment: ${o}"
+
+		[[ -v ${o%%=*} ]] ||
+		shu::panic "Unrecognised option: ${o%%=*}"
+
+		declare "${o%%=*}=${o#*=}"
+	done
+
+	(( verbosity > 0 )) &&
+	printf >&2 '\033[1m>>> %s %s\033[0m\n' $func "${(j. .)${(q-)@}}"
+
+	(( verbosity >= 0 )) &&
+	shu::ignpanic -1
+
+	start="$( shu:time:epoch -u )"
+	(( $#xtrace )) && typeset -f -$xtrace $func
+	$func "${@}"
+	ret=$?
+	(( $#xtrace )) && typeset -f +$xtrace $func
+	end="$( shu:time:epoch -u )"
+
+	(( verbosity )) && {
+		if (( ret )); then
+			printf >&2 '\033[31m<<< %s (%d µs)\033[0m\n' $ret $(( end - start ))
+		else
+			printf >&2 '\033[32m<<< %s (%d µs)\033[0m\n' $ret $(( end - start ))
+		fi
+	}
+
+	return $ret
+}
+
+this:main "${@}"
+return $?

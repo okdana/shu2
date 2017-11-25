@@ -1,0 +1,88 @@
+# vim: set ft=zsh:
+
+##
+# Returns the current epoch time to various precisions.
+#
+# This function requires the `EPOCHREALTIME` parameter provided by the
+# `zsh/datetime` module.
+#
+# @module time
+#
+# @see zsh/datetime
+#
+# @param -f <num>
+#   (optional) Return the time in floating-point representation with <num>
+#   decimal places. This may be combined with any other option.
+#
+# @param -m
+#   (optional) Return the time in whole milliseconds (ms).
+#
+# @param -n
+#   (optional) Return the time in whole nanoseconds (ns). Note that this level
+#   of precision is not available on all systems, and that attempting to perform
+#   arithmetic on such a value may fail.
+#
+# @param -s
+#   (optional) Return the time in whole seconds (s). This is the default.
+#
+# @param -u
+#   (optional) Return the time in whole microseconds (µs).
+#
+# @return 0
+shu:time:epoch() {
+	local    OPTARG OPTIND opt unit integer remainder places
+	local -a real_time
+
+	while getopts ':f:mnsu' opt; do
+		case $opt in
+			# Floating-point decimal places
+			'f')
+				[[ $OPTARG == ${~SHU_PAT_MATH_INT_POS} ]] ||
+				shu::panic "Invalid precision value: ${OPTARG}"
+
+				places=$OPTARG
+				;;
+			# Unit
+			'm'|'n'|'s'|'u') unit=$opt ;;
+			# Errors
+			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+			*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+		esac
+	done
+
+	shift $(( OPTIND - 1 ))
+
+	(( $# )) && shu::panic 'Too many arguments'
+
+	# We split EPOCHREALTIME here because epochtime behaves strangely sometimes
+	# on some operating systems...
+	real_time=( ${(@s<.>)EPOCHREALTIME} )
+
+	 integer=${real_time[1]}
+	remainder=${real_time[2]}
+
+	case ${unit} in
+		'm')
+			 integer+=${real_time[2]:0:3}
+			remainder=${real_time[2]:3}
+			;;
+		'n')
+			 integer+=${real_time[2]:0:9}
+			remainder=${real_time[2]:9}
+			;;
+		'u')
+			 integer+=${real_time[2]:0:6}
+			remainder=${real_time[2]:6}
+			;;
+	esac
+
+	(( places )) &&
+	(( $#remainder )) && {
+		printf '%s.%s\n' $integer ${(r<$places><0>)remainder}
+		return $?
+	}
+
+	printf '%s\n' $integer
+	return $?
+}

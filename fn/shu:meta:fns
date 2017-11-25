@@ -1,0 +1,33 @@
+# vim: set ft=zsh:
+
+##
+# Returns a list of registered shu functions.
+#
+# @module meta
+#
+# @param $1 (optional) The name of a module to restrict the matches to.
+#
+# @return 0 if matches were found, >0 otherwise.
+shu:meta:fns() {
+	local -a fns
+
+	[[ ${1:-} == -- ]] && shift
+
+	(( $# > 1 )) && shu::panic 'Too many arguments'
+
+	if [[ ${1:-} == (core|:) ]]; then
+		1=:
+	elif (( $# )); then
+		[[ ${1:-xyz} == [a-z][a-z0-9]## ]] ||
+		shu::panic "Invalid module name: ${1}"
+
+		1="${1}:"
+	fi
+
+	fns=( ${(M)${(f)"$( typeset -f + )"}:#shu:${1:-}*} )
+
+	(( $#fns )) || return 1
+
+	printf '%s\n' $fns
+	return 0
+}

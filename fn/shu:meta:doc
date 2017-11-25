@@ -1,0 +1,49 @@
+# vim: set ft=zsh:
+
+##
+# Parses the documentation out of a shu source file.
+#
+# shu documentation blocks begin at the first line consisting of `##` and end at
+# the first line that doesn't begin with a `#`. Hard tabs must **not** be used
+# within usage-help blocks.
+#
+# @module meta
+#
+# @param $1
+#   (optional) The path to the source file. If the path begins with `shu:` and
+#   no such file exists in the CWD, it is interpreted as the name of a shu
+#   function whose definition file should be read. If this argument is not
+#   provided, the function will try to read from `stdin` instead.
+#
+# @return 0 on success, >0 on error.
+shu:meta:doc() {
+	local doc
+
+	[[ ${1:-} == -- ]] && shift
+
+	(( $# > 1 )) && shu::panic 'Too many arguments'
+
+	[[ ${1:-} == shu:* ]] &&
+	[[ ! -e $1 ]] && {
+		1=$( shu:meta:fnpath $1 )
+		(( $#1 )) || return 1
+	}
+
+	1=${1//.zwc\//\/}
+
+	doc=$(
+		sed -nE '
+			/^[[:space:]]*##$/,/^[[:space:]]*([^#]|$)/p;
+		' ${1:-} |
+		sed -E '
+			1d;
+			/^[[:space:]]*[^#]/d;
+			s/^[[:space:]]*#( |$)//;
+		'
+	)
+
+	(( $#doc )) || return 1
+
+	printf '%s\n' $doc
+	return $?
+}

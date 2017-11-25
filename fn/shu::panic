@@ -1,0 +1,90 @@
+# vim: set ft=zsh:
+
+##
+# Triggers a panic.
+#
+# Panics are intended for 'unrecoverable' logic errors only. They are **not** a
+# replacement for exceptions (which shu doesn't provide). That said, panics
+# *can* be ignored — please refer to `shu::ignpanic` for details.
+#
+# This function uses `SHU_FD_STDERR` to bypass any redirection of `stderr` which
+# might have taken place since the script was started.
+#
+# Panics are made to propagate up sub-shells by sending `SIGUSR2` to the shell.
+#
+# @module core
+#
+# @see shu::ignpanic
+#
+# @param -q (optional) Suppress trace-back.
+# @param -v (optional) Show trace-back. This is the default.
+#
+# @param $1 ...
+#   (optional) Zero or more strings to use as an error message. Multiple strings
+#   are concatenated by spaces prior to being passed to `shu::pputs`. Empty
+#   arguments are **not** elided.
+#
+# @return SHU_EX_PANIC
+shu::panic() {
+	local    i identifier line_no trace_line caller
+	local -a trace
+
+	# Don't bother with all of this if we're ignoring panics + messages
+	(( SHU_IGN_PANIC < 2 )) && {
+		# Build trace-back
+		(( $+functrace && $#functrace )) && {
+			for i in {1..$#functrace}; do
+				identifier=${functrace[i]%:*}
+				   line_no=${functrace[i]##*:}
+
+				(( i == $#functrace )) &&
+				[[ ${identifier} == $SHU_ARGZERO ]] &&
+				identifier="{${identifier}}"
+
+				trace_line="${identifier} @ ${line_no}"
+
+				# Only add file-level info if requested
+				(( SHU_PANIC_TRACE > 1 )) && {
+					identifier=${funcfiletrace[i]%:*}
+					   line_no=${funcfiletrace[i]##*:}
+					trace_line="${trace_line} (.../${identifier:t} @ ${line_no})"
+				}
+
+				trace+=( $trace_line )
+			done
+
+			# Normalise caller name
+			caller=${trace[1]%% @ *}
+			[[ $caller == '{'*'/'* ]] && caller="{${caller##*/}"
+		}
+
+		shu::pputs >&$SHU_FD_STDERR "<${caller:-?}>" 'Panic!' $@
+
+		(( SHU_PANIC_TRACE )) &&
+		(( $#trace )) && {
+			shu::pputs >&$SHU_FD_STDERR \
+				"<${caller:-?}>" 'Trace-back (most recent call on top):'
+
+			for i in {1..$#trace}; do
+				shu::putf >&$SHU_FD_STDERR \
+					'%3s. %s\n' $(( $#trace + 1 - i )) $trace[i]
+			done
+		}
+	}
+
+	(( SHU_IGN_PANIC > 0 )) && {
+		# If we're in a sub-shell, we can simply exit
+		(( ZSH_SUBSHELL )) && exit SHU_EX_PANIC
+
+		# Otherwise, if we need to, set an exit trap to force the calling
+		# function to immediately return
+		(( $#funcstack > 2 )) &&
+		trap 'return SHU_EX_PANIC' EXIT
+
+		return SHU_EX_PANIC
+	}
+
+	# Propagate the panic up sub-shells
+	kill -USR2 $$
+	exit SHU_EX_PANIC
+}

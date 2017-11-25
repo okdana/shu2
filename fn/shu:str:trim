@@ -1,0 +1,80 @@
+# vim: set ft=zsh:
+
+##
+# Trims characters from a string.
+#
+# @module str
+#
+# @param -a
+#   (optional) Trim on both sides of the input. This is the default.
+#
+# @param -c <chars>
+#   (optional) The characters to trim. May be supplied more than once. If not
+#   supplied, or if an empty string is supplied, the standard white-space
+#   characters are used.
+#
+# @param -l
+#   (optional) Trim on the left side of the input only.
+#
+# @param -r
+#   (optional) Trim on the right side of the input only.
+#
+# @param $1
+#   (optional) Zero or more input strings to trim. If none are provided, none
+#   will be trimmed. If more than one is provided, each result will be printed
+#   on a separate line. Empty arguments are **not** elided.
+#
+# @return 0 on success, >0 on error.
+shu:str:trim() {
+	local OPTARG OPTIND opt glob c bracket hyphen mode=a
+	local -a chars result
+
+	while getopts ':ac:lr' opt; do
+		case $opt in
+			# Side mode
+			'a'|'l'|'r') mode=$opt ;;
+			# Character(s) to trim/collapse
+			'c')
+				if (( $#OPTARG )); then
+					for c in ${(s<>u)OPTARG}; do
+						if [[ $c == '-' ]]; then
+							hyphen='-'
+						elif [[ $c == ']' ]]; then
+							bracket=']'
+						else
+							chars+=( $c )
+						fi
+					done
+				else
+					chars=( )
+				fi
+				;;
+			# Errors
+			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+			*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+		esac
+	done
+
+	shift $(( OPTIND - 1 ))
+
+	(( $# )) || return 0
+
+	chars=( $bracket $chars $hyphen )
+
+	if (( $#chars )); then
+		glob="[${(j<>u)chars}]##"
+	else
+		glob=$'( |\f|\t|\n|\r|\v)##'
+	fi
+
+	result=( "${@}" )
+
+	[[ $mode == [al] ]] &&
+	result=( "${(@)result//#${~glob}/}" )
+	[[ $mode == [ar] ]] &&
+	result=( "${(@)result//%${~glob}/}" )
+
+	printf '%s\n' "${result[@]}"
+	return $?
+}

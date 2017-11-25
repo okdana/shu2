@@ -1,0 +1,56 @@
+# vim: set ft=zsh:
+
+##
+# Compares two version-number strings.
+#
+# Each `.`- or `-`-separated segment in each of the strings is zero-padded to 16
+# characters (empty segments are treated as 0), then the entire normalised
+# strings are compared lexicographically. This method has two significant
+# limitations: It can't reliably compare strings with segments greater than 16
+# characters in length, and it can't reliably compare segments like `beta2` vs
+# `beta10`. @todo These limitations should be corrected some day.
+#
+# @module str
+#
+# @param $1 The first version number.
+# @param $2 A `test`-style operator (`lt`, `ne`, &c.), with or without a hyphen.
+# @param $3 The second version number.
+#
+# @return 0 if comparison is true, >0 if not.
+shu:str:vercmp() {
+	local op
+	local -a ver1 ver2
+
+	[[ ${1:-} == -- ]] && shift
+
+	(( $# < 3 )) && shu::panic 'Too few arguments'
+	(( $# > 3 )) && shu::panic 'Too few arguments'
+
+	case ${2#-} in
+		eq|ge|gt|le|lt|ne) op=${2#-} ;;
+		*) shu::panic "Invalid operator: ${2}"
+	esac
+
+	ver1=( "${(@s<.>)${1//-/.}}" )
+	ver2=( "${(@s<.>)${3//-/.}}" )
+
+	if (( $#ver1 < $#ver2 )); then
+		ver1=( "${(@)ver1}" "${(@)"${(@)ver2:$#ver1 - $#ver2}"//*/0}" )
+	elif (( $#ver1 > $#ver2 )); then
+		ver2=( "${(@)ver2}" "${(@)"${(@)ver1:$#ver2 - $#ver1}"//*/0}" )
+	fi
+
+	ver1=( "${(@l<16><0>)ver1}" )
+	ver2=( "${(@l<16><0>)ver2}" )
+
+	case $op in
+		eq) [[ $ver1 == $ver2 ]];                         return $? ;;
+		ge) [[ $ver1 >  $ver2 ]] || [[ $ver1 == $ver2 ]]; return $? ;;
+		gt) [[ $ver1 >  $ver2 ]];                         return $? ;;
+		le) [[ $ver1 <  $ver2 ]] || [[ $ver1 == $ver2 ]]; return $? ;;
+		lt) [[ $ver1 <  $ver2 ]];                         return $? ;;
+		ne) [[ $ver1 != $ver2 ]];                         return $? ;;
+	esac
+
+	shu::panic
+}

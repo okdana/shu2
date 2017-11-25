@@ -1,0 +1,82 @@
+# vim: set ft=zsh:
+
+##
+# Prints or consumes standard input.
+#
+# This function is meant to be used for variable assignment à la `read`, except
+# that instead of working on delimited 'lines', it consumes all input at once
+# and in a 'raw' manner. It can also be used as a simple built-in alternative to
+# `cat`. It requires the `sysread` built-in provided by the `zsh/system` module.
+#
+# @module io
+#
+# @see zsh/system
+# @see read(2)
+#
+# @param -n, +n
+#   (optional) Strip trailing new lines from the result when assigning with
+#   `+s` (similar to `read`).
+#
+# @param +s <name>
+#   (optional) Assign the result to a pre-defined scalar with the name <name>.
+#   By default, trailing new lines are not stripped from the result (see `+n`).
+#   If this option is not provided, standard input is simply printed back to
+#   standard output (similar to `cat`).
+#
+# @return 0 on success, >0 on error.
+shu:io:read() {
+	local    OPTARG OPTIND __opt __strip_nl __to_scalar __ret
+	local -a __tmp
+
+	while getopts ':ns:' __opt; do
+		case $__opt in
+			# Strip new-lines
+			'n'|'+n')
+				__strip_nl=1
+				;;
+			# Assign result to scalar
+			'+s')
+				(( ${(P)+OPTARG} )) ||
+				shu::panic "No such scalar: ${OPTARG}"
+				[[ "${(Pt)OPTARG}-" == scalar-* ]] ||
+				shu::panic "No such scalar: ${OPTARG}"
+
+				__to_scalar=$OPTARG
+				;;
+			# Errors
+			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+			*)   shu::panic "Invalid option: ${(l:2::-:)_opt}" ;;
+		esac
+	done
+
+	shift $(( OPTIND - 1 ))
+
+	(( $# > 1 )) && shu::panic 'Too many arguments'
+
+	[[ -n $__to_scalar ]] || {
+		(( __strip_nl )) && shu::panic 'Option +s required with +n'
+
+		while builtin sysread -s 65535 -o1; do
+			__ret=$?
+			(( __ret == 5 )) && __ret=0
+		done
+		return __ret
+	}
+
+	# This is very sensitive to the precise method we use to store each pass;
+	# seemingly trivial changes (such as using __tmp[idx++] instead) can have
+	# significant performance costs!
+	while builtin sysread -s 65535 '__tmp[(#__tmp + 1)]'; do
+		__ret=$?
+		(( __ret == 5 )) && ret=0
+	done
+
+	if (( __strip_nl )); then
+		: ${(P)__to_scalar::=${${(j<>)__tmp}%%$'\n'##}}
+	else
+		: ${(P)__to_scalar::=${(j<>)__tmp}}
+	fi
+
+	return __ret
+}

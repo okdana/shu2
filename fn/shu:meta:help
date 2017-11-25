@@ -1,0 +1,46 @@
+# vim: set ft=zsh:
+
+##
+# Parses the usage help out of a shu-script source file.
+#
+# Usage-help blocks begin at the first line prefixed by `#?:` and end at the
+# first line not prefixed by `#?:`. Hard tabs must **not** be used within
+# usage-help blocks.
+#
+# @module meta
+#
+# @param $1
+#   (optional) The path to the source file. If the path does not contain a `/`
+#   and no such file exists in the CWD, a PATH look-up is performed. If this
+#   argument is not provided, the function will try to read from `stdin`
+#   instead.
+#
+# @return 0 on success, >0 on error.
+shu:meta:help() {
+	local help
+
+	[[ ${1:-} == -- ]] && shift
+
+	(( $# > 1 )) && shu::panic 'Too many arguments'
+
+	[[ ${1:-/} != */* ]] &&
+	[[ ! -e ${1:-} ]] && {
+		1==$1 2> /dev/null
+		(( $#1 )) || return 1
+	}
+
+	help=$(
+		sed -nE '
+			/^[[:space:]]*#\?:( |$)/,/^[[:space:]]*([^#]|$)/p;
+		' ${1:-} |
+		sed -E '
+			/^[[:space:]]*#\?:( |$)/!d;
+			s/^[[:space:]]*#\?:( |$)//;
+		'
+	)
+
+	(( $#help )) || return 1
+
+	printf '%s\n' $help
+	return $?
+}

@@ -1,0 +1,80 @@
+# vim: set ft=zsh:
+
+##
+# Prints a formatted string prefixed by the name of the calling script.
+#
+# Aside from the addition of the prefix, this function behaves identically to
+# `shu::putf`.
+#
+# @module core
+#
+# @see printf
+# @see shu::putf
+# @see shu::puts
+#
+# @param -a, -n, -q, -qq, -v, -vv, -vvv (optional) See `shu::puts`.
+#
+# @param $1
+#   A `printf` format string (e.g., `Hello, %s!\n`). The format string is
+#   prefixed by the name of the consuming script followed by a colon and a
+#   space, so that, for example, the format string `Hello, %s` becomes
+#   `myscript: Hello, %s`. The script name is injected directly into the format
+#   string (as opposed to adding a format specifier and passing the script name
+#   as an argument) so that it doesn't cause strange behaviour when the number
+#   of format specifiers differs from the number of arguments. If this argument
+#   is not supplied, an empty string will be substituted (this differs from
+#   `printf`).
+#
+# @param $2 ...
+#   (optional) Zero or more strings to treat as arguments to the format string.
+#   Refer to the `printf` documentation regarding the expected behaviour when
+#   the number of format specifiers differs from the number of arguments. Empty
+#   arguments are **not** elided.
+#
+# @return According to `printf`.
+shu::pputf() {
+	case ${1:-} in
+		--)
+			;;
+		-a)
+			shift
+			;;
+		-n)
+			(( SHU_VERBOSITY == SHU_VERBOSITY_NORMAL )) || return 0
+			shift
+			;;
+		-q)
+			(( SHU_VERBOSITY <= SHU_VERBOSITY_QUIET )) || return 0
+			shift
+			;;
+		-qq)
+			(( SHU_VERBOSITY <= SHU_VERBOSITY_VERY_QUIET )) || return 0
+			shift
+			;;
+		-v)
+			(( SHU_VERBOSITY >= SHU_VERBOSITY_VERBOSE )) || return 0
+			shift
+			;;
+		-vv)
+			(( SHU_VERBOSITY >= SHU_VERBOSITY_VERY_VERBOSE )) || return 0
+			shift
+			;;
+		-vvv)
+			(( SHU_VERBOSITY >= SHU_VERBOSITY_DEBUG )) || return 0
+			shift
+			;;
+		[+-]*)
+			shu::panic "Invalid option: ${1}"
+			;;
+		*)
+			(( SHU_VERBOSITY < SHU_VERBOSITY_NORMAL )) && return 0
+			;;
+	esac
+
+	[[ ${1:-} == -- ]] && shift
+
+	(( $# )) || 1=''
+
+	printf -- "${${${SHU_ARGZERO_TAIL}//\%/%%}//\\/\\\\}: ${1}" "${@:2}"
+	return $?
+}

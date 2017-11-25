@@ -1,0 +1,90 @@
+# vim: set ft=zsh:
+
+##
+# Prints a new-line-terminated string.
+#
+# By default, output is suppressed if the current verbosity level is quiet. This
+# behaviour can be controlled with the verbosity options described below.
+#
+# A note about the options to this function: For reasons of performance and API
+# simplicity, only one option (or option cluster) is considered, and it must be
+# the first argument. Constructions like `shu::puts -va test` and
+# `shu::puts -v -v test` will not behave as expected.
+#
+# @module core
+#
+# @see printf
+#
+# @param -a
+#   (optional) Always print, regardless of verbosity level.
+#
+# @param -n
+#   (optional) Print only if verbosity level is normal or higher.
+#
+# @param -q
+#   (optional) Print only if verbosity level is quiet or lower.
+#
+# @param -qq
+#   (optional) Print only if verbosity level is very quiet or lower.
+#
+# @param -v
+#   (optional) Print only if verbosity level is verbose or higher.
+#
+# @param -vv
+#   (optional) Print only if verbosity level is very verbose or higher. This
+#   option must be supplied exactly as `-vv` — `-v -v` is not equivalent.
+#
+# @param -vvv
+#   (optional) Print only if verbosity level is debug. This option must be
+#   supplied exactly as `-vvv` — `-v -v -v` is not equivalent.
+#
+# @param $1 ...
+#   (optional) Zero or more strings to print. Multiple strings are concatenated
+#   by spaces prior to being passed to `printf`. Empty arguments are **not**
+#   elided.
+#
+# @return According to `printf`.
+shu::puts() {
+	case ${1:-} in
+		--)
+			;;
+		-a)
+			shift
+			;;
+		-n)
+			(( SHU_VERBOSITY == SHU_VERBOSITY_NORMAL )) || return 0
+			shift
+			;;
+		-q)
+			(( SHU_VERBOSITY <= SHU_VERBOSITY_QUIET )) || return 0
+			shift
+			;;
+		-qq)
+			(( SHU_VERBOSITY <= SHU_VERBOSITY_VERY_QUIET )) || return 0
+			shift
+			;;
+		-v)
+			(( SHU_VERBOSITY >= SHU_VERBOSITY_VERBOSE )) || return 0
+			shift
+			;;
+		-vv)
+			(( SHU_VERBOSITY >= SHU_VERBOSITY_VERY_VERBOSE )) || return 0
+			shift
+			;;
+		-vvv)
+			(( SHU_VERBOSITY >= SHU_VERBOSITY_DEBUG )) || return 0
+			shift
+			;;
+		[+-]*)
+			shu::panic "Invalid option: ${1}"
+			;;
+		*)
+			(( SHU_VERBOSITY < SHU_VERBOSITY_NORMAL )) && return 0
+			;;
+	esac
+
+	[[ ${1:-} == -- ]] && shift
+
+	print -r -- "${(j< >)@}"
+	return $?
+}

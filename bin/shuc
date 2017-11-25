@@ -1,0 +1,83 @@
+#!/usr/bin/env zsh
+
+##
+# This script (re)compiles shu2.
+#
+# Usage example:
+#   % shuc -q
+
+emulate -R zsh \
+	-o no_aliases \
+	-o extended_glob \
+	-o no_function_argzero \
+	-o local_traps \
+	-o null_glob \
+	-o pipe_fail \
+	-o no_unset \
+	-o warn_create_global
+
+this:help() {
+	printf '%s: Compile shu2\n' ${0:t}
+	printf '\n'
+	printf 'usage: %s [-q]\n' ${0:t}
+	return 0
+}
+
+this:main() {
+	local    OPTARG OPTIND opt
+	local    quiet shu2 lib lib_zwc fn fn_zwc
+	local -a fn_fns delete
+
+	while getopts ':qv' opt; do
+		case $opt in
+			q) quiet=1 ;;
+			v) : ;;
+			*) this:help >&2; return 1 ;;
+		esac
+	done
+
+	shift $(( OPTIND - 1 ))
+
+	(( $# )) && {
+		this:help >&2
+		return 1
+	}
+
+	shu2="${0:h}/.."
+	 lib="${shu2}/lib"
+	  fn="${shu2}/fn"
+
+	[[ -f $lib ]] || {
+		printf '%s: No such file: %s\n' ${0:t} $lib
+		return 1
+	}
+	[[ -d $fn ]] || {
+		printf '%s: No such directory: %s\n' ${0:t} $lib
+		return 1
+	}
+
+	lib_zwc="${lib}.zwc"
+	 fn_zwc="${shu2}/fn.zwc"
+	 fn_fns=( "${fn}/"*:*(.) )
+
+	(( $#fn_fns )) || {
+		printf '%s: No function files found in directory: %s\n' ${0:t} $1
+		return 1
+	}
+
+	delete=( $lib_zwc $fn_zwc "${fn}/"*.zwc(.) )
+	(( $#delete )) && rm -f $delete
+
+	zcompile -U  $lib_zwc $lib    || return $?
+	zcompile -Uz $fn_zwc  $fn_fns || return $?
+
+	(( $#quiet )) || {
+		printf '%s:\n' $fn_zwc
+		zcompile -t $fn_zwc
+		return $?
+	}
+	return 0
+}
+
+this:main "${@}"
+return $?

@@ -1,0 +1,88 @@
+# vim: set ft=zsh:
+
+##
+# Converts a duration given in (milli/micro)seconds to hh:mm:ss format.
+#
+# @module time
+#
+# @param -f <num>
+#   Output the time in fractional seconds with <num> decimal places. For
+#   example, `-f3` produces the time to the nearest thousandth. By default, if
+#   the input isn't divisible into whole seconds, the output will contain
+#   fractional seconds with as many decimal places as were present in the input;
+#   use `-f0` to suppress this.
+#
+# @param -m
+#   Interpret the input as a duration in milliseconds (ms).
+#
+# @param -s
+#   Interpret the input as a duration in seconds (s). This is the default.
+#
+# @param -u
+#   Interpret the input as a duration in microseconds (µs).
+#
+# @param $1
+#   The input duration.
+#
+# @return 0
+shu:time:fmt_duration() {
+	local OPTIND OPTARG OPTERR opt ss places
+	local -F divisor=1.0 input
+
+	while getopts ':f:msu' opt; do
+		case $opt in
+			# Output fractional seconds
+			'f')
+				[[ $OPTARG == ${~SHU_PAT_ASCII_DIGIT} ]] ||
+				shu::panic "Invalid precision value: ${OPTARG}"
+
+				places=$OPTARG
+				;;
+			# Millisecond input
+			'm')
+				divisor=1000.0
+				;;
+			# Second input
+			's')
+				divisor=1.0
+				;;
+			# Microsecond input
+			'u')
+				divisor=1_000_000.0
+				;;
+			# Error
+			'?') shu::panic "Invalid option: -${OPTARG}" ;;
+			':') shu::panic "Missing argument to option: -${OPTARG}" ;;
+		esac
+	done
+
+	shift $(( OPTIND - 1 ))
+
+	(( $# < 1 )) && shu::panic 'Too few arguments'
+	(( $# > 1 )) && shu::panic 'Too many arguments'
+
+	[[ $1 == ${~SHU_PAT_MATH_NUM_POS} ]] ||
+	shu::panic "Invalid argument: ${1}"
+
+	input=$(( $1 / divisor ))
+
+	[[ $input == *.* ]] && {
+		ss=".${input##*.}"
+
+		if [[ -n $places ]] && (( places == 0 )); then
+			ss=''
+		elif [[ -n $places ]]; then
+			ss=".${(r.$places..0.)${ss:1:$places}}"
+		else
+			ss="${ss%%0##}"
+			[[ $ss == . ]] && ss=''
+		fi
+	}
+
+	printf '%02d:%02d:%02d%s\n' \
+		$(( input / 3600 )) \
+		$(( input / 60 % 60 )) \
+		$(( input % 60 )) \
+		$ss
+	return $?
+}

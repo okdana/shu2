@@ -1,0 +1,81 @@
+# vim: set ft=zsh:
+
+##
+# Concatenates files or prints from `stdin`.
+#
+# This function is provided to avoid having to write code like the following,
+# which was common in shu v1 scripts:
+#
+# ```
+# [[ -n "${debug}" ]] &&
+# cat <<- EOF
+#   my
+#   multi-line
+#   debug
+#   text
+# EOF
+# ```
+#
+# @module core
+#
+# @see cat
+# @see shu::puts
+# @see shu:io:read
+#
+# @param -a, -n, -q, -qq, -v, -vv, -vvv (optional) See `shu::puts`.
+#
+# @param $1 ...
+#   (optional) Zero or more file names to pass to `cat`. (Note: POSIX specifies
+#   that `stdin` is ignored if `cat` is given any file operands.) As an
+#   optimisation, if no file names are provided, `shu:io:read` is used instead
+#   of `cat`.
+#
+# @return According to `shu:io:read` or `cat`.
+shu::cat() {
+	case ${1:-} in
+		--)
+			;;
+		-a)
+			shift
+			;;
+		-n)
+			(( SHU_VERBOSITY == SHU_VERBOSITY_NORMAL )) || return 0
+			shift
+			;;
+		-q)
+			(( SHU_VERBOSITY <= SHU_VERBOSITY_QUIET )) || return 0
+			shift
+			;;
+		-qq)
+			(( SHU_VERBOSITY <= SHU_VERBOSITY_VERY_QUIET )) || return 0
+			shift
+			;;
+		-v)
+			(( SHU_VERBOSITY >= SHU_VERBOSITY_VERBOSE )) || return 0
+			shift
+			;;
+		-vv)
+			(( SHU_VERBOSITY >= SHU_VERBOSITY_VERY_VERBOSE )) || return 0
+			shift
+			;;
+		-vvv)
+			(( SHU_VERBOSITY >= SHU_VERBOSITY_DEBUG )) || return 0
+			shift
+			;;
+		[+-]*)
+			shu::panic "Invalid option: ${1}"
+			;;
+		*)
+			(( SHU_VERBOSITY < SHU_VERBOSITY_NORMAL )) && return 0
+			;;
+	esac
+
+	[[ ${1:-} == -- ]] && shift
+
+	[[ ${(j< >)@:--} == - ]] && {
+		shu:io:read
+		return $?
+	}
+	cat -- "${@}"
+	return $?
+}

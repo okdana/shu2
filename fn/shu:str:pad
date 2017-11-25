@@ -1,0 +1,98 @@
+# vim: set ft=zsh:
+
+##
+# Pads a string to the specified length.
+#
+# @module str
+#
+# @param -c <chars>
+#   (optional) Character(s) to pad the string with. May be a single character or
+#   a multi-character string. May also be an empty string, in which case the
+#   appropriate character will be selected based on the input — `0` if it
+#   appears to be a number, ` ` (space) if not.
+#
+# @param -C
+#   (optional) Auto-selects padding character. Equivalent to `-c ''`. This is
+#   the default.
+#
+# @param -l
+#   (optional) Pads to the left side of the input. This is the default.
+#
+# @param -r
+#   (optional) Pads to the right side of the input.
+#
+# @param -t
+#   (optional) Truncates the input if it is longer than the pad length.
+#
+# @param -T
+#   (optional) Returns the input as-is if it is longer than the pad length
+#   (i.e., it is never truncated). This is the default.
+#
+# @param $1
+#   The length to pad the string to.
+#
+# @param $2 ...
+#   (optional) Zero or more input strings to pad. If none are provided, none
+#   will be padded. If more than one is provided, each result will be printed on
+#   a separate line. Empty arguments are **not** elided.
+#
+# @return 0 on success, >0 on error.
+shu:str:pad() {
+	local OPTIND OPTARG OPTERR opt chars truncate side len s c
+
+	while getopts ':c:ClrtT' opt; do
+		case $opt in
+			# Character(s) to pad with
+			'c') chars=$OPTARG ;;
+			# Auto-select pad character
+			'C') chars='' ;;
+			# Left-pad
+			'l') side=l ;;
+			# Right-pad
+			'r') side=r ;;
+			# Truncate if input is longer than length
+			't') truncate=1 ;;
+			# Never truncate
+			'T') truncate=0 ;;
+			# Error
+			'?') shu::panic "Invalid option: -${OPTARG}" ;;
+			':') shu::panic "Missing argument to option: -${OPTARG}" ;;
+		esac
+	done
+
+	shift $(( OPTIND - 1 ))
+
+	(( $# )) || shu::panic 'Too few arguments'
+
+	len=$1
+	shift
+
+	[[ $len == [0-9]## ]] || shu::panic "Invalid length: ${len}"
+
+	(( $#len )) && len=$(( 10#$len ))
+
+	for s in "${@}"; do
+		(( ! $#truncate )) &&
+		(( $#s >= len   )) && {
+			printf '%s\n' $s
+			continue
+		}
+
+		if (( $#chars )); then
+			c=$chars
+		else
+			if [[ $s == ${~SHU_PAT_MATH_NUM} ]]; then
+				c=0
+			else
+				c=' '
+			fi
+		fi
+
+		if [[ $side == r ]]; then
+			printf '%s\n' "${(pr<$len><$c>)s}"
+		else
+			printf '%s\n' "${(pl<$len><$c>)s}"
+		fi
+	done
+	return $?
+}

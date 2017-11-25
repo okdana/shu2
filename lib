@@ -1,0 +1,264 @@
+# vim: set ft=zsh:
+
+##
+# shu2 — General-purpose shell utility library for zsh scripts
+#
+# This file is responsible for boot-strapping the library. It should be sourced
+# at the top of a consuming script, before any other code. Consumers should NOT
+# attempt to load shu functions independently of the boot-strap file, since they
+# are designed to operate only under the conditions produced by the
+# boot-strapping process.
+#
+# Refer to the definition files under fn/ for function documentation.
+
+##
+# Shell options, modules
+{
+	# Reset options to those marked `<Z>` in `zshoptions(1)`, plus...
+	emulate -R zsh \
+		-o no_aliases \
+		-o extended_glob \
+		-o local_traps \
+		-o null_glob \
+		-o pipe_fail \
+		-o no_unset \
+		-o warn_create_global
+
+	# Always enable 'native' arithmetic functions like abs()
+	zmodload zsh/mathfunc ||
+	print -r >&2 'WARNING: Failed to load zsh/mathfunc module!'
+
+	# Register some other modules for auto-loading (some of these are probably
+	# already taken care of, but the only one we'll *trust* is zsh/parameter)
+	zmodload -Fa zsh/datetime \
+		+b:strftime \
+		+p:EPOCHREALTIME \
+		+p:EPOCHSECONDS \
+		+p:epochtime
+	zmodload -Fa zsh/files \
+		+b:zf_chgrp \
+		+b:zf_chown \
+		+b:zf_ln \
+		+b:zf_mkdir \
+		+b:zf_mv \
+		+b:zf_rm \
+		+b:zf_rmdir \
+		+b:zf_sync
+	zmodload -Fa zsh/stat \
+		+b:zstat
+	zmodload -Fa zsh/zselect \
+		+b:zselect
+	zmodload -Fa zsh/system \
+		+b:syserror \
+		+b:sysopen \
+		+b:sysread \
+		+b:sysseek \
+		+b:syswrite
+
+	# Use high-precision session timer
+	typeset -F SECONDS
+}
+
+##
+# Constants
+{
+	# Process start time (set as early as possible)
+	declare -gr SHU_SECONDS_START=$SECONDS
+
+	# Exit/return codes (many of these are derived from `sysexits(3)`)
+	declare -gr SHU_EX_OK=0
+	declare -gr SHU_EX_ERR=1
+	declare -gr SHU_EX_USAGE=64
+	declare -gr SHU_EX_DATAERR=65
+	declare -gr SHU_EX_NOINPUT=66
+	declare -gr SHU_EX_NOUSER=67
+	declare -gr SHU_EX_NOHOST=68
+	declare -gr SHU_EX_UNAVAILABLE=69
+	declare -gr SHU_EX_SOFTWARE=70
+	declare -gr SHU_EX_OSERR=71
+	declare -gr SHU_EX_OSFILE=72
+	declare -gr SHU_EX_CANTCREAT=73
+	declare -gr SHU_EX_IOERR=74
+	declare -gr SHU_EX_TEMPFAIL=75
+	declare -gr SHU_EX_PROTOCOL=76
+	declare -gr SHU_EX_NOPERM=77
+	declare -gr SHU_EX_CONFIG=78
+	declare -gr SHU_EX_PANIC=199
+
+	# Verbosity levels
+	declare -gr SHU_VERBOSITY_VERY_QUIET=-2
+	declare -gr SHU_VERBOSITY_QUIET=-1
+	declare -gr SHU_VERBOSITY_NORMAL=0
+	declare -gr SHU_VERBOSITY_VERBOSE=1
+	declare -gr SHU_VERBOSITY_VERY_VERBOSE=2
+	declare -gr SHU_VERBOSITY_DEBUG=3
+
+	# Glob patterns (use like `[[ $foo == $~SHU_PAT_MATH_INT ]]`)
+	declare -gr   SHU_PAT_MATH_INT_NEG='-[0-9][0-9_]#'
+	declare -gr   SHU_PAT_MATH_INT_POS='(|+)[0-9][0-9_]#'
+	declare -gr       SHU_PAT_MATH_INT='(|[+-])[0-9][0-9_]#'
+	declare -gr SHU_PAT_MATH_FLOAT_NEG='(|-)((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)'
+	declare -gr SHU_PAT_MATH_FLOAT_POS='(|+)((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)'
+	declare -gr     SHU_PAT_MATH_FLOAT='(|[+-])((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)'
+	declare -gr   SHU_PAT_MATH_NUM_NEG="(${SHU_PAT_MATH_INT_NEG}|${SHU_PAT_MATH_FLOAT_NEG})"
+	declare -gr   SHU_PAT_MATH_NUM_POS="(${SHU_PAT_MATH_INT_POS}|${SHU_PAT_MATH_FLOAT_POS})"
+	declare -gr       SHU_PAT_MATH_NUM="(${SHU_PAT_MATH_INT}|${SHU_PAT_MATH_FLOAT})"
+	declare -gr    SHU_PAT_ASCII_ALNUM='[A-Za-z0-9]##'
+	declare -gr    SHU_PAT_ASCII_ALPHA='[A-Za-z]##'
+	declare -gr    SHU_PAT_ASCII_CNTRL=$'[\000-\037\177]##'
+	declare -gr    SHU_PAT_ASCII_DIGIT='[0-9]##'
+	declare -gr    SHU_PAT_ASCII_LOWER='[a-z]##'
+	declare -gr    SHU_PAT_ASCII_PUNCT="[]!\"#\$%&'()*+,./:;<=>?@[\\^_\`{|}~,-]##"
+	declare -gr    SHU_PAT_ASCII_SPACE=$'[ \n\r\t\013\014]##'
+	declare -gr    SHU_PAT_ASCII_UPPER='[A-Z]##'
+	declare -gr     SHU_PAT_ASCII_WORD='[A-Za-z0-9_]##'
+	declare -gr   SHU_PAT_ASCII_XDIGIT='[0-9A-Fa-f]##'
+
+	# Time formats (note: there's no portable way to represent RFC 3339 or
+	# ISO-8601's 'extended' format using just a format string)
+	declare -gr   SHU_TIME_FMT_STD_A='%F %T'
+	declare -gr   SHU_TIME_FMT_STD_B='%a %F %T'
+	declare -gr   SHU_TIME_FMT_STD_C='%a %F %T %Z'
+	declare -gr SHU_TIME_FMT_ISO8601='%Y%m%dT%H%M%S%z'
+	declare -gr  SHU_TIME_FMT_RFC822='%a, %d %b %y %T %z'
+	declare -gr  SHU_TIME_FMT_RFC850='%A, %d-%b-%y %T %Z'
+	declare -gr     SHU_TIME_FMT_RSS='%a, %d %b %Y %T %z'
+	declare -gr  SHU_TIME_FMT_COOKIE='%A, %d-%b-%Y %T %Z'
+
+	# Determine up-front whether we're on a TTY, so we can decide things like
+	# colouration and interactivity later
+	if [[ -t 0 ]] || [[ -t 1 ]] || [[ -t 2 ]]; then
+		declare -gr SHU_HAS_TTY=1
+	else
+		declare -gr SHU_HAS_TTY=0
+	fi
+
+	# Emulate ZSH_ARGZERO for versions of zsh that don't have it; this way we
+	# can leave function_argzero enabled without sacrificing access to the name
+	# of the actual script
+	() {
+		setopt local_options posix_argzero
+		declare -gr      SHU_ARGZERO=$0
+		declare -gr  SHU_ARGZERO_ABS=${0:a}
+		declare -gr SHU_ARGZERO_TAIL=${0:t}
+	}
+
+	# Absolute path to the fn digest file
+	declare -gr SHU_FN_DIGEST="${${${(%):-%N}:a}:h}/fn.zwc"
+}
+
+##
+# 'Safe' global parameters
+{
+	# Back-ups of standard FDs — see below
+	declare -g SHU_FD_STDOUT=1
+	declare -g SHU_FD_STDERR=2
+
+	# If >0, `shu::panic` won't kill the script. If >1, `shu::panic` will
+	# suppress the error message as well. See `shu::ignpanic`
+	declare -g SHU_IGN_PANIC=0
+
+	# Output verbosity level
+	declare -g SHU_VERBOSITY=$SHU_VERBOSITY_NORMAL
+
+	# Panic trace-back verbosity level
+	if [[ ${SHU_PANIC_TRACE:-} == [0-9]## ]]; then
+		declare -gx SHU_PANIC_TRACE=$SHU_PANIC_TRACE
+	else
+		declare -gx SHU_PANIC_TRACE=1
+	fi
+}
+
+##
+# Environment sanitisation
+{
+	# Used by zsh
+	unset -v \
+		IFS \
+		NULLCMD \
+		PROMPT \
+		PS1 \
+		READNULLCMD \
+		REPLY \
+		REPORTMEMORY \
+		REPORTTIME \
+		RPROMPT \
+		RPS1 \
+		TIMEFMT \
+		TMOUT \
+		TMPPREFIX \
+		TMPSUFFIX \
+		WATCHFMT \
+		ZBEEP
+
+	NULLCMD=cat
+	READNULLCMD=cat
+	TMPPREFIX=/tmp/zsh
+
+	# Used by external tools
+	unset -v \
+		BLOCKSIZE \
+		BZIP{,2} \
+		DEBCONF_FRONTEND \
+		GREP \
+		MAGIC \
+		NMAP_{,UN}PRIVILEGED \
+		PERL5LIB \
+		POSIXLY_CORRECT \
+		QUOTING_STYLE \
+		TIME \
+		TREE_CHARSET \
+		UNZIP \
+		XZ_{DEFAULTS,OPT} \
+		ZIP{INFO,OPT}
+	unset -vm \
+		'*_OPTIONS' \
+		'*_PROXY' \
+		'*_proxy' \
+		'GIT_*' \
+		'PG*' \
+		'RSYNC_*'
+
+	# Some tools can freak out if no TERM is set
+	export TERM=${TERM:-xterm}
+
+	# Prevent people from screwing with the PATH
+	# @todo Is this necessary?
+	if [[ $VENDOR == apple ]]; then
+		eval "$( /usr/libexec/path_helper )"
+	else
+		source /etc/environment 2> /dev/null
+		export PATH
+	fi
+}
+
+##
+# Misc. set-up
+{
+	# We create back-ups of these in case we need to bypass redirection later
+	# (see e.g. `shu::panic`)
+	exec {SHU_FD_STDOUT}>&1
+	exec {SHU_FD_STDERR}>&2
+
+	# `shu::panic` sends SIGUSR2 to propagate panics up sub-shells. Note: The
+	# consumer CAN, but absolutely SHOULD NOT, override this trap
+	trap 'exit SHU_EX_PANIC' SIGUSR2
+
+	# Colourise PS4 if we're on a TTY and don't have any colours already
+	(( SHU_HAS_TTY )) &&
+	[[ $PS4 != *$'\033['* ]] &&
+	PS4=$'\033[1;30m'${PS4}$'\033[0m'
+}
+
+##
+# Function registration
+{
+	fpath=( $SHU_FN_DIGEST $fpath )
+
+	autoload -w $SHU_FN_DIGEST
+
+	# Maths functions not provided directly by zsh/mathfunc
+	functions -M min 1 -1 shu:math:min
+	functions -M max 1 -1 shu:math:max
+	functions -M sum 1 -1 shu:math:sum
+}

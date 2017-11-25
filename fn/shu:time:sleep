@@ -1,0 +1,47 @@
+# vim: set ft=zsh:
+
+##
+# Pauses for the specified amount of time.
+#
+# This function acts as a portable, native replacement for `sleep(1)`. It
+# requires the `zselect` built-in provided by the `zsh/zselect` module.
+#
+# @module time
+#
+# @see zsh/zselect
+# @see sleep(1)
+#
+# @param $1 ...
+#   The amount of time to pause. An optional suffix `s`, `m`, `h`, or `d`
+#   specifies the unit of time; if no suffix is provided, `s` (seconds) is
+#   assumed. The value may be an integer or a float. Multiple operands are
+#   summed together. Interval precision is limited to hundredths of a second, so
+#   (e.g.) `0.001s` will panic. The value `0` is supported, however. Examples:
+#   `shu:time:sleep 90`, `shu:time:sleep 1.5m`, `shu:time:sleep 1m 30s`.
+#
+# @return 0
+shu:time:sleep() {
+	local -F csec
+
+	(( $# < 1 )) && shu::panic 'Too few arguments'
+
+	while (( $# )); do
+		[[ $1 == ${~SHU_PAT_MATH_NUM_POS}(|s|m|h|d) ]] ||
+		shu::panic "Invalid interval: ${1}"
+
+		case $1 in
+			*d) (( csec += ${1%d} * 100.0 * 60 * 60 * 24 )) ;;
+			*h) (( csec += ${1%h} * 100.0 * 60 * 60 )) ;;
+			*m) (( csec += ${1%m} * 100.0 * 60 )) ;;
+			*)  (( csec += ${1%s} * 100.0 )) ;;
+		esac
+
+		shift
+	done
+
+	(( csec == 0 )) && return 0
+	(( csec < 1  )) && shu::panic "Unsupported interval: ${csec} cs"
+
+	zselect -t ${csec%.*}
+	return 0
+}

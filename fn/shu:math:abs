@@ -1,0 +1,37 @@
+# vim: set ft=zsh:
+
+##
+# Gives the absolute value of a number.
+#
+# Note: The arithmetic function abs() is provided by the `zsh/mathfunc` module;
+# this function is therefore offered only for use in non-arithmetic contexts.
+# One could use `$(( abs(foo) ))` instead — it would be faster — but this
+# function treats inputs as strings, so it doesn't suffer from the same
+# floating-point issues as that method (e.g., `shu:math:abs -3.001` returns
+# `3.001` rather than `3.00099999...`).
+#
+# @module math
+#
+# @param $1 ... One or more numbers. Each result will be printed on a new line.
+#
+# @return 0
+shu:math:abs() {
+	# Normal context
+	[[ $0 == shu:math:* ]] && {
+		[[ ${1:-} == -- ]] && shift
+
+		(( $# < 1 )) && shu::panic 'Too few arguments'
+
+		while (( $# )); do
+			[[ $1 == ${~SHU_PAT_MATH_NUM} ]] ||
+			shu::panic "Invalid arithmetic argument: ${1}"
+
+			printf '%s\n' ${1#-}
+			shift
+		done
+
+		return 0
+	}
+	# Arithmetic context — not offered by default
+	(( abs($1) ))
+}

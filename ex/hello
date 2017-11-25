@@ -1,0 +1,18 @@
+#!/usr/bin/env zsh
+
+##
+# This example script demonstrates the behaviour of shu2's core output
+# functions.
+#
+# Usage example:
+#   % hello Alice Bob
+
+source "${0:h}/../lib"
+
+shu::puts 'Hello, world!'
+shu::putf 'Hello, %s!\n' ${@:-whoever you are}
+
+shu::pputs >&2 'Hello, world!'
+shu::pputf >&2 'Hello, %s!\n' ${@:-whoever you are}
+
+return 0
