@@ -1,0 +1,28 @@
+##
+# gitignore for shu2
+
+# Compiled zsh scripts
+*.zwc
+
+# Throw-away test scripts
+/*test*.sh
+/*test*.bash
+/*test*.zsh
+
+# macOS-generated files
+._*
+.DS_Store
+.DS_Store?
+.Spotlight-V100
+.Trashes
+Icon?
+
+# Windows-generated files
+Desktop.ini
+ehthumbs.db
+Thumbs.db
+
+# Editor-generated files
+*~
+.*.s[a-w][a-z]
+*.sublime-workspace
