@@ -37,9 +37,9 @@ shu::ignpanic() {
 	(( $# )) || 1=2
 
 	case $1 in
-		-|0|-0) SHU_IGN_PANIC=0 ;;
-		1|-1)   SHU_IGN_PANIC=1 ;;
-		+|2|-2) SHU_IGN_PANIC=2 ;;
+		-|0|-0) SHU_PANIC_IGNORE=0 ;;
+		1|-1)   SHU_PANIC_IGNORE=1 ;;
+		+|2|-2) SHU_PANIC_IGNORE=2 ;;
 		*)      shu::panic "Invalid argument: ${1}" ;;
 	esac
 

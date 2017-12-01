@@ -154,12 +154,12 @@
 	declare -g SHU_FD_STDOUT=1
 	declare -g SHU_FD_STDERR=2
 
-	# If >0, `shu::panic` won't kill the script. If >1, `shu::panic` will
-	# suppress the error message as well. See `shu::ignpanic`
-	declare -g SHU_IGN_PANIC=0
-
 	# Output verbosity level
 	declare -g SHU_VERBOSITY=$SHU_VERBOSITY_NORMAL
+
+	# If >0, `shu::panic` won't kill the script. If >1, `shu::panic` will
+	# suppress the error message as well. See `shu::ignpanic`
+	declare -g SHU_PANIC_IGNORE=0
 
 	# Panic trace-back verbosity level
 	if [[ ${SHU_PANIC_TRACE:-} == [0-9]## ]]; then
