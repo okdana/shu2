@@ -1,0 +1,173 @@
+# vim: set ft=zsh:
+
+##
+# Tests whether the given command yields the expected result.
+#
+# @module test
+#
+# @param -e
+#   (optional) Pass $3 as a string to `eval`.
+#
+# @param -p
+#   (optional) Panic if the assertion fails.
+#
+# @param -q
+#   (optional) Suppress PASS/FAIL message.
+#
+# @param -r
+#   (optional) Treat $1 as a return code rather than an output string.
+#
+# @param -s
+#   (optional) Capture only the executed command's `stdout`; discard `stderr`.
+#
+# @param -S
+#   (optional) Capture only the executed command's `stderr`; discard `stdout`.
+#
+# @param -r
+#   (optional) Treat $1 as a return code rather than an output string.
+#
+# @param $1
+#   The output text or (with `-r`) return code that the executed command is
+#   expected to produce.
+#
+# @param $2
+#   An operator indicating the expected relationship between $1 and $3.
+#   Supported operators include:
+#
+#   * `eq`, `=`,  `==` — $1 is equal to $3
+#   * `ne`, `!=`, `<>` — $1 is not equal to $3
+#   * `gl`, `~`        — $1 is an extended glob matching $3
+#   * `re`, `=~`       — $1 is a regular expression matching $3
+#   * `le`, `<=`, `=<` — $1 is equal to or less than $3 (with `-r` only)
+#   * `lt`, `<`        — $1 is less than $3 (with `-r` only)
+#   * `ge`, `>=`, `=>` — $1 is equal to or greater than $3 (with `-r` only)
+#   * `gt`, `>`        — $1 is greater than $3 (with `-r` only)
+#
+# @param $3 ...
+#   The command (and any arguments) to be executed, or (with `-e`) a string to
+#   be passed to `eval`. Multiple strings will be concatenated by spaces when
+#   used with `-e`.
+#
+# @return 0 on success, >0 on failure.
+shu:test:assert() {
+	local    OPTARG OPTIND opt
+	local    eval_cmd fail_panics quiet_opt compare_ret discard_fd
+	local    expect op res ret pass cmd_str
+	local -a cmd
+
+	while getopts ':epqrsS' opt; do
+		case $opt in
+			# Treat $3 as `eval` string
+			'e') eval_cmd=1 ;;
+			# Panic on assertion failure
+			'p') fail_panics=1 ;;
+			# Decrease output verbosity
+			'q') quiet_opt=-q ;;
+			# Treat $1 as return code
+			'r') compare_ret=1 ;;
+			# Discard stderr
+			's') discard_fd=2 ;;
+			# Discard stdout
+			'S') discard_fd=1 ;;
+			# Errors
+			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+			*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+		esac
+	done
+
+	shift $(( OPTIND - 1 ))
+
+	(( $# >= 3 )) || shu::panic 'Too few arguments'
+
+	expect=$1
+	    op=$2
+	   cmd=( "${@:3}" )
+
+	(( compare_ret )) && {
+		[[ $expect == $~SHU_PAT_MATH_INT_POS ]] || {
+			if \
+				(( ${(P)+expect} )) &&
+				[[ "${(Pt)expect}-" == scalar-* ]] &&
+				[[ ${(P)expect} == $~SHU_PAT_MATH_INT_POS ]]
+			then
+				expect=${(P)expect}
+			else
+				shu::panic "Not a valid return code: ${expect}"
+			fi
+		}
+
+		(( expect > 255 )) &&
+		shu::panic "Not a valid return code: ${expect}"
+	}
+
+	case $op in
+		(-|)eq|'='|'==')   op='eq' ;;
+		(-|)ne|'!='|'<>')  op='ne' ;;
+		(-|)gl(|ob)|'~')   op='gl' ;;
+		(-|)re(|gex)|'=~') op='re' ;;
+		(-|)le|'<='|'=<')  op='le' ;;
+		(-|)lt|'<')        op='lt' ;;
+		(-|)ge|'>='|'=>')  op='ge' ;;
+		(-|)gt|'>')        op='gt' ;;
+		*) shu::panic "Illegal operator: ${op}" ;;
+	esac
+
+	[[ $op == [gl][et] ]] &&
+	(( ! compare_ret )) &&
+	shu::panic "Operator ${op} can only be used with return codes"
+
+	res=$(
+		if (( discard_fd == 2 )); then
+			exec 2> /dev/null
+		elif (( discard_fd == 1 )); then
+			exec {fd}>&1
+			exec 1> /dev/null
+			exec 2>&$fd
+		else
+			exec 2>&1
+		fi
+
+		   SHU_FD_STDOUT=1
+		   SHU_FD_STDERR=2
+		SHU_PANIC_IGNORE=1
+		 SHU_PANIC_TRACE=0
+
+		if (( eval_cmd )); then
+			eval "${(j< >)cmd}"
+		else
+			"${(@)cmd}"
+		fi
+	)
+	ret=$?
+
+	(( compare_ret )) && res=$ret
+
+	case $op in
+		eq) [[ $expect == $res     ]] && pass=1 ;;
+		ne) [[ $expect != $res     ]] && pass=1 ;;
+		gl) [[ $res    == $~expect ]] && pass=1 ;;
+		re) [[ $res    =~ $expect  ]] && pass=1 ;;
+		le) (( expect  <= res      )) && pass=1 ;;
+		lt) (( expect  <  res      )) && pass=1 ;;
+		ge) (( expect  >= res      )) && pass=1 ;;
+		gt) (( expect  >  res      )) && pass=1 ;;
+	esac
+
+	if (( eval_cmd )); then
+		cmd_str="${(j< >)cmd}"
+	else
+		cmd_str="${(j< >)${(@q-)cmd}}"
+	fi
+
+	(( pass )) && {
+		shu::putf $quiet_opt 'PASS: %s: %s %s %s\n' \
+			$cmd_str "${(q-)expect}" $op "${(q-)res}"
+		return 0
+	}
+
+	shu::putf $quiet_opt 'FAIL: %s: %s %s %s\n' \
+		$cmd_str "${(q-)expect}" $op "${(q-)res}"
+	(( fail_panics )) && shu::panic 'Assertion failed'
+	return 1
+}
