@@ -1,0 +1,62 @@
+#!/usr/bin/env zsh
+
+source "${0:h}/../lib"
+
+ret=0
+
+assert() {
+	local r
+	shu:test:assert "${@}" || r=$?
+	(( ret += r ))
+	return r
+}
+
+# Should default to FMT_STD_A
+assert -r 0 -eq \
+	shu:time:strf
+assert '[0-9-]## [0-9:]##' -gl \
+	shu:time:strf
+
+# Should support predefined formats by name
+assert '[0-9-]## [0-9:]##' -gl \
+	shu:time:strf SHU_TIME_FMT_STD_A
+assert '[0-9-]## [0-9:]##' -gl \
+	shu:time:strf FMT_STD_A
+assert '[A-Za-z]## [0-9-]## [0-9:]##' -gl \
+	shu:time:strf FMT_STD_B
+assert '[A-Za-z]## [0-9-]## [0-9:]## [A-Za-z]##' -gl \
+	shu:time:strf FMT_STD_C
+
+# Should support standard strftime(3) format specifiers
+assert '<2000-3000>' -gl \
+	shu:time:strf '%Y'
+assert '[0-9:]## . [A-Za-z]##' -gl \
+	shu:time:strf '%T . %Z'
+
+# Should support optional epoch time
+assert 1970 -eq \
+	shu:time:strf -u '%Y' 0
+
+# Should support assignment to scalar
+assert -e '[0-9-]## [0-9:]##' -gl \
+	's=; shu:time:strf +ss; print -r -- $s'
+
+# Should panic with no valid format specifier
+assert -r SHU_EX_PANIC -eq \
+	shu:time:strf x
+# Should panic with illegal options
+assert -r SHU_EX_PANIC -eq \
+	shu:time:strf -Y
+assert -r SHU_EX_PANIC -eq \
+	shu:time:strf +z
+# Should panic with too many arguments
+assert -r SHU_EX_PANIC -eq \
+	shu:time:strf '%Y' 0 0
+# Should panic on attempted assignment to undeclared scalar
+assert -er SHU_EX_PANIC -eq \
+	'unset s; shu:time:strf +ss'
+# Should panic with illegal-looking time zone
+assert -r SHU_EX_PANIC -eq \
+	shu:time:strf -z '%T'
+
+return ret
