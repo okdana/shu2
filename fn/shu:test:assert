@@ -5,6 +5,32 @@
 #
 # @module test
 #
+# @param +A <name>
+#   (optional) Assign the result to a pre-defined association with the name
+#   <name>. The following fields are provided:
+#
+#   * pass        — 1 if the assertion passed, 0 if not
+#   * return      — The return status of the command
+#   * result      — The output of the command
+#   * expected    — The expected result or return status ($1)
+#   * operator    — The normalised operator ($2)
+#   * command     — The command string ($3 ...)
+#   * description — The user's description
+#   * summary     — The summary of the assertion (default description)
+#
+#   Note that, somewhat unusually, use of this option does not disable the
+#   normal output of the function; use `-q` for that.
+#
+# @param +C
+#   (optional) Disable ANSI formatting.
+#
+# @param -d <description>
+#   (optional) Set a description to be used in PASS/FAIL message.
+#
+# @param -D
+#   (optional) Use default description in PASS/FAIL message. This option
+#   overrides `-d` no matter where it appears on the command line.
+#
 # @param -e
 #   (optional) Pass $3 as a string to `eval`.
 #
@@ -50,25 +76,42 @@
 #
 # @return 0 on success, >0 on failure.
 shu:test:assert() {
-	local    OPTARG OPTIND opt
-	local    eval_cmd fail_panics quiet_opt compare_ret discard_fd
-	local    expect op res ret pass cmd_str
-	local -a cmd
+	local    OPTARG OPTIND __opt
+	local    __to_assoc __desc __no_desc __eval_cmd
+	local    __fail_panics __quiet __compare_ret __discard_fd
+	local    __expect __op __res __ret __pass __cmd_str __summary
+	local -a __cmd
+	local -A __assoc
 
-	while getopts ':epqrsS' opt; do
-		case $opt in
+	while getopts ':A:Cd:DepqrsS' __opt; do
+		case $__opt in
+			# Assign result to association
+			'+A')
+				(( ${(P)+OPTARG} )) ||
+				shu::panic "No such association: ${OPTARG}"
+				[[ "${(Pt)OPTARG}-" == association-* ]] ||
+				shu::panic "No such association: ${OPTARG}"
+
+				 __to_assoc=$OPTARG
+				;;
+			# Disable ANSI formatting
+			'+C') SHU_ANSI=( "${(@kv)SHU_ANSI_INACTIVE}" ) ;;
+			# Set assertion description
+			'd') __desc=$OPTARG ;;
+			# Use automatic assertion description
+			'D') __no_desc=1 ;;
 			# Treat $3 as `eval` string
-			'e') eval_cmd=1 ;;
+			'e') __eval_cmd=1 ;;
 			# Panic on assertion failure
-			'p') fail_panics=1 ;;
+			'p') __fail_panics=1 ;;
 			# Decrease output verbosity
-			'q') quiet_opt=-q ;;
+			'q') __quiet=-q ;;
 			# Treat $1 as return code
-			'r') compare_ret=1 ;;
+			'r') __compare_ret=1 ;;
 			# Discard stderr
-			's') discard_fd=2 ;;
+			's') __discard_fd=2 ;;
 			# Discard stdout
-			'S') discard_fd=1 ;;
+			'S') __discard_fd=1 ;;
 			# Errors
 			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
 			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
@@ -80,47 +123,47 @@ shu:test:assert() {
 
 	(( $# >= 3 )) || shu::panic 'Too few arguments'
 
-	expect=$1
-	    op=$2
-	   cmd=( "${@:3}" )
+	__expect=$1
+	    __op=$2
+	   __cmd=( "${@:3}" )
 
-	(( compare_ret )) && {
-		[[ $expect == $~SHU_PAT_MATH_INT_POS ]] || {
+	(( __compare_ret )) && {
+		[[ $__expect == $~SHU_PAT_MATH_INT_POS ]] || {
 			if \
-				(( ${(P)+expect} )) &&
-				[[ "${(Pt)expect}-" == scalar-* ]] &&
-				[[ ${(P)expect} == $~SHU_PAT_MATH_INT_POS ]]
+				(( ${(P)+__expect} )) &&
+				[[ "${(Pt)__expect}-" == scalar-* ]] &&
+				[[ ${(P)__expect} == $~SHU_PAT_MATH_INT_POS ]]
 			then
-				expect=${(P)expect}
+				__expect=${(P)__expect}
 			else
-				shu::panic "Not a valid return code: ${expect}"
+				shu::panic "Not a valid return code: ${__expect}"
 			fi
 		}
 
-		(( expect > 255 )) &&
-		shu::panic "Not a valid return code: ${expect}"
+		(( __expect > 255 )) &&
+		shu::panic "Not a valid return code: ${__expect}"
 	}
 
-	case $op in
-		(-|)eq|'='|'==')   op='eq' ;;
-		(-|)ne|'!='|'<>')  op='ne' ;;
-		(-|)gl(|ob)|'~')   op='gl' ;;
-		(-|)re(|gex)|'=~') op='re' ;;
-		(-|)le|'<='|'=<')  op='le' ;;
-		(-|)lt|'<')        op='lt' ;;
-		(-|)ge|'>='|'=>')  op='ge' ;;
-		(-|)gt|'>')        op='gt' ;;
-		*) shu::panic "Illegal operator: ${op}" ;;
+	case $__op in
+		(-|)eq|'='|'==')   __op='eq' ;;
+		(-|)ne|'!='|'<>')  __op='ne' ;;
+		(-|)gl(|ob)|'~')   __op='gl' ;;
+		(-|)re(|gex)|'=~') __op='re' ;;
+		(-|)le|'<='|'=<')  __op='le' ;;
+		(-|)lt|'<')        __op='lt' ;;
+		(-|)ge|'>='|'=>')  __op='ge' ;;
+		(-|)gt|'>')        __op='gt' ;;
+		*) shu::panic "Illegal operator: ${__op}" ;;
 	esac
 
-	[[ $op == [gl][et] ]] &&
-	(( ! compare_ret )) &&
-	shu::panic "Operator ${op} can only be used with return codes"
+	[[ $__op == [gl][et] ]] &&
+	(( ! __compare_ret )) &&
+	shu::panic "Operator -${__op} can only be used with return codes"
 
-	res=$(
-		if (( discard_fd == 2 )); then
+	__res=$(
+		if (( __discard_fd == 2 )); then
 			exec 2> /dev/null
-		elif (( discard_fd == 1 )); then
+		elif (( __discard_fd == 1 )); then
 			exec {fd}>&1
 			exec 1> /dev/null
 			exec 2>&$fd
@@ -133,41 +176,61 @@ shu:test:assert() {
 		SHU_PANIC_IGNORE=1
 		 SHU_PANIC_TRACE=0
 
-		if (( eval_cmd )); then
-			eval "${(j< >)cmd}"
+		if (( __eval_cmd )); then
+			eval "${(j< >)__cmd}"
 		else
-			"${(@)cmd}"
+			"${(@)__cmd}"
 		fi
 	)
-	ret=$?
+	__ret=$?
 
-	(( compare_ret )) && res=$ret
+	(( $#__to_assoc )) && {
+		     __assoc[return]=$__ret
+		     __assoc[result]=$__res
+	}
 
-	case $op in
-		eq) [[ $expect == $res     ]] && pass=1 ;;
-		ne) [[ $expect != $res     ]] && pass=1 ;;
-		gl) [[ $res    == $~expect ]] && pass=1 ;;
-		re) [[ $res    =~ $expect  ]] && pass=1 ;;
-		le) (( expect  <= res      )) && pass=1 ;;
-		lt) (( expect  <  res      )) && pass=1 ;;
-		ge) (( expect  >= res      )) && pass=1 ;;
-		gt) (( expect  >  res      )) && pass=1 ;;
+	(( __compare_ret )) && __res=$__ret
+
+	case $__op in
+		eq) [[ $__expect == $__res     ]] && __pass=1 ;;
+		ne) [[ $__expect != $__res     ]] && __pass=1 ;;
+		gl) [[ $__res    == $~__expect ]] && __pass=1 ;;
+		re) [[ $__res    =~ $__expect  ]] && __pass=1 ;;
+		le) (( __expect  <= __res      )) && __pass=1 ;;
+		lt) (( __expect  <  __res      )) && __pass=1 ;;
+		ge) (( __expect  >= __res      )) && __pass=1 ;;
+		gt) (( __expect  >  __res      )) && __pass=1 ;;
 	esac
 
-	if (( eval_cmd )); then
-		cmd_str="${(j< >)cmd}"
+	if (( __eval_cmd )); then
+		__cmd_str="${(j< >)__cmd}"
 	else
-		cmd_str="${(j< >)${(@q-)cmd}}"
+		__cmd_str="${(j< >)${(@q-)__cmd}}"
 	fi
 
-	(( pass )) && {
-		shu::putf $quiet_opt 'PASS: %s: %s %s %s\n' \
-			$cmd_str "${(q-)expect}" $op "${(q-)res}"
+	__summary="${__cmd_str}: ${(q-)__expect} -${__op} ${(q-)__res}"
+
+	(( $#__to_assoc )) && {
+		       __assoc[pass]=${pass:-0}
+		   __assoc[expected]=$__expect
+		   __assoc[operator]=$__op
+		    __assoc[command]=$__cmd_str
+		__assoc[description]=$__desc
+		    __assoc[summary]=$__summary
+
+		: ${(PAA)__to_assoc::="${(@kv)__assoc}"}
+	}
+
+	(( __no_desc )) && __desc=$__summary
+
+	(( __pass )) && {
+		shu::putf $__quiet '%s[PASS]%s %s\n' \
+			"${SHU_ANSI[fg_green]}" "${SHU_ANSI[reset]}" $__desc
 		return 0
 	}
 
-	shu::putf $quiet_opt 'FAIL: %s: %s %s %s\n' \
-		$cmd_str "${(q-)expect}" $op "${(q-)res}"
-	(( fail_panics )) && shu::panic 'Assertion failed'
+	shu::putf $__quiet '%s[FAIL]%s %s\n' \
+		"${SHU_ANSI[fg_red]}" "${SHU_ANSI[reset]}" $__desc
+	(( __fail_panics )) && shu::panic 'Assertion failed'
 	return 1
 }
