@@ -58,7 +58,7 @@ shu:time:strp() {
 			# Errors
 			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
 			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-			*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+			*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
 		esac
 	done
 
