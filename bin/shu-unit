@@ -1,0 +1,81 @@
+#!/usr/bin/env zsh
+
+##
+# This script is used to run unit tests.
+#
+# Usage examples:
+#   % shu-unit tests/
+
+source "${0:h}/../lib"
+
+this:main() {
+	local     t ret i test_ret
+	local -aU tests
+
+	for t in "${@:-.}"; do
+		[[ -e $t ]] || {
+			shu::pputs >&2 "No such file or directory: ${t}"
+			ret=1
+			continue
+		}
+
+		t=${t:a}
+
+		[[ -d $t ]] && {
+			tests+=( $t/*.test(.) )
+			continue
+		}
+
+		tests+=( $t )
+	done
+
+	(( $#tests )) || {
+		shu::pputs >&2 'No tests found.'
+		return 1
+	}
+
+	for t in $tests; do
+		grep -qswF assert $t &&
+		[[ "$( file -b $t 2> /dev/null )" == *text* ]] || {
+			shu::puts >&2 "Not a valid test file: ${t}"
+			ret=1
+			continue
+		}
+
+		(( ++i > 1 )) && print
+		print -r -- "${SHU_ANSI[bold]}${${t:t}%.test}${SHU_ANSI[reset]}"
+
+		(
+			test_ret=0
+
+			assert() {
+				local    ret
+				local -A test_data
+
+				shu:test:assert +A test_data "${@}" || {
+					ret=$?
+
+					shu::putf '%s%s %s%s\n' \
+						"${SHU_ANSI[fg_black2]}" \
+						${${:-[FAIL]}//?/ } \
+						${test_data[summary]} \
+						"${SHU_ANSI[reset]}"
+				}
+
+				(( test_ret += ret ))
+				return ret
+			}
+
+			source $t
+
+			return test_ret
+		)
+
+		(( ret += $? ))
+	done
+
+	return ret
+}
+
+this:main "${@}"
+return $?
