@@ -34,8 +34,14 @@
 # @param -e
 #   (optional) Pass $3 as a string to `eval`.
 #
+# @param -F
+#   (optional) Show PASS/FAIL message only on failure.
+#
 # @param -p
 #   (optional) Panic if the assertion fails.
+#
+# @param -P
+#   (optional) Show PASS/FAIL message only on success.
 #
 # @param -q
 #   (optional) Suppress PASS/FAIL message.
@@ -78,12 +84,12 @@
 shu:test:assert() {
 	local    OPTARG OPTIND __opt
 	local    __to_assoc __desc __no_desc __eval_cmd
-	local    __fail_panics __quiet __compare_ret __discard_fd
+	local    __show=-1 __fail_panics __quiet __compare_ret __discard_fd
 	local    __expect __op __res __ret __pass __cmd_str __summary
 	local -a __cmd
-	local -A __assoc
+	local -A __assoc SHU_ANSI=( "${(@kv)SHU_ANSI}" )
 
-	while getopts ':A:Cd:DepqrsS' __opt; do
+	while getopts ':A:Cd:DeFpPqrsS' __opt; do
 		case $__opt in
 			# Assign result to association
 			'+A')
@@ -102,8 +108,12 @@ shu:test:assert() {
 			'D') __no_desc=1 ;;
 			# Treat $3 as `eval` string
 			'e') __eval_cmd=1 ;;
+			# Show PASS/FAIL on fail only
+			'F') __show=0 ;;
 			# Panic on assertion failure
 			'p') __fail_panics=1 ;;
+			# Show PASS/FAIL on pass only
+			'P') __show=1 ;;
 			# Decrease output verbosity
 			'q') __quiet=-q ;;
 			# Treat $1 as return code
@@ -208,10 +218,10 @@ shu:test:assert() {
 		__cmd_str="${(j< >)${(@q-)__cmd}}"
 	fi
 
-	__summary="${__cmd_str}: ${(q-)__expect} -${__op} ${(q-)__res}"
+	__summary="\`${__cmd_str}\`: ${(q-)__expect} -${__op} ${(q-)__res}"
 
 	(( $#__to_assoc )) && {
-		       __assoc[pass]=${pass:-0}
+		       __assoc[pass]=${__pass:-0}
 		   __assoc[expected]=$__expect
 		   __assoc[operator]=$__op
 		    __assoc[command]=$__cmd_str
@@ -224,13 +234,15 @@ shu:test:assert() {
 	(( __no_desc )) && __desc=$__summary
 
 	(( __pass )) && {
-		shu::putf $__quiet '%s[PASS]%s %s\n' \
-			"${SHU_ANSI[fg_green]}" "${SHU_ANSI[reset]}" $__desc
+		(( __show == -1 || __show == __pass )) &&
+		shu:io:putf $__quiet '%s[PASS]%s %s\n' \
+			"${SHU_ANSI[fg:green]}" "${SHU_ANSI[reset]}" $__desc
 		return 0
 	}
 
-	shu::putf $__quiet '%s[FAIL]%s %s\n' \
-		"${SHU_ANSI[fg_red]}" "${SHU_ANSI[reset]}" $__desc
+	(( __show == -1 || __show == __pass )) &&
+	shu:io:putf $__quiet '%s[FAIL]%s %s\n' \
+		"${SHU_ANSI[fg:red]}" "${SHU_ANSI[reset]}" $__desc
 	(( __fail_panics )) && shu::panic 'Assertion failed'
 	return 1
 }

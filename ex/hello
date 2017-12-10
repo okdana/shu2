@@ -1,18 +1,17 @@
 #!/usr/bin/env zsh
 
 ##
-# This example script demonstrates the behaviour of shu2's core output
-# functions.
+# This example script demonstrates the behaviour of shu2's basic I/O functions.
 #
 # Usage example:
 #   % hello Alice Bob
 
 source "${0:h}/../lib"
 
-shu::puts 'Hello, world!'
-shu::putf 'Hello, %s!\n' ${@:-whoever you are}
+shu:io:puts 'Hello, world!'
+shu:io:putf 'Hello, %s!\n' ${@:-whoever you are}
 
-shu::pputs >&2 'Hello, world!'
-shu::pputf >&2 'Hello, %s!\n' ${@:-whoever you are}
+shu:io:pputs >&2 'Hello, world!'
+shu:io:pputf >&2 'Hello, %s!\n' ${@:-whoever you are}
 
 return 0

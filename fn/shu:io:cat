@@ -1,0 +1,89 @@
+# vim: set ft=zsh:
+
+##
+# Concatenates files or prints from `stdin`.
+#
+# This function is provided mainly to avoid having to write code like the
+# following, which was common in shu v1 scripts:
+#
+# ```
+# [[ -n "${verbose}" ]] &&
+# cat <<- EOF
+#   my
+#   multi-line
+#   verbose
+#   text
+# EOF
+# ```
+#
+# @module io
+#
+# @see cat
+# @see shu:io:puts
+# @see shu:io:read
+#
+# @param -a, -n, -N, -q, -Q, -v, -V, -x, -X (optional) See `shu:io:puts`.
+#
+# @param $1 ...
+#   (optional) Zero or more file names to pass to `cat`. (Note: POSIX specifies
+#   that `stdin` is ignored if `cat` is given any file operands.) As an
+#   optimisation, if no file names are provided, `shu:io:read` is used instead
+#   of `cat`.
+#
+# @return According to `shu:io:read` or `cat`.
+shu:io:cat() {
+	local OPTARG OPTIND opt last_opt
+	local cmp=$SHU_VERBOSITY_NORMAL op='<=' exact
+
+	while getopts ':anNqQvVxX' opt; do
+		# Clauses here are ordered roughly according to frequency of use
+		case $opt in
+			'v'|'V')
+				if [[ $last_opt == $opt ]]; then
+					(( cmp < SHU_VERBOSITY_VERBOSE5 )) && (( cmp++ ))
+				else
+					cmp=$SHU_VERBOSITY_VERBOSE1
+					 op='<='
+					[[ $opt == V ]] && op='>='
+				fi
+				;;
+			'q'|'Q')
+				if [[ $last_opt == $opt ]]; then
+					(( cmp > SHU_VERBOSITY_QUIET5 )) && (( cmp-- ))
+				else
+					cmp=$SHU_VERBOSITY_QUIET1
+					 op='<='
+					[[ $opt == Q ]] && op='>='
+				fi
+				;;
+			'n'|'N')
+				cmp=$SHU_VERBOSITY_NORMAL
+				 op='<='
+				[[ $opt == N ]] && op='>='
+				;;
+			'a')
+				cmp=$SHU_VERBOSITY
+				 op='=='
+				;;
+			'x') exact=1 ;;
+			'X') exact=0 ;;
+			# Errors
+			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+			*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+		esac
+		last_opt=$opt
+	done
+
+	(( exact )) && op='=='
+	(( cmp $op SHU_VERBOSITY )) || return 0
+
+	shift $(( OPTIND - 1 ))
+
+	[[ ${(j< >)@:--} == - ]] && {
+		shu:io:read
+		return $?
+	}
+	cat -- "${@}"
+	return $?
+}

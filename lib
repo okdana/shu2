@@ -26,7 +26,7 @@
 
 	# Always enable 'native' arithmetic functions like abs()
 	zmodload zsh/mathfunc ||
-	print -r >&2 'WARNING: Failed to load zsh/mathfunc module!'
+	print -r >&2 'shu2: WARNING: Failed to load zsh/mathfunc module!'
 
 	# Register some other modules for auto-loading (some of these are probably
 	# already taken care of, but the only one we'll *trust* is zsh/parameter)
@@ -53,7 +53,8 @@
 		+b:sysopen \
 		+b:sysread \
 		+b:sysseek \
-		+b:syswrite
+		+b:syswrite \
+		+p:sysparams
 
 	# Use high-precision session timer
 	typeset -gF SECONDS
@@ -86,12 +87,19 @@
 	declare -gr       SHU_EX_PANIC=199
 
 	# Verbosity levels
-	declare -gr   SHU_VERBOSITY_VERY_QUIET=-2
-	declare -gr        SHU_VERBOSITY_QUIET=-1
-	declare -gr       SHU_VERBOSITY_NORMAL=0
-	declare -gr      SHU_VERBOSITY_VERBOSE=1
-	declare -gr SHU_VERBOSITY_VERY_VERBOSE=2
-	declare -gr        SHU_VERBOSITY_DEBUG=3
+	declare -gr   SHU_VERBOSITY_QUIET5=-5
+	declare -gr   SHU_VERBOSITY_QUIET4=-4
+	declare -gr   SHU_VERBOSITY_QUIET3=-3
+	declare -gr   SHU_VERBOSITY_QUIET2=-2
+	declare -gr   SHU_VERBOSITY_QUIET1=-1
+	declare -gr    SHU_VERBOSITY_QUIET=-1
+	declare -gr   SHU_VERBOSITY_NORMAL=0
+	declare -gr  SHU_VERBOSITY_VERBOSE=1
+	declare -gr SHU_VERBOSITY_VERBOSE1=1
+	declare -gr SHU_VERBOSITY_VERBOSE2=2
+	declare -gr SHU_VERBOSITY_VERBOSE3=3
+	declare -gr SHU_VERBOSITY_VERBOSE4=4
+	declare -gr SHU_VERBOSITY_VERBOSE5=5
 
 	# Glob patterns (use like `[[ $foo == $~SHU_PAT_MATH_INT ]]`)
 	declare -gr   SHU_PAT_MATH_INT_NEG='-[0-9][0-9_]#'
@@ -127,10 +135,10 @@
 
 	# ANSI SGR escape sequences
 	declare -gr          SHU_ANSI_RESET=$'\033[0m'
-	declare -gr           SHU_ANSI_BOLD=$'\033[1m'
-	declare -gr     SHU_ANSI_UNDERSCORE=$'\033[4m'
-	declare -gr          SHU_ANSI_BLINK=$'\033[5m'
-	declare -gr        SHU_ANSI_REVERSE=$'\033[7m'
+	declare -gr        SHU_ANSI_BOLD_ON=$'\033[1m'
+	declare -gr  SHU_ANSI_UNDERSCORE_ON=$'\033[4m'
+	declare -gr       SHU_ANSI_BLINK_ON=$'\033[5m'
+	declare -gr     SHU_ANSI_REVERSE_ON=$'\033[7m'
 	declare -gr       SHU_ANSI_BOLD_OFF=$'\033[21m'
 	declare -gr SHU_ANSI_UNDERSCORE_OFF=$'\033[24m'
 	declare -gr      SHU_ANSI_BLINK_OFF=$'\033[25m'
@@ -165,80 +173,80 @@
 
 	declare -grA SHU_ANSI_ACTIVE=(
 		reset          $SHU_ANSI_RESET
-		bold           $SHU_ANSI_BOLD
-		underscore     $SHU_ANSI_UNDERSCORE
-		blink          $SHU_ANSI_BLINK
-		reverse        $SHU_ANSI_REVERSE
-		bold_off       $SHU_ANSI_BOLD_OFF
-		underscore_off $SHU_ANSI_UNDERSCORE_OFF
-		blink_off      $SHU_ANSI_BLINK_OFF
+		bold:on        $SHU_ANSI_BOLD_ON
+		underscore:on  $SHU_ANSI_UNDERSCORE_ON
+		blink:on       $SHU_ANSI_BLINK_ON
+		reverse:on     $SHU_ANSI_REVERSE_ON
+		bold:off       $SHU_ANSI_BOLD_OFF
+		underscore:off $SHU_ANSI_UNDERSCORE_OFF
+		blink:off      $SHU_ANSI_BLINK_OFF
 		reverse_off    $SHU_ANSI_REVERSE_OFF
-		fg_black       $SHU_ANSI_FG_BLACK
-		fg_red         $SHU_ANSI_FG_RED
-		fg_green       $SHU_ANSI_FG_GREEN
-		fg_yellow      $SHU_ANSI_FG_YELLOW
-		fg_blue        $SHU_ANSI_FG_BLUE
-		fg_magenta     $SHU_ANSI_FG_MAGENTA
-		fg_cyan        $SHU_ANSI_FG_CYAN
-		fg_white       $SHU_ANSI_FG_WHITE
-		fg_reset       $SHU_ANSI_FG_RESET
-		fg_black2      $SHU_ANSI_FG_BLACK2
-		fg_red2        $SHU_ANSI_FG_RED2
-		fg_green2      $SHU_ANSI_FG_GREEN2
-		fg_yellow2     $SHU_ANSI_FG_YELLOW2
-		fg_blue2       $SHU_ANSI_FG_BLUE2
-		fg_magenta2    $SHU_ANSI_FG_MAGENTA2
-		fg_cyan2       $SHU_ANSI_FG_CYAN2
-		fg_white2      $SHU_ANSI_FG_WHITE2
-		fg_reset2      $SHU_ANSI_FG_RESET2
-		bg_black       $SHU_ANSI_BG_BLACK
-		bg_red         $SHU_ANSI_BG_RED
-		bg_green       $SHU_ANSI_BG_GREEN
-		bg_yellow      $SHU_ANSI_BG_YELLOW
-		bg_blue        $SHU_ANSI_BG_BLUE
-		bg_magenta     $SHU_ANSI_BG_MAGENTA
-		bg_cyan        $SHU_ANSI_BG_CYAN
-		bg_white       $SHU_ANSI_BG_WHITE
-		bg_reset       $SHU_ANSI_BG_RESET
+		fg:black       $SHU_ANSI_FG_BLACK
+		fg:red         $SHU_ANSI_FG_RED
+		fg:green       $SHU_ANSI_FG_GREEN
+		fg:yellow      $SHU_ANSI_FG_YELLOW
+		fg:blue        $SHU_ANSI_FG_BLUE
+		fg:magenta     $SHU_ANSI_FG_MAGENTA
+		fg:cyan        $SHU_ANSI_FG_CYAN
+		fg:white       $SHU_ANSI_FG_WHITE
+		fg:reset       $SHU_ANSI_FG_RESET
+		fg:black2      $SHU_ANSI_FG_BLACK2
+		fg:red2        $SHU_ANSI_FG_RED2
+		fg:green2      $SHU_ANSI_FG_GREEN2
+		fg:yellow2     $SHU_ANSI_FG_YELLOW2
+		fg:blue2       $SHU_ANSI_FG_BLUE2
+		fg:magenta2    $SHU_ANSI_FG_MAGENTA2
+		fg:cyan2       $SHU_ANSI_FG_CYAN2
+		fg:white2      $SHU_ANSI_FG_WHITE2
+		fg:reset2      $SHU_ANSI_FG_RESET2
+		bg:black       $SHU_ANSI_BG_BLACK
+		bg:red         $SHU_ANSI_BG_RED
+		bg:green       $SHU_ANSI_BG_GREEN
+		bg:yellow      $SHU_ANSI_BG_YELLOW
+		bg:blue        $SHU_ANSI_BG_BLUE
+		bg:magenta     $SHU_ANSI_BG_MAGENTA
+		bg:cyan        $SHU_ANSI_BG_CYAN
+		bg:white       $SHU_ANSI_BG_WHITE
+		bg:reset       $SHU_ANSI_BG_RESET
 	)
 
 	declare -grA SHU_ANSI_INACTIVE=(
 		reset          ''
-		bold           ''
-		underscore     ''
-		blink          ''
+		bold:on        ''
+		underscore:on  ''
+		blink:on       ''
 		reverse        ''
-		bold_off       ''
-		underscore_off ''
-		blink_off      ''
-		reverse_off    ''
-		fg_black       ''
-		fg_red         ''
-		fg_green       ''
-		fg_yellow      ''
-		fg_blue        ''
-		fg_magenta     ''
-		fg_cyan        ''
-		fg_white       ''
-		fg_reset       ''
-		fg_black2      ''
-		fg_red2        ''
-		fg_green2      ''
-		fg_yellow2     ''
-		fg_blue2       ''
-		fg_magenta2    ''
-		fg_cyan2       ''
-		fg_white2      ''
-		fg_reset2      ''
-		bg_black       ''
-		bg_red         ''
-		bg_green       ''
-		bg_yellow      ''
-		bg_blue        ''
-		bg_magenta     ''
-		bg_cyan        ''
-		bg_white       ''
-		bg_reset       ''
+		bold:off       ''
+		underscore:off ''
+		blink:off      ''
+		reverse:off    ''
+		fg:black       ''
+		fg:red         ''
+		fg:green       ''
+		fg:yellow      ''
+		fg:blue        ''
+		fg:magenta     ''
+		fg:cyan        ''
+		fg:white       ''
+		fg:reset       ''
+		fg:black2      ''
+		fg:red2        ''
+		fg:green2      ''
+		fg:yellow2     ''
+		fg:blue2       ''
+		fg:magenta2    ''
+		fg:cyan2       ''
+		fg:white2      ''
+		fg:reset2      ''
+		bg:black       ''
+		bg:red         ''
+		bg:green       ''
+		bg:yellow      ''
+		bg:blue        ''
+		bg:magenta     ''
+		bg:cyan        ''
+		bg:white       ''
+		bg:reset       ''
 	)
 
 	# Determine up-front whether we're on a TTY, so we can decide things like
@@ -249,8 +257,8 @@
 		declare -gr SHU_HAS_TTY=0
 	fi
 
-	# Emulate ZSH_ARGZERO for versions of zsh that don't have it; this way we
-	# can leave function_argzero enabled without sacrificing access to the name
+	# Emulate `ZSH_ARGZERO` for versions of zsh that don't have it; this way we
+	# can leave `function_argzero` enabled without sacrificing access to the name
 	# of the actual script
 	() {
 		setopt local_options posix_argzero
@@ -259,8 +267,9 @@
 		declare -gr SHU_ARGZERO_TAIL=${0:t}
 	}
 
-	# Absolute path to the fn digest file
-	declare -gr SHU_FN_DIGEST="${${${(%):-%N}:a}:h}/fn.zwc"
+	# Absolute paths to the fn/ directory and digest file
+	declare -gr    SHU_FN_DIR="${${${(%):-%N}:a}:h}/fn"
+	declare -gr SHU_FN_DIGEST="${SHU_FN_DIR}.zwc"
 }
 
 ##
@@ -273,18 +282,23 @@
 	# Output verbosity level
 	declare -g SHU_VERBOSITY=$SHU_VERBOSITY_NORMAL
 
-	# If >0, `shu::panic` won't kill the script. If >1, `shu::panic` will
-	# suppress the error message as well. See `shu::ignpanic`
+	# Panic ignore level — if >0, `shu::panic` won't kill the script. This is
+	# intended mostly for use by scripts; we don't allow users to pass this down
+	# through the environment
 	declare -g SHU_PANIC_IGNORE=0
 
-	# Panic trace-back verbosity level
+	# Panic trace-back level — if >0, `shu::panic` will show a trace-back. If >1,
+	# `shu::panic` will print extra trace information. Unlike the ignore level,
+	# we'll allow users to control this through the environment
 	if [[ ${SHU_PANIC_TRACE:-} == [0-9]## ]]; then
 		declare -gx SHU_PANIC_TRACE=$SHU_PANIC_TRACE
 	else
-		declare -gx SHU_PANIC_TRACE=1
+		declare -gx SHU_PANIC_TRACE=0
 	fi
 
-	# Force ANSI SGR usage
+	# Force ANSI SGR usage — we'll allow users to control this through the
+	# environment as well. If scripts want to override it (which they *usually*
+	# shouldn't, they can do it by resetting the `SHU_ANSI` array
 	if [[ ${SHU_ANSI_ENABLE:-} == (always|never) ]]; then
 		declare -gx SHU_ANSI_ENABLE=$SHU_ANSI_ENABLE
 	else
@@ -294,6 +308,7 @@
 
 ##
 # Environment sanitisation
+# @todo Move out into a consumer library
 {
 	# Used by zsh
 	unset -v \
@@ -315,6 +330,7 @@
 		ZBEEP
 
 	    NULLCMD=cat
+	     PROMPT='%% '
 	READNULLCMD=cat
 	  TMPPREFIX=/tmp/zsh
 
@@ -344,15 +360,6 @@
 
 	# Some tools can freak out if no TERM is set
 	export TERM=${TERM:-xterm}
-
-	# Prevent people from screwing with the PATH
-	# @todo Is this necessary?
-	if [[ $VENDOR == apple ]]; then
-		eval "$( /usr/libexec/path_helper )"
-	else
-		source /etc/environment 2> /dev/null
-		export PATH
-	fi
 }
 
 ##
@@ -363,13 +370,9 @@
 	exec {SHU_FD_STDOUT}>&1
 	exec {SHU_FD_STDERR}>&2
 
-	# `shu::panic` sends SIGUSR2 to propagate panics up sub-shells. Note: The
-	# consumer CAN, but absolutely SHOULD NOT, override this trap
-	trap 'exit SHU_EX_PANIC' SIGUSR2
-
 	# Populate SHU_ANSI array by default if we're at a TTY
 	if
-		{ [[ $SHU_ANSI_ENABLE == auto ]] && (( SHU_HAS_TTY )) } ||
+		[[ "${SHU_ANSI_ENABLE}${SHU_HAS_TTY}" == auto1 ]] ||
 		[[ $SHU_ANSI_ENABLE == always ]]
 	then
 		declare -gA SHU_ANSI=( "${(@kv)SHU_ANSI_ACTIVE}" )
@@ -379,15 +382,21 @@
 
 	# Colourise PS4 if we're on a TTY and don't have any colours already
 	[[ $PS4 != *$'\033['* ]] &&
-	PS4="${SHU_ANSI[fg_black2]}${PS4}${SHU_ANSI[reset]}"
+	PS4="${SHU_ANSI[fg:black2]}${PS4}${SHU_ANSI[reset]}"
 }
 
 ##
 # Function registration
 {
-	fpath=( $SHU_FN_DIGEST $fpath )
-
-	autoload -w $SHU_FN_DIGEST
+	# Use the digest file if we have it
+	if [[ -e $SHU_FN_DIGEST ]]; then
+		fpath=( $SHU_FN_DIGEST $fpath )
+		autoload -w $SHU_FN_DIGEST
+	# Otherwise load from separate files
+	else
+		fpath=( $SHU_FN_DIR $fpath )
+		autoload -Uz $SHU_FN_DIR/*:*(.)
+	fi
 
 	# Maths functions not provided directly by zsh/mathfunc
 	functions -M min 1 -1 shu:math:min

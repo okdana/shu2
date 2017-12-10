@@ -8,13 +8,33 @@
 
 source "${0:h}/../lib"
 
-this:main() {
-	local     t ret i test_ret
+app::main() {
+	local     OPTARG OPTIND opt quiet assert_opt=-F
+	local     t i out ret test_ret tmp passed failed
 	local -aU tests
 
+	while getopts ':qv' opt; do
+		case $opt in
+			# Decrease output verbosity
+			'q') SHU_VERBOSITY=$SHU_VERBOSITY_QUIET ;;
+			# Increase output verbosity
+			'v')
+					SHU_VERBOSITY=$SHU_VERBOSITY_NORMAL
+					   assert_opt=
+					;;
+			# Errors
+			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+			*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+		esac
+	done
+
+	shift $(( OPTIND - 1 ))
+
 	for t in "${@:-.}"; do
+		[[ -e $t ]] || t=$t.test
 		[[ -e $t ]] || {
-			shu::pputs >&2 "No such file or directory: ${t}"
+			shu:io:pputs >&2 "No such file or directory: ${t}"
 			ret=1
 			continue
 		}
@@ -22,7 +42,7 @@ this:main() {
 		t=${t:a}
 
 		[[ -d $t ]] && {
-			tests+=( $t/*.test(.) )
+			tests+=( $t/*.test(-.) )
 			continue
 		}
 
@@ -30,52 +50,83 @@ this:main() {
 	done
 
 	(( $#tests )) || {
-		shu::pputs >&2 'No tests found.'
+		shu:io:pputs >&2 'No tests found.'
 		return 1
 	}
 
 	for t in $tests; do
 		grep -qswF assert $t &&
 		[[ "$( file -b $t 2> /dev/null )" == *text* ]] || {
-			shu::puts >&2 "Not a valid test file: ${t}"
+			shu:io:pputs >&2 "Not a valid test file: ${t}"
 			ret=1
 			continue
 		}
 
-		(( ++i > 1 )) && print
-		print -r -- "${SHU_ANSI[bold]}${${t:t}%.test}${SHU_ANSI[reset]}"
+		(( ++i > 1 )) && [[ -z $assert_opt ]] && shu:io:puts
+		shu:io:puts "${SHU_ANSI[bold:on]}${${t:t}%.test}${SHU_ANSI[reset]}"
 
-		(
-			test_ret=0
+		out=$(
+			exec 2>&1
+			ret=0
 
 			assert() {
-				local    ret
+				local    test_ret
 				local -A test_data
 
 				shu:test:assert +A test_data "${@}" || {
-					ret=$?
+					test_ret=1
 
-					shu::putf '%s%s %s%s\n' \
-						"${SHU_ANSI[fg_black2]}" \
+					(( $+test_data[summary] )) &&
+					shu:io:putf '%s%s %s%s\n' \
+						"${SHU_ANSI[fg:black2]}" \
 						${${:-[FAIL]}//?/ } \
 						${test_data[summary]} \
 						"${SHU_ANSI[reset]}"
 				}
 
-				(( test_ret += ret ))
-				return ret
+				(( ret += test_ret ))
+				return test_ret
 			}
 
 			source $t
-
-			return test_ret
+			return ret
 		)
+		test_ret=$?
 
-		(( ret += $? ))
+		if [[ $assert_opt == -F ]] && (( ! test_ret )); then
+			shu:io:putf '%s[PASS]%s\n' "${SHU_ANSI[fg:green]}" "${SHU_ANSI[reset]}"
+		elif [[ $assert_opt == -P ]] && (( test_ret )); then
+			shu:io:putf '%s[FAIL]%s\n' "${SHU_ANSI[fg:red]}" "${SHU_ANSI[reset]}"
+		elif [[ -n $out ]]; then
+			shu:io:puts $out
+		fi
+
+		tmp=${#${(@M)${(f)out}#*\[PASS]}}
+		(( passed += tmp ))
+		tmp=${#${(@M)${(f)out}#*\[FAIL]}}
+		(( failed += tmp ))
+
+		(( test_ret )) && ret=1
 	done
+
+	if (( failed )); then
+		shu:io:putf '\n%s%d/%d (%d%%) test(s) passed.%s\n' \
+			"${SHU_ANSI[fg:red]}" \
+			$passed \
+			$(( passed + failed )) \
+			$(( (0.0 + passed) / (passed + failed) * 100 )) \
+			"${SHU_ANSI[reset]}"
+	else
+		shu:io:putf '\n%s%d/%d (%d%%) test(s) passed.%s\n' \
+			"${SHU_ANSI[fg:green]}" \
+			$passed \
+			$(( passed + failed )) \
+			$(( (0.0 + passed) / (passed + failed) * 100 )) \
+			"${SHU_ANSI[reset]}"
+	fi
 
 	return ret
 }
 
-this:main "${@}"
+app::main "${@}"
 return $?

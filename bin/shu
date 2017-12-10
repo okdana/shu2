@@ -11,7 +11,7 @@
 
 source "${0:h}/../lib"
 
-this:main() {
+app::main() {
 	local    OPTARG OPTIND opt
 	local    mode verbosity=0 xtrace func ret o start end
 	local -a options
@@ -82,12 +82,16 @@ this:main() {
 	(( verbosity >= 0 )) &&
 	shu::ignpanic -1
 
-	start="$( shu:time:epoch -u )"
+	start=$( shu:time:epoch -u )
 	(( $#xtrace )) && typeset -f -$xtrace $func
-	$func "${@}"
+	if [[ $func == shu::panic ]]; then
+		( $func "${@}" )
+	else
+		$func "${@}"
+	fi
 	ret=$?
 	(( $#xtrace )) && typeset -f +$xtrace $func
-	end="$( shu:time:epoch -u )"
+	end=$( shu:time:epoch -u )
 
 	(( verbosity )) && {
 		if (( ret )); then
@@ -100,5 +104,5 @@ this:main() {
 	return $ret
 }
 
-this:main "${@}"
+app::main "${@}"
 return $?

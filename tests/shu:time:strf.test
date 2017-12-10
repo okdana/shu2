@@ -34,22 +34,23 @@ assert -d 'Supports optional epoch time' \
 assert -d 'Supports assignment to scalar' \
 	-e '[0-9-]## [0-9:]##' -gl \
 	's=; shu:time:strf +ss; print -r -- $s'
-
 assert -d 'Panics on attempted assignment to undeclared scalar' \
 	-er SHU_EX_PANIC -eq \
 	'unset s; shu:time:strf +ss'
+
 assert -d 'Panics with format string containing no specifier' \
 	-r SHU_EX_PANIC -eq \
 	shu:time:strf x
-assert -d 'Panics with illegal option -Y' \
-	-r SHU_EX_PANIC -eq \
-	shu:time:strf -Y
-assert -d 'Panics with illegal option +z' \
-	-r SHU_EX_PANIC -eq \
-	shu:time:strf +z
-assert -d 'Panics with too many arguments' \
-	-r SHU_EX_PANIC -eq \
-	shu:time:strf %Y 0 0
 assert -d 'Panics with illegal-looking time zone' \
 	-r SHU_EX_PANIC -eq \
 	shu:time:strf -z %T
+
+assert -d 'Panics with too many arguments' \
+	-r SHU_EX_PANIC -eq \
+	shu:time:strf %Y 0 0
+
+for p in -Y +Y +z; do
+	assert -d "Panics with illegal option ${p}" \
+		-r SHU_EX_PANIC -eq \
+		shu:io:puts $p
+done

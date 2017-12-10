@@ -4,15 +4,15 @@
 # Prints a formatted string prefixed by the name of the calling script.
 #
 # Aside from the addition of the prefix, this function behaves identically to
-# `shu::putf`.
+# `shu:io:putf`.
 #
-# @module core
+# @module io
 #
 # @see printf
-# @see shu::putf
-# @see shu::puts
+# @see shu:io:putf
+# @see shu:io:puts
 #
-# @param -a, -n, -q, -qq, -v, -vv, -vvv (optional) See `shu::puts`.
+# @param -a, -n, -N, -q, -Q, -v, -V, -x, -X (optional) See `shu:io:puts`.
 #
 # @param $1
 #   A `printf` format string (e.g., `Hello, %s!\n`). The format string is
@@ -32,46 +32,54 @@
 #   arguments are **not** elided.
 #
 # @return According to `printf`.
-shu::pputf() {
-	case ${1:-} in
-		--)
-			;;
-		-a)
-			shift
-			;;
-		-n)
-			(( SHU_VERBOSITY == SHU_VERBOSITY_NORMAL )) || return 0
-			shift
-			;;
-		-q)
-			(( SHU_VERBOSITY <= SHU_VERBOSITY_QUIET )) || return 0
-			shift
-			;;
-		-qq)
-			(( SHU_VERBOSITY <= SHU_VERBOSITY_VERY_QUIET )) || return 0
-			shift
-			;;
-		-v)
-			(( SHU_VERBOSITY >= SHU_VERBOSITY_VERBOSE )) || return 0
-			shift
-			;;
-		-vv)
-			(( SHU_VERBOSITY >= SHU_VERBOSITY_VERY_VERBOSE )) || return 0
-			shift
-			;;
-		-vvv)
-			(( SHU_VERBOSITY >= SHU_VERBOSITY_DEBUG )) || return 0
-			shift
-			;;
-		[+-]*)
-			shu::panic "Invalid option: ${1}"
-			;;
-		*)
-			(( SHU_VERBOSITY < SHU_VERBOSITY_NORMAL )) && return 0
-			;;
-	esac
+shu:io:pputf() {
+	local OPTARG OPTIND opt last_opt
+	local cmp=$SHU_VERBOSITY_NORMAL op='<=' exact
 
-	[[ ${1:-} == -- ]] && shift
+	while getopts ':anNqQvVxX' opt; do
+		# Clauses here are ordered roughly according to frequency of use
+		case $opt in
+			'v'|'V')
+				if [[ $last_opt == $opt ]]; then
+					(( cmp < SHU_VERBOSITY_VERBOSE5 )) && (( cmp++ ))
+				else
+					cmp=$SHU_VERBOSITY_VERBOSE1
+					 op='<='
+					[[ $opt == V ]] && op='>='
+				fi
+				;;
+			'q'|'Q')
+				if [[ $last_opt == $opt ]]; then
+					(( cmp > SHU_VERBOSITY_QUIET5 )) && (( cmp-- ))
+				else
+					cmp=$SHU_VERBOSITY_QUIET1
+					 op='<='
+					[[ $opt == Q ]] && op='>='
+				fi
+				;;
+			'n'|'N')
+				cmp=$SHU_VERBOSITY_NORMAL
+				 op='<='
+				[[ $opt == N ]] && op='>='
+				;;
+			'a')
+				cmp=$SHU_VERBOSITY
+				 op='=='
+				;;
+			'x') exact=1 ;;
+			'X') exact=0 ;;
+			# Errors
+			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+			*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+		esac
+		last_opt=$opt
+	done
+
+	(( exact )) && op='=='
+	(( cmp $op SHU_VERBOSITY )) || return 0
+
+	shift $(( OPTIND - 1 ))
 
 	(( $# )) || 1=''
 

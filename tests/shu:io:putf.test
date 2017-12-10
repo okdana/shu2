@@ -1,0 +1,105 @@
+#!/usr/bin/env zsh
+
+##
+# shu-unit tests for shu:io:putf() and shu:io:pputf()
+
+fn=${0:t:r}
+
+assert -d 'Returns 0 with no arguments' \
+	-r 0 -eq \
+	$fn
+assert -d 'Returns 0 with multiple arguments' \
+	-r 0 -eq \
+	$fn %s bar baz
+
+# option:verbosity:expected
+provider=(
+	:{QUIET5,QUIET2,QUIET1}:
+	:{NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:foo
+
+	-a:{QUIET5,QUIET2,QUIET1,NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:foo
+
+	-n:{QUIET5,QUIET2,QUIET1}:
+	-n:{NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:foo
+
+	-N:{QUIET5,QUIET2,QUIET1,NORMAL}:foo
+	-N:{VERBOSE1,VERBOSE2,VERBOSE5}:
+
+	-q:{QUIET5,QUIET2}:
+	-q:{QUIET1,NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:foo
+
+	-qq:QUIET5:
+	-qq:{QUIET2,QUIET1,NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:foo
+
+	-Q:{QUIET5,QUIET2,QUIET1}:foo
+	-Q:{NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:
+
+	-QQ:{QUIET5,QUIET2}:foo
+	-QQ:{QUIET1,NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:
+
+	-v:{QUIET5,QUIET2,QUIET1,NORMAL}:
+	-v:{VERBOSE1,VERBOSE2,VERBOSE5}:foo
+
+	-vv:{QUIET5,QUIET2,QUIET1,NORMAL,VERBOSE1}:
+	-vv:{VERBOSE2,VERBOSE5}:foo
+
+	-V:{QUIET5,QUIET2,QUIET1,NORMAL,VERBOSE1}:foo
+	-V:{VERBOSE2,VERBOSE5}:
+
+	-VV:{QUIET5,QUIET2,QUIET1,NORMAL,VERBOSE1,VERBOSE2}:foo
+	-VV:VERBOSE5:
+
+	-xn:{QUIET5,QUIET2,QUIET1}:
+	-xn:NORMAL:foo
+	-xn:{VERBOSE1,VERBOSE2,VERBOSE5}:
+
+	-xq:{QUIET5,QUIET2}:
+	-xq:QUIET1:foo
+	-xq:{NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:
+
+	-xqq:QUIET5:
+	-xqq:QUIET2:foo
+	-xqq:{QUIET1,NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:
+
+	-xv:{QUIET5,QUIET2,QUIET1,NORMAL}:
+	-xv:VERBOSE1:foo
+	-xv:{VERBOSE2,VERBOSE5}:
+
+	-xvv:{QUIET5,QUIET2,QUIET1,NORMAL,VERBOSE1}:
+	-xvv:VERBOSE2:foo
+	-xvv:VERBOSE5:
+)
+
+for p in $provider; do
+	pa=( "${(s<:>)p}" )
+
+	if [[ -n $pa[1] ]]; then
+		like="with option(s) ${pa[1]}"
+	else
+		like='by default'
+	fi
+
+	[[ -n $pa[3] ]] &&
+	[[ $fn == *:*:pput* ]] &&
+	pa[3]="${pa[3]%%[^[:space:]]*}${SHU_ARGZERO_TAIL}: ${pa[3]##[[:space:]]##}"
+
+	assert -d "Behaves as expected ${like} given verbosity ${pa[2]}" \
+		-e "${pa[3]}" -eq \
+		"SHU_VERBOSITY=\$SHU_VERBOSITY_${pa[2]}; ${fn} ${pa[1]} %s foo"
+done
+
+pre=
+[[ $fn == *:*:pput* ]] && pre='?##: '
+
+assert -d 'Behaves as expected given one specifier with multiple arguments' \
+	"${pre}xfoox/${pre}xbarx/${pre}xbazx/" -gl \
+	$fn x%sx/ foo bar baz
+assert -d 'Behaves as expected given multiple specifiers with equal arguments' \
+	"${pre}foo/bar/baz" -gl \
+	$fn '%s/%s/%s' foo bar baz
+
+for p in -Y +Y +v; do
+	assert -d "Panics with illegal option ${p}" \
+		-r SHU_EX_PANIC -eq \
+		$fn $p
+done

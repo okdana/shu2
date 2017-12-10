@@ -24,7 +24,7 @@ hello: Hello, Alice!
 % bin/shu-repl
 Enter commands to evaluate. Press ^C or ^D to exit.
 
->>> shu::puts hello world
+>>> shu:io:puts hello world
 hello world
 <<< 0 (143 µs)
 

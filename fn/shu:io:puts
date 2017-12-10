@@ -1,0 +1,127 @@
+# vim: set ft=zsh:
+
+##
+# Prints a new-line-terminated string.
+#
+# By default, output is suppressed if the current verbosity level is quiet or
+# lower. This behaviour can be controlled with the verbosity options described
+# below.
+#
+# The `-q` and `-v` verbosity options have a cumulative effect if (and only if)
+# the same option is provided consecutively; when one verbosity option is
+# provided after a different one, the verbosity comparison is reset as if the
+# earlier option(s) had not appeared. For example, `shu:io:puts -vv` and
+# `shu:io:puts -v -v` both print when the verbosity level is VERBOSE2 or higher,
+# but `shu:io:puts -v1v` and `shu:io:puts -vvvqv` do not.
+#
+# It not is possible to specify a verbosity level outside the bounds of the
+# predefined `SHU_VERBOSITY_*` constants — `shu:io:puts -vvvvvvvv` has the same
+# effect as `shu:io:puts -vvvvv`.
+#
+# @module io
+#
+# @see printf
+#
+# @param -<num>
+#   (optional) Indent the string by <num> spaces.
+#
+# @param -a
+#   (optional) Always print, regardless of the current verbosity level.
+#
+# @param -n
+#   (optional) Print only if the current verbosity level is NORMAL or *higher*.
+#   This is the default.
+#
+# @param -N
+#   (optional) Print only if the current verbosity level is NORMAL or *lower*.
+#
+# @param -q
+#   (optional) Print only if the current verbosity level is QUIET1 or *higher*.
+#   May be applied cumulatively.
+#
+# @param -Q
+#   (optional) Print only if the current verbosity level is QUIET1 or *lower*.
+#   May be applied cumulatively.
+#
+# @param -v
+#   (optional) Print only if the current verbosity level is VERBOSE1 or
+#   *higher*. May be applied cumulatively.
+#
+# @param -V
+#   (optional) Print only if the current verbosity level is VERBOSE1 or *lower*.
+#   May be applied cumulatively.
+#
+# @param -x
+#   (optional) Require the verbosity level to match exactly that specified by
+#   the other verbosity options given. In other words, `-xn` must match exactly
+#   `NORMAL` verbosity, `-xvvv` must match exactly `VERBOSE3` verbosity, &c.
+#
+# @param -X
+#   (optional) Do not require an exact verbosity-level match (negate the effect
+#   of `-x`). This is the default.
+#
+# @param $1 ...
+#   (optional) Zero or more strings to print. Multiple strings are concatenated
+#   by spaces prior to being passed to `printf`. Empty arguments are **not**
+#   elided.
+#
+# @return According to `printf`.
+shu:io:puts() {
+	local OPTARG OPTIND opt last_opt last_num_optind
+	local indent cmp=$SHU_VERBOSITY_NORMAL op='<=' exact
+
+	while getopts ':0123456789anNqQvVxX' opt; do
+		# Clauses here are ordered roughly according to frequency of use
+		case $opt in
+			'v'|'V')
+				if [[ $last_opt == $opt ]]; then
+					(( cmp < SHU_VERBOSITY_VERBOSE5 )) && (( cmp++ ))
+				else
+					cmp=$SHU_VERBOSITY_VERBOSE1
+					 op='<='
+					[[ $opt == V ]] && op='>='
+				fi
+				;;
+			'q'|'Q')
+				if [[ $last_opt == $opt ]]; then
+					(( cmp > SHU_VERBOSITY_QUIET5 )) && (( cmp-- ))
+				else
+					cmp=$SHU_VERBOSITY_QUIET1
+					 op='<='
+					[[ $opt == Q ]] && op='>='
+				fi
+				;;
+			'n'|'N')
+				cmp=$SHU_VERBOSITY_NORMAL
+				 op='<='
+				[[ $opt == N ]] && op='>='
+				;;
+			'a')
+				cmp=$SHU_VERBOSITY
+				 op='=='
+				;;
+			[0-9])
+				if (( last_num_optind != OPTIND )) || [[ $last_opt != [0-9] ]]; then
+					indent=
+				fi
+				indent+=$opt
+				last_num_optind=$OPTIND
+				;;
+			'x') exact=1 ;;
+			'X') exact=0 ;;
+			# Errors
+			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+			*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+		esac
+		last_opt=$opt
+	done
+
+	(( exact )) && op='=='
+	(( cmp $op SHU_VERBOSITY )) || return 0
+
+	shift $(( OPTIND - 1 ))
+
+	print -r -- "${(l:$indent:: :):-}${(j< >)@}"
+	return $?
+}
