@@ -1,13 +1,25 @@
 #!/usr/bin/env zsh
 
-##
-# This script can be used to make arbitrary calls to shu2 functions from the
-# command line.
-#
-# Usage examples:
-#   % shu -l
-#   % shu puts hello
-#   % shu -v putf 'Hello %s\n' foo
+#?: This tool can be used to make arbitrary calls to shu2 functions from the command
+#?: line.
+#?:
+#?# usage:
+#?=   shu [-hlpqvtTx] [-o <param=val>] <func> [<arg> ...]
+#?:
+#?# operands:
+#?+   <func>          The name of a shu2 function
+#?+   <arg> ...       Zero or more arguments to the function.
+#?:
+#?# options:
+#?+   -h              Display this usage help and exit.
+#?+   -H              Display documentation for the specified function and exit.
+#?+   -l              List all shu2 functions and exit.
+#?+   -o <param=val>  Define the value of a special SHU_* parameter.
+#?+   -p              Display the path of the specified function and exit.
+#?+   -q              Decrease output verbosity.
+#?+   -v              Increase output verbosity.
+#?+   -t, -x          Enable function xtrace (like `typeset -t`).
+#?+   -T              Enable function xtrace (like `typeset -T`).
 
 source "${0:h}/../lib"
 
@@ -16,9 +28,10 @@ app::main() {
 	local    mode verbosity=0 xtrace func ret o start end
 	local -a options
 
-	while getopts ':hlo:pqtTvx' opt; do
+	while getopts ':hHlo:pqtTvx' opt; do
 		case $opt in
-			h)   mode=doc ;;
+			h)   shu:meta:help; return 0 ;;
+			H)   mode=doc ;;
 			l)   mode=fns ;;
 			o)   options+=( $OPTARG ) ;;
 			p)   mode=fnpath ;;
@@ -84,11 +97,7 @@ app::main() {
 
 	start=$( shu:time:epoch -u )
 	(( $#xtrace )) && typeset -f -$xtrace $func
-	if [[ $func == shu::panic ]]; then
-		( $func "${@}" )
-	else
-		$func "${@}"
-	fi
+	() { $func "${@}" } "${@}"
 	ret=$?
 	(( $#xtrace )) && typeset -f +$xtrace $func
 	end=$( shu:time:epoch -u )
