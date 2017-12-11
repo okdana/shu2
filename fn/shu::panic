@@ -37,13 +37,19 @@ shu::panic() {
 			identifier=${functrace[i]%:*}
 			   line_no=${functrace[i]##*:}
 
-			# Colourise file names differently, and wrap them in braces
+			# Colourise and format depending on whether the identifier represents a
+			# file, a special context like `(eval)`, or a regular function
 			if
 				{ [[ $identifier == */* ]] && (( ! $+functions[$identifier] )) } ||
 				{ (( i == $#functrace ))   && [[ $identifier == $SHU_ARGZERO ]] }
 			then
 				(( i == 1 )) && caller="{${identifier:t}}"
 				identifier="${SHU_ANSI[fg:cyan]}{${identifier}}${SHU_ANSI[fg:reset]}"
+
+			elif [[ $identifier == '('*')' ]]; then
+				(( i == 1 )) && caller="${identifier}"
+				identifier="${SHU_ANSI[fg:yellow]}${identifier}${SHU_ANSI[fg:reset]}"
+
 			else
 				(( i == 1 )) && caller="${identifier}()"
 				identifier="${SHU_ANSI[fg:green]}${identifier}()${SHU_ANSI[fg:reset]}"
@@ -68,11 +74,12 @@ shu::panic() {
 		done
 	}
 
-	shu:io:pputf >&$SHU_FD_STDERR '%sPanic! %s%s%s\n' \
+	shu:io:pputf >&$SHU_FD_STDERR '%sPanic in %s%s%s\n' \
 		"${SHU_ANSI[fg:red]}" \
-		${caller:-?} \
+		${caller:-(unknown)} \
 		${@:+: ${(j< >)@}} \
 		"${SHU_ANSI[reset]}"
+
 
 	(( SHU_PANIC_TRACE )) &&
 	(( $#trace )) && {
