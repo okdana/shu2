@@ -44,10 +44,10 @@
 		+b:zf_rm \
 		+b:zf_rmdir \
 		+b:zf_sync
+	zmodload -Fa zsh/mapfile \
+		+p:mapfile
 	zmodload -Fa zsh/stat \
 		+b:zstat
-	zmodload -Fa zsh/zselect \
-		+b:zselect
 	zmodload -Fa zsh/system \
 		+b:syserror \
 		+b:sysopen \
@@ -55,6 +55,8 @@
 		+b:sysseek \
 		+b:syswrite \
 		+p:sysparams
+	zmodload -Fa zsh/zselect \
+		+b:zselect
 
 	# Use high-precision session timer
 	typeset -gF SECONDS
