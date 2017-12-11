@@ -17,26 +17,118 @@
 #
 # @return 0 on success, >0 on error.
 shu:meta:help() {
-	local help
+	local    MATCH MBEGIN MEND
+	local    line curr last tmp1 tmp2 synsplen1 synsplen2 synsp1 synsp2 i
+	local -a lines help
 
 	[[ ${1:-} == -- ]] && shift
 
 	(( $# > 1 )) && shu::panic 'Too many arguments'
 
+	(( $# )) ||
+	1=$SHU_ARGZERO_ABS
+
 	[[ ${1:-/} != */* ]] &&
-	[[ ! -e ${1:-} ]] && {
-		1==$1 2> /dev/null
-		(( $#1 )) || return 1
-	}
+	[[ ! -e ${1:-} ]] &&
+	1=${${1:c}##[^/]*}
+
+	[[ -e $1 ]] || return 1
+
+	lines=( "${(@f)mapfile[$1]}" )
+
+	# Minimal implementation for now
+	for line in "${(@)lines}"; do
+		[[ $line == [[:space:]]#[#][?][:?#=+-](| *) ]] || {
+			[[ -n $last ]] && break
+			continue
+		}
+
+		(( $#line > 4 )) || {
+			help+=( '' )
+			continue
+		}
+
+		 last=$line
+		help+=( "${line[5,-1]}" )
+	done
+
+	(( $#help )) || return 1
+
+	print -rl -- "${(@)help}"
+	return 0
+
+	# @todo
+	for line in "${(@)lines}"; do
+		[[ $line == [[:space:]]#[#][?][:?#=+-](| *) ]] || {
+			[[ -n $last ]] && break
+			continue
+		}
+
+		(( $#line > 4 )) || {
+			help+=( '' )
+			continue
+		}
+
+		last=$curr
+		curr=$line[3]
+		line=${line[5,-1]}
+
+		case $curr in
+			'?'|':')
+				;;
+			'#')
+				line="${SHU_ANSI[bold:on]}${line}${SHU_ANSI[reset]}"
+				;;
+			'=')
+				if [[ $line == [\ ]#[^[\ \<-]* ]]; then
+					tmp1=${${(M)line#(#m)* [[\<-]}%?}
+					tmp2=$tmp1
+					synsplen1=$(( MEND - MBEGIN ))
+					synsplen2=$synsplen1
+
+					[[ $tmp1 == *'$0'* ]] && {
+						tmp1=${tmp1//\$0/${1:t}}
+						(( synsplen2 += $#tmp1 - $#tmp2 ))
+					}
+
+					synsp1=${(l<$synsplen1>< >):-}
+					synsp2=${(l<$synsplen2>< >):-}
+					  line="${tmp1}${line[MEND,-1]}"
+
+				elif [[ $line == ${synsp1}[^\ ]* ]]; then
+					line="${synsp2}${line[synsplen1 + 1,-1]}"
+				fi
+				;;
+			'-')
+				[[ $line == '  '[\<-]* ]] &&
+				line="${SHU_ANSI[fg:yellow]}${line}${SHU_ANSI[reset]}"
+				;;
+			'+')
+				[[ $line == '  '[\<-]* ]] && {
+					tmp1=${${(M)line#(#m)  *  [^ ]}%?}
+					tmp2=${line[MEND,-1]}
+
+					 line=
+					line+="${SHU_ANSI[fg:yellow]}${tmp1}${SHU_ANSI[reset]}"
+					line+=$tmp2
+				}
+				;;
+		esac
+
+		help+=( "${line}" )
+	done
+
+	print -rl -- "${(@)help}"
+
+	return 0
 
 	help=$(
-		sed -nE '
-			/^[[:space:]]*#\?:( |$)/,/^[[:space:]]*([^#]|$)/p;
-		' ${1:-} |
-		sed -E '
-			/^[[:space:]]*#\?:( |$)/!d;
-			s/^[[:space:]]*#\?:( |$)//;
-		'
+		sed -E '/^[[:space:]]*#\?[?:#=+-]( |$)/n;' $1 #|
+		#sed -nE '/^[[:space:]]*#\?[?:#=+-]( |$)/,/^[[:space:]]*([^#]|$)/h; g; /^$/d;' $1 #|
+		#sed -E '
+		#	/^[[:space:]]*#\?:( |$)/!d;
+		#	s/^[[:space:]]*#\?:( |$)//;
+		#'
 	)
 
 	(( $#help )) || return 1
