@@ -60,7 +60,7 @@ shu::panic() {
 
 			# Only add file-level info if requested
 			(( SHU_PANIC_TRACE > 1 )) && {
-				identifier=${funcfiletrace[i]%:*}
+				identifier=${${funcfiletrace[i]%:*}:-$ZSH_NAME}
 				   line_no=${funcfiletrace[i]##*:}
 				trace_line+=' '
 				trace_line+='('
