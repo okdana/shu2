@@ -21,7 +21,7 @@
 #?+   -t, -x          Enable function xtrace (like `typeset -t`).
 #?+   -T              Enable function xtrace (like `typeset -T`).
 
-source "${0:h}/../lib"
+source "${0:A:h}/../lib"
 
 app::main() {
 	local    OPTARG OPTIND opt

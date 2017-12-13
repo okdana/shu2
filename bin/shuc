@@ -43,7 +43,7 @@ this:main() {
 		return 1
 	}
 
-	shu2="${0:h}/.."
+	shu2="${0:A:h}/.."
 	 lib="${shu2}/lib"
 	  fn="${shu2}/fn"
 

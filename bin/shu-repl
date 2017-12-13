@@ -6,7 +6,7 @@
 # Usage example:
 #   % shu-repl
 
-source "${0:h}/../lib"
+source "${0:A:h}/../lib"
 
 setopt no_auto_list
 setopt menu_complete

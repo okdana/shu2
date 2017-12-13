@@ -270,7 +270,7 @@
 	}
 
 	# Absolute paths to the fn/ directory and digest file
-	declare -gr    SHU_FN_DIR="${${${(%):-%N}:a}:h}/fn"
+	declare -gr    SHU_FN_DIR="${${${(%):-%N}:A}:h}/fn"
 	declare -gr SHU_FN_DIGEST="${SHU_FN_DIR}.zwc"
 }
 
