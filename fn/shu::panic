@@ -44,19 +44,19 @@ shu::panic() {
 				{ (( i == $#functrace ))   && [[ $identifier == $SHU_ARGZERO ]] }
 			then
 				(( i == 1 )) && caller="{${identifier:t}}"
-				identifier="${SHU_ANSI[fg:cyan]}{${identifier}}${SHU_ANSI[fg:reset]}"
+				identifier="${SHU_ANSI[fg:yellow2]}{${identifier}}${SHU_ANSI[reset]}"
 
 			elif [[ $identifier == '('*')' ]]; then
 				(( i == 1 )) && caller="${identifier}"
-				identifier="${SHU_ANSI[fg:yellow]}${identifier}${SHU_ANSI[fg:reset]}"
+				identifier="${SHU_ANSI[fg:yellow2]}${identifier}${SHU_ANSI[reset]}"
 
 			else
 				(( i == 1 )) && caller="${identifier}()"
-				identifier="${SHU_ANSI[fg:green]}${identifier}()${SHU_ANSI[fg:reset]}"
+				identifier="${SHU_ANSI[fg:yellow2]}${identifier}()${SHU_ANSI[reset]}"
 			fi
 
 			 trace_line="${identifier}"
-			trace_line+=" @ ${SHU_ANSI[fg:magenta]}${line_no}${SHU_ANSI[fg:reset]}"
+			trace_line+=" @ ${SHU_ANSI[fg:magenta2]}${line_no}${SHU_ANSI[reset]}"
 
 			# Only add file-level info if requested
 			(( SHU_PANIC_TRACE > 1 )) && {
@@ -64,9 +64,9 @@ shu::panic() {
 				   line_no=${funcfiletrace[i]##*:}
 				trace_line+=' '
 				trace_line+='('
-				trace_line+="${SHU_ANSI[fg:cyan]}${identifier:t}${SHU_ANSI[fg:reset]}"
+				trace_line+="${SHU_ANSI[fg:yellow2]}${identifier:t}${SHU_ANSI[reset]}"
 				trace_line+=' @ '
-				trace_line+="${SHU_ANSI[fg:magenta]}${line_no}${SHU_ANSI[fg:reset]}"
+				trace_line+="${SHU_ANSI[fg:magenta2]}${line_no}${SHU_ANSI[reset]}"
 				trace_line+=')'
 			}
 
