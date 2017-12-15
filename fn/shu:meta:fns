@@ -8,26 +8,25 @@
 # @param $1 (optional) The name of a module to restrict the matches to.
 #
 # @return 0 if matches were found, >0 otherwise.
-shu:meta:fns() {
-	local -a fns
 
-	[[ ${1:-} == -- ]] && shift
+local -a fns
 
-	(( $# > 1 )) && shu::panic 'Too many arguments'
+[[ ${1:-} == -- ]] && shift
 
-	if [[ ${1:-} == (core|:) ]]; then
-		1=:
-	elif (( $# )); then
-		[[ ${1:-xyz} == [a-z][a-z0-9]## ]] ||
-		shu::panic "Invalid module name: ${1}"
+(( $# > 1 )) && shu::panic 'Too many arguments'
 
-		1="${1}:"
-	fi
+if [[ ${1:-} == (core|:) ]]; then
+	1=:
+elif (( $# )); then
+	[[ ${1:-xyz} == [a-z][a-z0-9]## ]] ||
+	shu::panic "Invalid module name: ${1}"
 
-	fns=( ${(M)${(f)"$( typeset -f + )"}:#shu:${1:-}*} )
+	1="${1}:"
+fi
 
-	(( $#fns )) || return 1
+fns=( ${(M)${(f)"$( typeset -f + )"}:#shu:${1:-}*} )
 
-	printf '%s\n' $fns
-	return 0
-}
+(( $#fns )) || return 1
+
+printf '%s\n' $fns
+return 0

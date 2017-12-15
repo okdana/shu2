@@ -24,59 +24,58 @@
 #   standard output (similar to `cat`).
 #
 # @return 0 on success, >0 on error.
-shu:io:read() {
-	local    OPTARG OPTIND __opt __strip_nl __to_scalar __ret
-	local -a __tmp
 
-	while getopts ':ns:' __opt; do
-		case $__opt in
-			# Strip new-lines
-			'n'|'+n')
-				__strip_nl=1
-				;;
-			# Assign result to scalar
-			'+s')
-				(( ${(P)+OPTARG} )) ||
-				shu::panic "No such scalar: ${OPTARG}"
-				[[ "${(Pt)OPTARG}-" == scalar-* ]] ||
-				shu::panic "No such scalar: ${OPTARG}"
+local    OPTARG OPTIND __opt __strip_nl __to_scalar __ret
+local -a __tmp
 
-				__to_scalar=$OPTARG
-				;;
-			# Errors
-			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-			*)   shu::panic "Invalid option: ${(l:2::-:)_opt}" ;;
-		esac
-	done
+while getopts ':ns:' __opt; do
+	case $__opt in
+		# Strip new-lines
+		'n'|'+n')
+			__strip_nl=1
+			;;
+		# Assign result to scalar
+		'+s')
+			(( ${(P)+OPTARG} )) ||
+			shu::panic "No such scalar: ${OPTARG}"
+			[[ "${(Pt)OPTARG}-" == scalar-* ]] ||
+			shu::panic "No such scalar: ${OPTARG}"
 
-	shift $(( OPTIND - 1 ))
+			__to_scalar=$OPTARG
+			;;
+		# Errors
+		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+		*)   shu::panic "Invalid option: ${(l:2::-:)_opt}" ;;
+	esac
+done
 
-	(( $# > 1 )) && shu::panic 'Too many arguments'
+shift $(( OPTIND - 1 ))
 
-	[[ -n $__to_scalar ]] || {
-		(( __strip_nl )) && shu::panic 'Option +s required with +n'
+(( $# > 1 )) && shu::panic 'Too many arguments'
 
-		while builtin sysread -s 65535 -o1; do
-			__ret=$?
-			(( __ret == 5 )) && __ret=0
-		done
-		return __ret
-	}
+[[ -n $__to_scalar ]] || {
+	(( __strip_nl )) && shu::panic 'Option +s required with +n'
 
-	# This is very sensitive to the precise method we use to store each pass;
-	# seemingly trivial changes (such as using __tmp[idx++] instead) can have
-	# significant performance costs!
-	while builtin sysread -s 65535 '__tmp[(#__tmp + 1)]'; do
+	while builtin sysread -s 65535 -o1; do
 		__ret=$?
-		(( __ret == 5 )) && ret=0
+		(( __ret == 5 )) && __ret=0
 	done
-
-	if (( __strip_nl )); then
-		: ${(P)__to_scalar::=${${(j<>)__tmp}%%$'\n'##}}
-	else
-		: ${(P)__to_scalar::=${(j<>)__tmp}}
-	fi
-
 	return __ret
 }
+
+# This is very sensitive to the precise method we use to store each pass;
+# seemingly trivial changes (such as using __tmp[idx++] instead) can have
+# significant performance costs!
+while builtin sysread -s 65535 '__tmp[(#__tmp + 1)]'; do
+	__ret=$?
+	(( __ret == 5 )) && ret=0
+done
+
+if (( __strip_nl )); then
+	: ${(P)__to_scalar::=${${(j<>)__tmp}%%$'\n'##}}
+else
+	: ${(P)__to_scalar::=${(j<>)__tmp}}
+fi
+
+return __ret

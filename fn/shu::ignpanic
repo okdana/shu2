@@ -29,19 +29,18 @@
 #   acceptable.
 #
 # @return 0
-shu::ignpanic() {
-	[[ ${1:-} == -- ]] && shift
 
-	(( $# > 1 )) && shu::panic 'Too many arguments'
+[[ ${1:-} == -- ]] && shift
 
-	(( $# )) || 1=2
+(( $# > 1 )) && shu::panic 'Too many arguments'
 
-	case $1 in
-		-|0|-0) SHU_PANIC_IGNORE=0 ;;
-		1|-1)   SHU_PANIC_IGNORE=1 ;;
-		+|2|-2) SHU_PANIC_IGNORE=2 ;;
-		*)      shu::panic "Invalid argument: ${1}" ;;
-	esac
+(( $# )) || 1=2
 
-	return 0
-}
+case $1 in
+	-|0|-0) SHU_PANIC_IGNORE=0 ;;
+	1|-1)   SHU_PANIC_IGNORE=1 ;;
+	+|2|-2) SHU_PANIC_IGNORE=2 ;;
+	*)      shu::panic "Invalid argument: ${1}" ;;
+esac
+
+return 0

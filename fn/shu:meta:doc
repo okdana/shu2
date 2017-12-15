@@ -16,34 +16,33 @@
 #   provided, the function will try to read from `stdin` instead.
 #
 # @return 0 on success, >0 on error.
-shu:meta:doc() {
-	local doc
 
-	[[ ${1:-} == -- ]] && shift
+local doc
 
-	(( $# > 1 )) && shu::panic 'Too many arguments'
+[[ ${1:-} == -- ]] && shift
 
-	[[ ${1:-} == shu:* ]] &&
-	[[ ! -e $1 ]] && {
-		1=$( shu:meta:fnpath $1 )
-		(( $#1 )) || return 1
-	}
+(( $# > 1 )) && shu::panic 'Too many arguments'
 
-	1=${1//.zwc\//\/}
-
-	doc=$(
-		sed -nE '
-			/^[[:space:]]*##$/,/^[[:space:]]*([^#]|$)/p;
-		' ${1:-} |
-		sed -E '
-			1d;
-			/^[[:space:]]*[^#]/d;
-			s/^[[:space:]]*#( |$)//;
-		'
-	)
-
-	(( $#doc )) || return 1
-
-	printf '%s\n' $doc
-	return $?
+[[ ${1:-} == shu:* ]] &&
+[[ ! -e $1 ]] && {
+	1=$( shu:meta:fnpath $1 )
+	(( $#1 )) || return 1
 }
+
+1=${1//.zwc\//\/}
+
+doc=$(
+	sed -nE '
+		/^[[:space:]]*##$/,/^[[:space:]]*([^#]|$)/p;
+	' ${1:-} |
+	sed -E '
+		1d;
+		/^[[:space:]]*[^#]/d;
+		s/^[[:space:]]*#( |$)//;
+	'
+)
+
+(( $#doc )) || return 1
+
+printf '%s\n' $doc
+return $?

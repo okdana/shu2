@@ -8,32 +8,31 @@
 # @param $1 ... One or more numbers.
 #
 # @return 0
-shu:math:max() {
-	local max nctx
 
-	# Normal context?
-	[[ $0 == shu:math:* ]] && nctx=1
+local max nctx
 
-	[[ ${1:-} == -- ]] && shift
+# Normal context?
+[[ $0 == shu:math:* ]] && nctx=1
 
-	(( $# )) || shu::panic 'Too few arguments'
+[[ ${1:-} == -- ]] && shift
 
-	while (( $# )); do
-		(( nctx )) &&
-		[[ $1 != ${~SHU_PAT_MATH_NUM} ]] &&
-		shu::panic "Invalid arithmetic argument: ${1}"
+(( $# )) || shu::panic 'Too few arguments'
 
-		: ${max:=$1}
+while (( $# )); do
+	(( nctx )) &&
+	[[ $1 != ${~SHU_PAT_MATH_NUM} ]] &&
+	shu::panic "Invalid arithmetic argument: ${1}"
 
-		(( $1 > max )) && max=$1
-		shift
-	done
+	: ${max:=$1}
 
-	# Normal context
-	(( nctx )) && {
-		printf '%s\n' $max
-		return 0
-	}
-	# Arithmetic context
-	(( max ))
+	(( $1 > max )) && max=$1
+	shift
+done
+
+# Normal context
+(( nctx )) && {
+	printf '%s\n' $max
+	return 0
 }
+# Arithmetic context
+(( max ))

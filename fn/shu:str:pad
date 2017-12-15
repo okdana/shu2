@@ -37,62 +37,61 @@
 #   a separate line. Empty arguments are **not** elided.
 #
 # @return 0 on success, >0 on error.
-shu:str:pad() {
-	local OPTIND OPTARG OPTERR opt chars truncate side len s c
 
-	while getopts ':c:ClrtT' opt; do
-		case $opt in
-			# Character(s) to pad with
-			'c') chars=$OPTARG ;;
-			# Auto-select pad character
-			'C') chars='' ;;
-			# Left-pad
-			'l') side=l ;;
-			# Right-pad
-			'r') side=r ;;
-			# Truncate if input is longer than length
-			't') truncate=1 ;;
-			# Never truncate
-			'T') truncate=0 ;;
-			# Error
-			'?') shu::panic "Invalid option: -${OPTARG}" ;;
-			':') shu::panic "Missing argument to option: -${OPTARG}" ;;
-		esac
-	done
+local OPTIND OPTARG OPTERR opt chars truncate side len s c
 
-	shift $(( OPTIND - 1 ))
+while getopts ':c:ClrtT' opt; do
+	case $opt in
+		# Character(s) to pad with
+		'c') chars=$OPTARG ;;
+		# Auto-select pad character
+		'C') chars='' ;;
+		# Left-pad
+		'l') side=l ;;
+		# Right-pad
+		'r') side=r ;;
+		# Truncate if input is longer than length
+		't') truncate=1 ;;
+		# Never truncate
+		'T') truncate=0 ;;
+		# Error
+		'?') shu::panic "Invalid option: -${OPTARG}" ;;
+		':') shu::panic "Missing argument to option: -${OPTARG}" ;;
+	esac
+done
 
-	(( $# )) || shu::panic 'Too few arguments'
+shift $(( OPTIND - 1 ))
 
-	len=$1
-	shift
+(( $# )) || shu::panic 'Too few arguments'
 
-	[[ $len == [0-9]## ]] || shu::panic "Invalid length: ${len}"
+len=$1
+shift
 
-	(( $#len )) && len=$(( 10#$len ))
+[[ $len == [0-9]## ]] || shu::panic "Invalid length: ${len}"
 
-	for s in "${@}"; do
-		(( ! $#truncate )) &&
-		(( $#s >= len   )) && {
-			printf '%s\n' $s
-			continue
-		}
+(( $#len )) && len=$(( 10#$len ))
 
-		if (( $#chars )); then
-			c=$chars
+for s in "${@}"; do
+	(( ! $#truncate )) &&
+	(( $#s >= len   )) && {
+		printf '%s\n' $s
+		continue
+	}
+
+	if (( $#chars )); then
+		c=$chars
+	else
+		if [[ $s == ${~SHU_PAT_MATH_NUM} ]]; then
+			c=0
 		else
-			if [[ $s == ${~SHU_PAT_MATH_NUM} ]]; then
-				c=0
-			else
-				c=' '
-			fi
+			c=' '
 		fi
+	fi
 
-		if [[ $side == r ]]; then
-			printf '%s\n' "${(pr<$len><$c>)s}"
-		else
-			printf '%s\n' "${(pl<$len><$c>)s}"
-		fi
-	done
-	return $?
-}
+	if [[ $side == r ]]; then
+		printf '%s\n' "${(pr<$len><$c>)s}"
+	else
+		printf '%s\n' "${(pl<$len><$c>)s}"
+	fi
+done
+return $?

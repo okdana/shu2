@@ -32,57 +32,56 @@
 #   arguments are **not** elided.
 #
 # @return According to `printf`.
-shu:io:pputf() {
-	local OPTARG OPTIND opt last_opt
-	local cmp=$SHU_VERBOSITY_NORMAL op='<=' exact
 
-	while getopts ':anNqQvVxX' opt; do
-		# Clauses here are ordered roughly according to frequency of use
-		case $opt in
-			'v'|'V')
-				if [[ $last_opt == $opt ]]; then
-					(( cmp < SHU_VERBOSITY_VERBOSE5 )) && (( cmp++ ))
-				else
-					cmp=$SHU_VERBOSITY_VERBOSE1
-					 op='<='
-					[[ $opt == V ]] && op='>='
-				fi
-				;;
-			'q'|'Q')
-				if [[ $last_opt == $opt ]]; then
-					(( cmp > SHU_VERBOSITY_QUIET5 )) && (( cmp-- ))
-				else
-					cmp=$SHU_VERBOSITY_QUIET1
-					 op='<='
-					[[ $opt == Q ]] && op='>='
-				fi
-				;;
-			'n'|'N')
-				cmp=$SHU_VERBOSITY_NORMAL
+local OPTARG OPTIND opt last_opt
+local cmp=$SHU_VERBOSITY_NORMAL op='<=' exact
+
+while getopts ':anNqQvVxX' opt; do
+	# Clauses here are ordered roughly according to frequency of use
+	case $opt in
+		'v'|'V')
+			if [[ $last_opt == $opt ]]; then
+				(( cmp < SHU_VERBOSITY_VERBOSE5 )) && (( cmp++ ))
+			else
+				cmp=$SHU_VERBOSITY_VERBOSE1
 				 op='<='
-				[[ $opt == N ]] && op='>='
-				;;
-			'a')
-				cmp=$SHU_VERBOSITY
-				 op='=='
-				;;
-			'x') exact=1 ;;
-			'X') exact=0 ;;
-			# Errors
-			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-			*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
-		esac
-		last_opt=$opt
-	done
+				[[ $opt == V ]] && op='>='
+			fi
+			;;
+		'q'|'Q')
+			if [[ $last_opt == $opt ]]; then
+				(( cmp > SHU_VERBOSITY_QUIET5 )) && (( cmp-- ))
+			else
+				cmp=$SHU_VERBOSITY_QUIET1
+				 op='<='
+				[[ $opt == Q ]] && op='>='
+			fi
+			;;
+		'n'|'N')
+			cmp=$SHU_VERBOSITY_NORMAL
+			 op='<='
+			[[ $opt == N ]] && op='>='
+			;;
+		'a')
+			cmp=$SHU_VERBOSITY
+			 op='=='
+			;;
+		'x') exact=1 ;;
+		'X') exact=0 ;;
+		# Errors
+		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+		*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+	esac
+	last_opt=$opt
+done
 
-	(( exact )) && op='=='
-	(( cmp $op SHU_VERBOSITY )) || return 0
+(( exact )) && op='=='
+(( cmp $op SHU_VERBOSITY )) || return 0
 
-	shift $(( OPTIND - 1 ))
+shift $(( OPTIND - 1 ))
 
-	(( $# )) || 1=''
+(( $# )) || 1=''
 
-	printf -- "${${${SHU_ARGZERO_TAIL}//\%/%%}//\\/\\\\}: ${1}" "${@:2}"
-	return $?
-}
+printf -- "${${${SHU_ARGZERO_TAIL}//\%/%%}//\\/\\\\}: ${1}" "${@:2}"
+return $?

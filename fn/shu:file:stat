@@ -48,120 +48,119 @@
 #   above).
 #
 # @return 0 on success, >0 on error.
-shu:file:stat() {
-	local    OPTARG OPTIND __opt __to_scalar __to_assoc __time_fmt __utc_opt
-	local    __field __file
-	local -A __assoc
 
-	while getopts ':A:F:s:u' __opt; do
-		case $__opt in
-			# Assign result to association
-			'+A')
+local    OPTARG OPTIND __opt __to_scalar __to_assoc __time_fmt __utc_opt
+local    __field __file
+local -A __assoc
+
+while getopts ':A:F:s:u' __opt; do
+	case $__opt in
+		# Assign result to association
+		'+A')
+			(( ${(P)+OPTARG} )) ||
+			shu::panic "No such association: ${OPTARG}"
+			[[ "${(Pt)OPTARG}-" == association-* ]] ||
+			shu::panic "No such association: ${OPTARG}"
+
+			 __to_assoc=$OPTARG
+			__to_scalar=
+			;;
+		# Assign result to scalar
+		'+s')
+			(( ${(P)+OPTARG} )) ||
+			shu::panic "No such scalar: ${OPTARG}"
+			[[ "${(Pt)OPTARG}-" == scalar-* ]] ||
+			shu::panic "No such scalar: ${OPTARG}"
+
+			 __to_assoc=
+			__to_scalar=$OPTARG
+			;;
+		# Specify date/time format
+		'F')
+			[[ ${OPTARG#SHU_TIME_} == FMT_[A-Z0-9_]# ]] && {
+				OPTARG="SHU_TIME_${OPTARG#SHU_TIME_}"
+
 				(( ${(P)+OPTARG} )) ||
-				shu::panic "No such association: ${OPTARG}"
-				[[ "${(Pt)OPTARG}-" == association-* ]] ||
-				shu::panic "No such association: ${OPTARG}"
+				shu::panic "No such time format: ${OPTARG}"
 
-				 __to_assoc=$OPTARG
-				__to_scalar=
-				;;
-			# Assign result to scalar
-			'+s')
-				(( ${(P)+OPTARG} )) ||
-				shu::panic "No such scalar: ${OPTARG}"
-				[[ "${(Pt)OPTARG}-" == scalar-* ]] ||
-				shu::panic "No such scalar: ${OPTARG}"
+				OPTARG=${(P)OPTARG}
+			}
+			__time_fmt=$OPTARG
+			;;
+		# UTC time zone
+		'u') __utc_opt=-g ;;
+		# Errors
+		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+		*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+	esac
+done
 
-				 __to_assoc=
-				__to_scalar=$OPTARG
-				;;
-			# Specify date/time format
-			'F')
-				[[ ${OPTARG#SHU_TIME_} == FMT_[A-Z0-9_]# ]] && {
-					OPTARG="SHU_TIME_${OPTARG#SHU_TIME_}"
+shift $(( OPTIND - 1 ))
 
-					(( ${(P)+OPTARG} )) ||
-					shu::panic "No such time format: ${OPTARG}"
+(( $# < 1 )) && shu::panic 'Too few arguments'
+(( $# > 2 )) && shu::panic 'Too many arguments'
 
-					OPTARG=${(P)OPTARG}
-				}
-				__time_fmt=$OPTARG
-				;;
-			# UTC time zone
-			'u') __utc_opt=-g ;;
-			# Errors
-			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-			*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
-		esac
-	done
+(( $# < 2 )) && (( $#__to_scalar )) && shu::panic 'Field required with +s'
 
-	shift $(( OPTIND - 1 ))
+if (( $# == 1 )); then
+	__file=$1
+else
+	__file=$2
 
-	(( $# < 1 )) && shu::panic 'Too few arguments'
-	(( $# > 2 )) && shu::panic 'Too many arguments'
+	__field=${${${(L)1}#+}#st_}
 
-	(( $# < 2 )) && (( $#__to_scalar )) && shu::panic 'Field required with +s'
+	case $__field in
+		device) __field=dev ;;
+		inode)  __field=ino ;;
+		'')     shu::panic 'Field required' ;;
+	esac
+fi
 
-	if (( $# == 1 )); then
-		__file=$1
-	else
-		__file=$2
+: ${__time_fmt:=${SHU_TIME_FMT_STD_A}}
 
-		__field=${${${(L)1}#+}#st_}
+builtin zstat -norH __assoc -F $__time_fmt $__utc_opt $__file || return $?
 
-		case $__field in
-			device) __field=dev ;;
-			inode)  __field=ino ;;
-			'')     shu::panic 'Field required' ;;
-		esac
-	fi
+__assoc[dev]=${__assoc[device]}
+__assoc[ino]=${__assoc[inode]}
 
-	: ${__time_fmt:=${SHU_TIME_FMT_STD_A}}
+__assoc[mode_s]=${${${__assoc[mode]}#*\(}%\)}
+  __assoc[mode]=${${${__assoc[mode]}%% *}:2}
 
-	builtin zstat -norH __assoc -F $__time_fmt $__utc_opt $__file || return $?
+__assoc[atime_s]=${${${__assoc[atime]}#*\(}%\)}
+  __assoc[atime]=${__assoc[atime]%% *}
 
-	__assoc[dev]=${__assoc[device]}
-	__assoc[ino]=${__assoc[inode]}
+__assoc[ctime_s]=${${${__assoc[ctime]}#*\(}%\)}
+  __assoc[ctime]=${__assoc[ctime]%% *}
 
-	__assoc[mode_s]=${${${__assoc[mode]}#*\(}%\)}
-	  __assoc[mode]=${${${__assoc[mode]}%% *}:2}
+__assoc[mtime_s]=${${${__assoc[mtime]}#*\(}%\)}
+  __assoc[mtime]=${__assoc[mtime]%% *}
 
-	__assoc[atime_s]=${${${__assoc[atime]}#*\(}%\)}
-	  __assoc[atime]=${__assoc[atime]%% *}
+__assoc[uid_s]=${${${__assoc[uid]}#*\(}%\)}
+  __assoc[uid]=${__assoc[uid]%% *}
 
-	__assoc[ctime_s]=${${${__assoc[ctime]}#*\(}%\)}
-	  __assoc[ctime]=${__assoc[ctime]%% *}
+__assoc[gid_s]=${${${__assoc[gid]}#*\(}%\)}
+  __assoc[gid]=${__assoc[gid]%% *}
 
-	__assoc[mtime_s]=${${${__assoc[mtime]}#*\(}%\)}
-	  __assoc[mtime]=${__assoc[mtime]%% *}
+unset -v '__assoc[device]' '__assoc[inode]'
 
-	__assoc[uid_s]=${${${__assoc[uid]}#*\(}%\)}
-	  __assoc[uid]=${__assoc[uid]%% *}
+(( $#__field && ! ${+__assoc[$__field]} )) &&
+shu::panic "No such field: ${__field}"
 
-	__assoc[gid_s]=${${${__assoc[gid]}#*\(}%\)}
-	  __assoc[gid]=${__assoc[gid]%% *}
-
-	unset -v '__assoc[device]' '__assoc[inode]'
-
-	(( $#__field && ! ${+__assoc[$__field]} )) &&
-	shu::panic "No such field: ${__field}"
-
-	(( $#__to_scalar )) && {
-		: ${(P)__to_scalar::=${__assoc[$__field]}}
-		return $?
-	}
-
-	(( $#__to_assoc )) && {
-		: ${(PAA)__to_assoc::="${(@kv)__assoc}"}
-		return $?
-	}
-
-	(( $#__field )) && {
-		print -r -- ${__assoc[$__field]}
-		return $?
-	}
-
-	print -lor -- ${(f)"$( print -rC2 -- "${(@k)__assoc}" "${(@)__assoc}" )"}
+(( $#__to_scalar )) && {
+	: ${(P)__to_scalar::=${__assoc[$__field]}}
 	return $?
 }
+
+(( $#__to_assoc )) && {
+	: ${(PAA)__to_assoc::="${(@kv)__assoc}"}
+	return $?
+}
+
+(( $#__field )) && {
+	print -r -- ${__assoc[$__field]}
+	return $?
+}
+
+print -lor -- ${(f)"$( print -rC2 -- "${(@k)__assoc}" "${(@)__assoc}" )"}
+return $?

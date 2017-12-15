@@ -20,28 +20,27 @@
 #   `shu:time:sleep 90`, `shu:time:sleep 1.5m`, `shu:time:sleep 1m 30s`.
 #
 # @return 0
-shu:time:sleep() {
-	local -F csec
 
-	(( $# < 1 )) && shu::panic 'Too few arguments'
+local -F csec
 
-	while (( $# )); do
-		[[ $1 == ${~SHU_PAT_MATH_NUM_POS}(|s|m|h|d) ]] ||
-		shu::panic "Invalid interval: ${1}"
+(( $# < 1 )) && shu::panic 'Too few arguments'
 
-		case $1 in
-			*d) (( csec += ${1%d} * 100.0 * 60 * 60 * 24 )) ;;
-			*h) (( csec += ${1%h} * 100.0 * 60 * 60 )) ;;
-			*m) (( csec += ${1%m} * 100.0 * 60 )) ;;
-			*)  (( csec += ${1%s} * 100.0 )) ;;
-		esac
+while (( $# )); do
+	[[ $1 == ${~SHU_PAT_MATH_NUM_POS}(|s|m|h|d) ]] ||
+	shu::panic "Invalid interval: ${1}"
 
-		shift
-	done
+	case $1 in
+		*d) (( csec += ${1%d} * 100.0 * 60 * 60 * 24 )) ;;
+		*h) (( csec += ${1%h} * 100.0 * 60 * 60 )) ;;
+		*m) (( csec += ${1%m} * 100.0 * 60 )) ;;
+		*)  (( csec += ${1%s} * 100.0 )) ;;
+	esac
 
-	(( csec == 0 )) && return 0
-	(( csec < 1  )) && shu::panic "Unsupported interval: ${csec} cs"
+	shift
+done
 
-	zselect -t ${csec%.*}
-	return 0
-}
+(( csec == 0 )) && return 0
+(( csec < 1  )) && shu::panic "Unsupported interval: ${csec} cs"
+
+zselect -t ${csec%.*}
+return 0

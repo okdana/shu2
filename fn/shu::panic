@@ -25,81 +25,80 @@
 #   arguments are **not** elided.
 #
 # @return SHU_EX_PANIC
-shu::panic() {
-	local    i identifier line_no caller trace_line interactive
-	local -a trace
 
-	[[ $- == *i* ]] && interactive=1
+local    i identifier line_no caller trace_line interactive
+local -a trace
 
-	# Build trace-back
-	(( $+functrace && $#functrace )) && {
-		for i in {1..$#functrace}; do
-			identifier=${functrace[i]%:*}
-			   line_no=${functrace[i]##*:}
+[[ $- == *i* ]] && interactive=1
 
-			# Colourise and format depending on whether the identifier represents a
-			# file, a special context like `(eval)`, or a regular function
-			if
-				{ [[ $identifier == */* ]] && (( ! $+functions[$identifier] )) } ||
-				{ (( i == $#functrace ))   && [[ $identifier == $SHU_ARGZERO ]] }
-			then
-				(( i == 1 )) && caller="{${identifier:t}}"
-				identifier="${SHU_ANSI[fg:yellow2]}{${identifier}}${SHU_ANSI[reset]}"
+# Build trace-back
+(( $+functrace && $#functrace )) && {
+	for i in {1..$#functrace}; do
+		identifier=${functrace[i]%:*}
+		   line_no=${functrace[i]##*:}
 
-			elif [[ $identifier == '('*')' ]]; then
-				(( i == 1 )) && caller="${identifier}"
-				identifier="${SHU_ANSI[fg:yellow2]}${identifier}${SHU_ANSI[reset]}"
+		# Colourise and format depending on whether the identifier represents a
+		# file, a special context like `(eval)`, or a regular function
+		if
+			{ [[ $identifier == */* ]] && (( ! $+functions[$identifier] )) } ||
+			{ (( i == $#functrace ))   && [[ $identifier == $SHU_ARGZERO ]] }
+		then
+			(( i == 1 )) && caller="{${identifier:t}}"
+			identifier="${SHU_ANSI[fg:yellow2]}{${identifier}}${SHU_ANSI[reset]}"
 
-			else
-				(( i == 1 )) && caller="${identifier}()"
-				identifier="${SHU_ANSI[fg:yellow2]}${identifier}()${SHU_ANSI[reset]}"
-			fi
+		elif [[ $identifier == '('*')' ]]; then
+			(( i == 1 )) && caller="${identifier}"
+			identifier="${SHU_ANSI[fg:yellow2]}${identifier}${SHU_ANSI[reset]}"
 
-			 trace_line="${identifier}"
-			trace_line+=" @ ${SHU_ANSI[fg:magenta2]}${line_no}${SHU_ANSI[reset]}"
+		else
+			(( i == 1 )) && caller="${identifier}()"
+			identifier="${SHU_ANSI[fg:yellow2]}${identifier}()${SHU_ANSI[reset]}"
+		fi
 
-			# Only add file-level info if requested
-			(( SHU_PANIC_TRACE > 1 )) && {
-				identifier=${${funcfiletrace[i]%:*}:-$ZSH_NAME}
-				   line_no=${funcfiletrace[i]##*:}
-				trace_line+=' '
-				trace_line+='('
-				trace_line+="${SHU_ANSI[fg:yellow2]}${identifier:t}${SHU_ANSI[reset]}"
-				trace_line+=' @ '
-				trace_line+="${SHU_ANSI[fg:magenta2]}${line_no}${SHU_ANSI[reset]}"
-				trace_line+=')'
-			}
+		 trace_line="${identifier}"
+		trace_line+=" @ ${SHU_ANSI[fg:magenta2]}${line_no}${SHU_ANSI[reset]}"
 
-			trace+=( $trace_line )
-		done
-	}
+		# Only add file-level info if requested
+		(( SHU_PANIC_TRACE > 1 )) && {
+			identifier=${${funcfiletrace[i]%:*}:-$ZSH_NAME}
+			   line_no=${funcfiletrace[i]##*:}
+			trace_line+=' '
+			trace_line+='('
+			trace_line+="${SHU_ANSI[fg:yellow2]}${identifier:t}${SHU_ANSI[reset]}"
+			trace_line+=' @ '
+			trace_line+="${SHU_ANSI[fg:magenta2]}${line_no}${SHU_ANSI[reset]}"
+			trace_line+=')'
+		}
 
-	shu:io:pputf >&$SHU_FD_STDERR '%sPanic in %s%s%s\n' \
-		"${SHU_ANSI[fg:red]}" \
-		${caller:-(unknown)} \
-		${@:+: ${(j< >)@}} \
-		"${SHU_ANSI[reset]}"
-
-
-	(( SHU_PANIC_TRACE )) &&
-	(( $#trace )) && {
-		shu:io:pputs >&$SHU_FD_STDERR 'Trace-back (most recent call on top):'
-
-		for i in {1..$#trace}; do
-			shu:io:putf >&$SHU_FD_STDERR \
-				'%3s. %s\n' $(( $#trace + 1 - i )) $trace[i]
-		done
-	}
-
-	(( interactive || SHU_PANIC_IGNORE > 0 )) && {
-		# Set an exit trap to force the caller to immediately return, unless we're
-		# at the top level of a script or an interactive shell
-		(( ZSH_SUBSHELL || $#funcstack > 1 )) &&
-		trap 'return SHU_EX_PANIC' EXIT
-		return SHU_EX_PANIC
-	}
-
-	# Kill the entire shell
-	kill -TERM $$
-	exit SHU_EX_PANIC
+		trace+=( $trace_line )
+	done
 }
+
+shu:io:pputf >&$SHU_FD_STDERR '%sPanic in %s%s%s\n' \
+	"${SHU_ANSI[fg:red]}" \
+	${caller:-(unknown)} \
+	${@:+: ${(j< >)@}} \
+	"${SHU_ANSI[reset]}"
+
+
+(( SHU_PANIC_TRACE )) &&
+(( $#trace )) && {
+	shu:io:pputs >&$SHU_FD_STDERR 'Trace-back (most recent call on top):'
+
+	for i in {1..$#trace}; do
+		shu:io:putf >&$SHU_FD_STDERR \
+			'%3s. %s\n' $(( $#trace + 1 - i )) $trace[i]
+	done
+}
+
+(( interactive || SHU_PANIC_IGNORE > 0 )) && {
+	# Set an exit trap to force the caller to immediately return, unless we're
+	# at the top level of a script or an interactive shell
+	(( ZSH_SUBSHELL || $#funcstack > 1 )) &&
+	trap 'return SHU_EX_PANIC' EXIT
+	return SHU_EX_PANIC
+}
+
+# Kill the entire shell
+kill -TERM $$
+exit SHU_EX_PANIC

@@ -15,23 +15,22 @@
 # @param $1 ... One or more numbers. Each result will be printed on a new line.
 #
 # @return 0
-shu:math:abs() {
-	# Normal context
-	[[ $0 == shu:math:* ]] && {
-		[[ ${1:-} == -- ]] && shift
 
-		(( $# < 1 )) && shu::panic 'Too few arguments'
+# Normal context
+[[ $0 == shu:math:* ]] && {
+	[[ ${1:-} == -- ]] && shift
 
-		while (( $# )); do
-			[[ $1 == ${~SHU_PAT_MATH_NUM} ]] ||
-			shu::panic "Invalid arithmetic argument: ${1}"
+	(( $# < 1 )) && shu::panic 'Too few arguments'
 
-			printf '%s\n' ${1#-}
-			shift
-		done
+	while (( $# )); do
+		[[ $1 == ${~SHU_PAT_MATH_NUM} ]] ||
+		shu::panic "Invalid arithmetic argument: ${1}"
 
-		return 0
-	}
-	# Arithmetic context — not offered by default
-	(( abs($1) ))
+		printf '%s\n' ${1#-}
+		shift
+	done
+
+	return 0
 }
+# Arithmetic context — not offered by default
+(( abs($1) ))

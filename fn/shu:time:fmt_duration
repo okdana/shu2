@@ -25,64 +25,63 @@
 #   The input duration.
 #
 # @return 0
-shu:time:fmt_duration() {
-	local OPTIND OPTARG OPTERR opt ss places
-	local -F divisor=1.0 input
 
-	while getopts ':f:msu' opt; do
-		case $opt in
-			# Output fractional seconds
-			'f')
-				[[ $OPTARG == ${~SHU_PAT_ASCII_DIGIT} ]] ||
-				shu::panic "Invalid precision value: ${OPTARG}"
+local OPTIND OPTARG OPTERR opt ss places
+local -F divisor=1.0 input
 
-				places=$OPTARG
-				;;
-			# Millisecond input
-			'm')
-				divisor=1000.0
-				;;
-			# Second input
-			's')
-				divisor=1.0
-				;;
-			# Microsecond input
-			'u')
-				divisor=1_000_000.0
-				;;
-			# Error
-			'?') shu::panic "Invalid option: -${OPTARG}" ;;
-			':') shu::panic "Missing argument to option: -${OPTARG}" ;;
-		esac
-	done
+while getopts ':f:msu' opt; do
+	case $opt in
+		# Output fractional seconds
+		'f')
+			[[ $OPTARG == ${~SHU_PAT_ASCII_DIGIT} ]] ||
+			shu::panic "Invalid precision value: ${OPTARG}"
 
-	shift $(( OPTIND - 1 ))
+			places=$OPTARG
+			;;
+		# Millisecond input
+		'm')
+			divisor=1000.0
+			;;
+		# Second input
+		's')
+			divisor=1.0
+			;;
+		# Microsecond input
+		'u')
+			divisor=1_000_000.0
+			;;
+		# Error
+		'?') shu::panic "Invalid option: -${OPTARG}" ;;
+		':') shu::panic "Missing argument to option: -${OPTARG}" ;;
+	esac
+done
 
-	(( $# < 1 )) && shu::panic 'Too few arguments'
-	(( $# > 1 )) && shu::panic 'Too many arguments'
+shift $(( OPTIND - 1 ))
 
-	[[ $1 == ${~SHU_PAT_MATH_NUM_POS} ]] ||
-	shu::panic "Invalid argument: ${1}"
+(( $# < 1 )) && shu::panic 'Too few arguments'
+(( $# > 1 )) && shu::panic 'Too many arguments'
 
-	input=$(( $1 / divisor ))
+[[ $1 == ${~SHU_PAT_MATH_NUM_POS} ]] ||
+shu::panic "Invalid argument: ${1}"
 
-	[[ $input == *.* ]] && {
-		ss=".${input##*.}"
+input=$(( $1 / divisor ))
 
-		if [[ -n $places ]] && (( places == 0 )); then
-			ss=''
-		elif [[ -n $places ]]; then
-			ss=".${(r.$places..0.)${ss:1:$places}}"
-		else
-			ss="${ss%%0##}"
-			[[ $ss == . ]] && ss=''
-		fi
-	}
+[[ $input == *.* ]] && {
+	ss=".${input##*.}"
 
-	printf '%02d:%02d:%02d%s\n' \
-		$(( input / 3600 )) \
-		$(( input / 60 % 60 )) \
-		$(( input % 60 )) \
-		$ss
-	return $?
+	if [[ -n $places ]] && (( places == 0 )); then
+		ss=''
+	elif [[ -n $places ]]; then
+		ss=".${(r.$places..0.)${ss:1:$places}}"
+	else
+		ss="${ss%%0##}"
+		[[ $ss == . ]] && ss=''
+	fi
 }
+
+printf '%02d:%02d:%02d%s\n' \
+	$(( input / 3600 )) \
+	$(( input / 60 % 60 )) \
+	$(( input % 60 )) \
+	$ss
+return $?

@@ -12,22 +12,21 @@
 # @param $1 The shu function name. Must be a shu function.
 #
 # @return 0 if file path was found, >0 otherwise.
-shu:meta:fnpath() {
-	local fnpath
 
-	[[ ${1:-} == -- ]] && shift
+local fnpath
 
-	(( $# < 1 )) && shu::panic 'Too few arguments'
-	(( $# > 1 )) && shu::panic 'Too many arguments'
+[[ ${1:-} == -- ]] && shift
 
-	[[ $1 == shu:*:* ]] || shu::panic 'Not a shu function'
+(( $# < 1 )) && shu::panic 'Too few arguments'
+(( $# > 1 )) && shu::panic 'Too many arguments'
 
-	# Load the function if we need to
-	autoload +X -Uz $1 &> /dev/null
+[[ $1 == shu:*:* ]] || shu::panic 'Not a shu function'
 
-	fnpath=${"$( whence -v $1 )"#* is a shell function from }
+# Load the function if we need to
+autoload +X -Uz $1 &> /dev/null
 
-	[[ $fnpath == /* ]] || return 1
-	print -r -- $fnpath
-	return $?
-}
+fnpath=${"$( whence -v $1 )"#* is a shell function from }
+
+[[ $fnpath == /* ]] || return 1
+print -r -- $fnpath
+return $?
