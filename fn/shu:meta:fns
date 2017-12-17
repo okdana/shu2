@@ -9,24 +9,47 @@
 #
 # @return 0 if matches were found, >0 otherwise.
 
-local -a fns
+local    OPTARG OPTIND __opt __to_array
+local -a __fns
 
-[[ ${1:-} == -- ]] && shift
+while getopts :a: __opt; do
+	case $__opt in
+		# Assign result to array
+		'+a')
+			(( ${(P)+OPTARG} )) ||
+			shu::panic "No such array: ${OPTARG}"
+			[[ "${(Pt)OPTARG}-" == array-* ]] ||
+			shu::panic "No such array: ${OPTARG}"
+
+			__to_array=$OPTARG
+			;;
+		# Errors
+		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+		*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+	esac
+done
+
+shift $(( OPTIND - 1 ))
 
 (( $# > 1 )) && shu::panic 'Too many arguments'
 
 if [[ ${1:-} == (core|:) ]]; then
 	1=:
 elif (( $# )); then
-	[[ ${1:-xyz} == [a-z][a-z0-9]## ]] ||
+	[[ $1 == [a-z][a-z0-9]## ]] ||
 	shu::panic "Invalid module name: ${1}"
 
 	1="${1}:"
 fi
 
-fns=( ${(M)${(f)"$( typeset -f + )"}:#shu:${1:-}*} )
+__fns=( ${(@M)${(f)"$( typeset -f + )"}##shu:${1:-}*} )
 
-(( $#fns )) || return 1
+(( $#__to_array )) && {
+	: ${(PA)__to_array::="${(@)__fns}"}
+	return $(( ! $#__fns ))
+}
 
-printf '%s\n' $fns
+(( $#__fns )) || return 1
+print -rl -- $__fns
 return 0

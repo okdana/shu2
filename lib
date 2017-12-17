@@ -89,19 +89,17 @@
 	declare -gr       SHU_EX_PANIC=199
 
 	# Verbosity levels
-	declare -gr   SHU_VERBOSITY_QUIET5=-5
-	declare -gr   SHU_VERBOSITY_QUIET4=-4
-	declare -gr   SHU_VERBOSITY_QUIET3=-3
-	declare -gr   SHU_VERBOSITY_QUIET2=-2
-	declare -gr   SHU_VERBOSITY_QUIET1=-1
-	declare -gr    SHU_VERBOSITY_QUIET=-1
-	declare -gr   SHU_VERBOSITY_NORMAL=0
-	declare -gr  SHU_VERBOSITY_VERBOSE=1
-	declare -gr SHU_VERBOSITY_VERBOSE1=1
-	declare -gr SHU_VERBOSITY_VERBOSE2=2
-	declare -gr SHU_VERBOSITY_VERBOSE3=3
-	declare -gr SHU_VERBOSITY_VERBOSE4=4
-	declare -gr SHU_VERBOSITY_VERBOSE5=5
+	declare -gr SHU_VERBOSITY_Q5=-5
+	declare -gr SHU_VERBOSITY_Q4=-4
+	declare -gr SHU_VERBOSITY_Q3=-3
+	declare -gr SHU_VERBOSITY_Q2=-2
+	declare -gr SHU_VERBOSITY_Q1=-1
+	declare -gr SHU_VERBOSITY_N0=0
+	declare -gr SHU_VERBOSITY_V1=1
+	declare -gr SHU_VERBOSITY_V2=2
+	declare -gr SHU_VERBOSITY_V3=3
+	declare -gr SHU_VERBOSITY_V4=4
+	declare -gr SHU_VERBOSITY_V5=5
 
 	# Glob patterns (use like `[[ $foo == $~SHU_PAT_MATH_INT ]]`)
 	declare -gr   SHU_PAT_MATH_INT_NEG='-[0-9][0-9_]#'
@@ -270,19 +268,22 @@
 	}
 
 	# Absolute paths to the fn/ directory and digest file
-	declare -gr    SHU_FN_DIR="${${${(%):-%N}:A}:h}/fn"
-	declare -gr SHU_FN_DIGEST="${SHU_FN_DIR}.zwc"
+	declare -gr    SHU_FN_DIR=${${${(%):-%N}:A}:h}/fn
+	declare -gr SHU_FN_DIGEST=$SHU_FN_DIR.zwc
 }
 
 ##
 # 'Safe' global parameters
 {
+	# Script name — may be overridden by the consumer
+	declare -g SHU_SCRIPT_NAME=$SHU_ARGZERO_TAIL
+
 	# Back-ups of standard FDs — see below
 	declare -g SHU_FD_STDOUT=1
 	declare -g SHU_FD_STDERR=2
 
 	# Output verbosity level
-	declare -g SHU_VERBOSITY=$SHU_VERBOSITY_NORMAL
+	declare -g SHU_VERBOSITY=$SHU_VERBOSITY_N0
 
 	# Panic ignore level — if >0, `shu::panic` won't kill the script. This is
 	# intended mostly for use by scripts; we don't allow users to pass this down
@@ -397,7 +398,7 @@
 	# Otherwise load from separate files
 	else
 		fpath=( $SHU_FN_DIR $fpath )
-		autoload -Uz $SHU_FN_DIR/*:*(.)
+		autoload -Uz $SHU_FN_DIR/*:*(-.)
 	fi
 
 	# Maths functions not provided directly by zsh/mathfunc

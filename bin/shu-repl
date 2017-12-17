@@ -43,11 +43,11 @@ this:main() {
 
 		trap 'print >&2' SIGINT
 
-		shu::ignpanic 1
+		SHU_PANIC_IGNORE=1
 		_a=$SECONDS
 		eval "${_line}; _ret=( \$pipestatus )"
 		_b=$SECONDS
-		shu::ignpanic 1
+		SHU_PANIC_IGNORE=1
 
 		if (( _ret[-1] == 0 )); then
 			_color=$'\033[32m'

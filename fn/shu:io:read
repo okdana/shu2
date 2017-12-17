@@ -57,7 +57,7 @@ shift $(( OPTIND - 1 ))
 [[ -n $__to_scalar ]] || {
 	(( __strip_nl )) && shu::panic 'Option +s required with +n'
 
-	while builtin sysread -s 65535 -o1; do
+	while sysread -s 65535 -o1; do
 		__ret=$?
 		(( __ret == 5 )) && __ret=0
 	done
@@ -67,7 +67,7 @@ shift $(( OPTIND - 1 ))
 # This is very sensitive to the precise method we use to store each pass;
 # seemingly trivial changes (such as using __tmp[idx++] instead) can have
 # significant performance costs!
-while builtin sysread -s 65535 '__tmp[(#__tmp + 1)]'; do
+while sysread -s 65535 '__tmp[(#__tmp + 1)]'; do
 	__ret=$?
 	(( __ret == 5 )) && ret=0
 done

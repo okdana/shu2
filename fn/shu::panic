@@ -5,19 +5,17 @@
 #
 # Panics are intended for 'unrecoverable' logic errors only. They are **not** a
 # replacement for exceptions (which shu doesn't provide). That said, panics
-# *can* be ignored — please refer to `shu::ignpanic` for details.
+# *can* be ignored by setting `SHU_PANIC_IGNORE` to a non-zero value.
+#
+# Panics also produce a trace-back if `SHU_PANIC_TRACE` is set to a non-zero
+# value. If >1, the trace-back includes file-absolute line numbers.
 #
 # This function uses `SHU_FD_STDERR` to bypass any redirection of `stderr` which
 # might have taken place since the script was started.
 #
-# Panics are made to propagate up sub-shells by sending `SIGUSR2` to the shell.
+# Panics send `SIGTERM` to the parent shell instance to ensure that it exits.
 #
 # @module core
-#
-# @see shu::ignpanic
-#
-# @param -q (optional) Suppress trace-back.
-# @param -v (optional) Show trace-back. This is the default.
 #
 # @param $1 ...
 #   (optional) Zero or more strings to use as an error message. Multiple strings
@@ -26,10 +24,8 @@
 #
 # @return SHU_EX_PANIC
 
-local    i identifier line_no caller trace_line interactive
+local    i identifier line_no caller trace_line
 local -a trace
-
-[[ $- == *i* ]] && interactive=1
 
 # Build trace-back
 (( $+functrace && $#functrace )) && {
@@ -77,9 +73,8 @@ local -a trace
 shu:io:pputf >&$SHU_FD_STDERR '%sPanic in %s%s%s\n' \
 	"${SHU_ANSI[fg:red]}" \
 	${caller:-(unknown)} \
-	${@:+: ${(j< >)@}} \
+	"${@:+: ${(j< >)@}}" \
 	"${SHU_ANSI[reset]}"
-
 
 (( SHU_PANIC_TRACE )) &&
 (( $#trace )) && {
@@ -91,14 +86,13 @@ shu:io:pputf >&$SHU_FD_STDERR '%sPanic in %s%s%s\n' \
 	done
 }
 
-(( interactive || SHU_PANIC_IGNORE > 0 )) && {
-	# Set an exit trap to force the caller to immediately return, unless we're
-	# at the top level of a script or an interactive shell
+if [[ $- == *i* ]] || (( SHU_PANIC_IGNORE )); then
+	# Set an exit trap to force the caller to immediately return, unless we're at
+	# the top level of a script or an interactive shell
 	(( ZSH_SUBSHELL || $#funcstack > 1 )) &&
 	trap 'return SHU_EX_PANIC' EXIT
 	return SHU_EX_PANIC
-}
+fi
 
-# Kill the entire shell
 kill -TERM $$
 exit SHU_EX_PANIC

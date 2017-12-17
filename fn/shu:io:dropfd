@@ -1,0 +1,40 @@
+# vim: set ft=zsh:
+
+##
+# Suppresses output on the specified file descriptors.
+#
+# @module io
+#
+# @param @todo
+#
+# @return 0
+
+local     fd
+local -aU fds
+
+while (( $# )); do
+	case ${(L)1} in
+		(std|)out) fds+=(  1 ) ;;
+		(std|)err) fds+=(  2 ) ;;
+		(std|)in)  fds+=(  0 ) ;;
+		[0-9]##)   fds+=( $1 ) ;;
+		*)
+			(( ${(P)+1} )) ||
+			shu::panic "No such scalar/integer: ${1}"
+			[[ "${(Pt)1}-" == (scalar|integer)-* ]] ||
+			shu::panic "No such scalar/integer: ${1}"
+			[[ ${(P)1} == [0-9]## ]] ||
+			shu::panic "No such scalar/integer: ${1}"
+
+			fds+=( ${(P)1} )
+			;;
+	esac
+	shift
+done
+
+(( $#fds )) || fds=( 1 2 )
+
+fds=( ${^fds}'> /dev/null' )
+
+eval "exec ${(j< >)fds}"
+return $?

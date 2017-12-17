@@ -1,0 +1,30 @@
+# vim: set ft=zsh:
+
+##
+# Prints a command and then executes it.
+#
+# @module proc
+#
+# @see shu:io:puts
+#
+# @param $1 ...
+#   A command to execute. Any arguments preceding the command which look like
+#   options (such as `-2` or `-vv`) are passed directly to `shu:io:puts`.
+#
+# @return According to the executed command.
+
+local -a opts
+
+while (( $# )); do
+	case $1 in
+		--)     shift; break ;;
+		[+-]?*) opts+=( $1 ); shift ;;
+		*)      break ;;
+	esac
+done
+
+(( $# )) || shu::panic 'Too few arguments'
+
+shu:io:puts $opts -- "${(j< >)${(q-)@}}"
+"${@}"
+return $?

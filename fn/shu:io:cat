@@ -16,6 +16,8 @@
 # EOF
 # ```
 #
+# When called as `shu:io:ecat`, the output is sent to stderr.
+#
 # @module io
 #
 # @see cat
@@ -33,31 +35,31 @@
 # @return According to `shu:io:read` or `cat`.
 
 local OPTARG OPTIND opt last_opt
-local cmp=$SHU_VERBOSITY_NORMAL op='<=' exact
+local cmp=$SHU_VERBOSITY_N0 op='<=' exact
 
-while getopts ':anNqQvVxX' opt; do
+while getopts :anNqQvVxX opt; do
 	# Clauses here are ordered roughly according to frequency of use
 	case $opt in
 		'v'|'V')
 			if [[ $last_opt == $opt ]]; then
-				(( cmp < SHU_VERBOSITY_VERBOSE5 )) && (( cmp++ ))
+				(( cmp < SHU_VERBOSITY_V5 )) && (( cmp++ ))
 			else
-				cmp=$SHU_VERBOSITY_VERBOSE1
+				cmp=$SHU_VERBOSITY_V1
 				 op='<='
 				[[ $opt == V ]] && op='>='
 			fi
 			;;
 		'q'|'Q')
 			if [[ $last_opt == $opt ]]; then
-				(( cmp > SHU_VERBOSITY_QUIET5 )) && (( cmp-- ))
+				(( cmp > SHU_VERBOSITY_Q5 )) && (( cmp-- ))
 			else
-				cmp=$SHU_VERBOSITY_QUIET1
+				cmp=$SHU_VERBOSITY_Q1
 				 op='<='
 				[[ $opt == Q ]] && op='>='
 			fi
 			;;
 		'n'|'N')
-			cmp=$SHU_VERBOSITY_NORMAL
+			cmp=$SHU_VERBOSITY_N0
 			 op='<='
 			[[ $opt == N ]] && op='>='
 			;;
@@ -80,9 +82,23 @@ done
 
 shift $(( OPTIND - 1 ))
 
-[[ ${(j< >)@:--} == - ]] && {
-	shu:io:read
-	return $?
-}
-cat -- "${@}"
-return $?
+case $0 in
+	shu:io:cat)
+		[[ ${*:--} == - ]] && {
+			shu:io:read
+			return $?
+		}
+		cat -- "${@}"
+		return $?
+		;;
+	shu:io:ecat)
+		[[ ${*:--} == - ]] && {
+			shu:io:read >&2
+			return $?
+		}
+		cat -- "${@}" >&2
+		return $?
+		;;
+esac
+
+shu::panic

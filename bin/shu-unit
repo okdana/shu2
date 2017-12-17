@@ -16,10 +16,10 @@ app::main() {
 	while getopts ':qv' opt; do
 		case $opt in
 			# Decrease output verbosity
-			'q') SHU_VERBOSITY=$SHU_VERBOSITY_QUIET ;;
+			'q') SHU_VERBOSITY=$SHU_VERBOSITY_Q1 ;;
 			# Increase output verbosity
 			'v')
-					SHU_VERBOSITY=$SHU_VERBOSITY_NORMAL
+					SHU_VERBOSITY=$SHU_VERBOSITY_N0
 					   assert_opt=
 					;;
 			# Errors

@@ -3,13 +3,13 @@
 ##
 # Returns information about a file.
 #
-# This function requires the `zstat` built-in provided by the `zsh/stat` module.
-#
 # The results returned by this function roughly correspond to the `stat`
 # structure described in `stat(2)`. Specifically, fields such as `mode`, `ino`,
 # and `ctime` are available. Additionally, 'human-readable' representations are
 # provided for certain fields via an `_s` suffix — for example, `uid_s` contains
 # the human-readable user name associated with the value of the `uid` field.
+#
+# This function requires the `zstat` built-in provided by the `zsh/stat` module.
 #
 # @module file
 #
@@ -36,7 +36,7 @@
 #
 # @param $1
 #   If only one operand is provided, this represents the path to a file to
-#   `stat`. Example: `shu:file:stat myfile`
+#   `stat`. Example: `shu:file:stat myfile`.
 #
 #   If two operands are provided, this represents the name of a field to limit
 #   the result to. The field name may optionally be prefixed by `st_` to reflect
@@ -105,9 +105,9 @@ shift $(( OPTIND - 1 ))
 
 if (( $# == 1 )); then
 	__file=$1
-else
-	__file=$2
 
+else
+	 __file=$2
 	__field=${${${(L)1}#+}#st_}
 
 	case $__field in
@@ -119,7 +119,7 @@ fi
 
 : ${__time_fmt:=${SHU_TIME_FMT_STD_A}}
 
-builtin zstat -norH __assoc -F $__time_fmt $__utc_opt $__file || return $?
+zstat -norH __assoc -F $__time_fmt $__utc_opt $__file || return $?
 
 __assoc[dev]=${__assoc[device]}
 __assoc[ino]=${__assoc[inode]}

@@ -28,7 +28,7 @@ app::main() {
 	local    mode verbosity=0 xtrace func ret o start end
 	local -a options
 
-	while getopts ':hHlo:pqtTvx' opt; do
+	while getopts :hHlo:pqtTvx opt; do
 		case $opt in
 			h)   shu:meta:help; return 0 ;;
 			H)   mode=doc ;;
@@ -45,11 +45,6 @@ app::main() {
 	done
 
 	shift $(( OPTIND - 1 ))
-
-	(( verbosity < 0 )) && {
-		shu:io:drop_output
-		shu::ignpanic -2
-	}
 
 	[[ $mode == fns ]] && {
 		shu:meta:fns ${1:-}
@@ -80,7 +75,7 @@ app::main() {
 	}
 
 	for o in $options; do
-		[[ $o == 'SHU_'[A-Z0-9_]##'='* ]] ||
+		[[ $o == SHU_[A-Z0-9_]##'='* ]] ||
 		shu::panic "Illegal option assignment: ${o}"
 
 		[[ -v ${o%%=*} ]] ||
@@ -90,23 +85,22 @@ app::main() {
 	done
 
 	(( verbosity > 0 )) &&
-	printf >&2 '\033[1m>>> %s %s\033[0m\n' $func "${(j. .)${(q-)@}}"
-
-	(( verbosity >= 0 )) &&
-	shu::ignpanic -1
+	printf >&$SHU_FD_STDERR '\033[1m>>> %s %s\033[0m\n' $func "${(j. .)${(q-)@}}"
 
 	start=$( shu:time:epoch -u )
 	(( $#xtrace )) && typeset -f -$xtrace $func
-	() { $func "${@}" } "${@}"
+	() { SHU_PANIC_IGNORE=1; $func "${@}" } "${@}"
 	ret=$?
 	(( $#xtrace )) && typeset -f +$xtrace $func
 	end=$( shu:time:epoch -u )
 
 	(( verbosity )) && {
 		if (( ret )); then
-			printf >&2 '\033[31m<<< %s (%d µs)\033[0m\n' $ret $(( end - start ))
+			printf >&$SHU_FD_STDERR '\033[31m<<< %s (%d µs)\033[0m\n' \
+				$ret $(( end - start ))
 		else
-			printf >&2 '\033[32m<<< %s (%d µs)\033[0m\n' $ret $(( end - start ))
+			printf >&$SHU_FD_STDERR '\033[32m<<< %s (%d µs)\033[0m\n' \
+				$ret $(( end - start ))
 		fi
 	}
 

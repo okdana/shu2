@@ -1,0 +1,62 @@
+# vim: set ft=zsh:
+
+##
+# Updates output verbosity level.
+#
+# @module io
+#
+# @param @todo
+#
+# @return 0
+
+local OPTARG OPTIND opt last_opt verbosity=0 exact
+
+while getopts :nqvxX opt; do
+	case $opt in
+		'n') verbosity=0 ;;
+		'q')
+			[[ $last_opt == $opt ]] || verbosity=0
+			(( verbosity-- ))
+			;;
+		'v')
+			[[ $last_opt == $opt ]] || verbosity=0
+			(( verbosity++ ))
+			;;
+		'x') exact=1 ;;
+		'X') exact=0 ;;
+		# Errors
+		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+		*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+	esac
+	last_opt=$opt
+done
+
+shift $(( OPTIND - 1 ))
+
+if (( exact )); then
+	SHU_VERBOSITY=$verbosity
+else
+	if (( verbosity == 0 )); then
+		SHU_VERBOSITY=0
+	elif
+		(( verbosity <= SHU_VERBOSITY_Q1 )) &&
+		(( SHU_VERBOSITY > SHU_VERBOSITY_Q1 ))
+	then
+		SHU_VERBOSITY=0
+	elif
+		(( verbosity >= SHU_VERBOSITY_V1 )) &&
+		(( SHU_VERBOSITY < SHU_VERBOSITY_V1 ))
+	then
+		SHU_VERBOSITY=0
+	fi
+	(( SHU_VERBOSITY += verbosity ))
+fi
+
+if (( SHU_VERBOSITY < SHU_VERBOSITY_Q5 )); then
+	SHU_VERBOSITY=$SHU_VERBOSITY_Q5
+elif (( SHU_VERBOSITY > SHU_VERBOSITY_V5 )); then
+	SHU_VERBOSITY=$SHU_VERBOSITY_V5
+fi
+
+return 0

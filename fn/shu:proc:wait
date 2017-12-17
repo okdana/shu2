@@ -1,0 +1,18 @@
+# vim: set ft=zsh:
+
+local    max=${1:-}
+local -a running
+
+(( max )) || {
+	wait
+	return $?
+}
+
+for (( ;; )); do
+	running=( ${(@M)jobstates#running:} )
+	print -r $#running
+	(( $#running <= max )) && break
+	shu:time:sleep 0.1
+done
+
+return 0

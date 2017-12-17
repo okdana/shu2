@@ -3,6 +3,12 @@
 ##
 # Prints a formatted string.
 #
+# When called as `shu:io:pputf`, the output is prefixed by the base name of the
+# current script.
+#
+# When called as `shu:io:eputf` or `shu:io:epputf`, the output is sent to
+# stderr.
+#
 # @module io
 #
 # @see printf
@@ -11,10 +17,11 @@
 # @param -a, -n, -N, -q, -Q, -v, -V, -x, -X (optional) See `shu:io:puts`.
 #
 # @param $1
-#   (optional) A `printf` format string (e.g., `Hello, %s!\n`). The format
-#   string is taken verbatim; it is not altered to add new-lines or any other
-#   characters. If this argument is not supplied, an empty string will be
-#   substituted (this differs from `printf`).
+#   (optional) A `printf` format string (e.g., `Hello, %s!\n`). The `*pputf`
+#   variants of the function prepend the script name to the format string, but
+#   otherwise it is taken verbatim, without adding new-lines or similar. If this
+#   argument is not supplied, an empty string will be substituted (this differs
+#   from `printf`).
 #
 # @param $2 ...
 #   (optional) Zero or more strings to treat as arguments to the format string.
@@ -25,31 +32,31 @@
 # @return According to `printf`.
 
 local OPTARG OPTIND opt last_opt
-local cmp=$SHU_VERBOSITY_NORMAL op='<=' exact
+local cmp=$SHU_VERBOSITY_N0 op='<=' exact
 
-while getopts ':anNqQvVxX' opt; do
+while getopts :anNqQvVxX opt; do
 	# Clauses here are ordered roughly according to frequency of use
 	case $opt in
 		'v'|'V')
 			if [[ $last_opt == $opt ]]; then
-				(( cmp < SHU_VERBOSITY_VERBOSE5 )) && (( cmp++ ))
+				(( cmp < SHU_VERBOSITY_V5 )) && (( cmp++ ))
 			else
-				cmp=$SHU_VERBOSITY_VERBOSE1
+				cmp=$SHU_VERBOSITY_V1
 				 op='<='
 				[[ $opt == V ]] && op='>='
 			fi
 			;;
 		'q'|'Q')
 			if [[ $last_opt == $opt ]]; then
-				(( cmp > SHU_VERBOSITY_QUIET5 )) && (( cmp-- ))
+				(( cmp > SHU_VERBOSITY_Q5 )) && (( cmp-- ))
 			else
-				cmp=$SHU_VERBOSITY_QUIET1
+				cmp=$SHU_VERBOSITY_Q1
 				 op='<='
 				[[ $opt == Q ]] && op='>='
 			fi
 			;;
 		'n'|'N')
-			cmp=$SHU_VERBOSITY_NORMAL
+			cmp=$SHU_VERBOSITY_N0
 			 op='<='
 			[[ $opt == N ]] && op='>='
 			;;
@@ -74,5 +81,31 @@ shift $(( OPTIND - 1 ))
 
 (( $# )) || 1=''
 
-printf -- "${@}"
-return $?
+case $0 in
+	shu:io:putf)
+		printf -- "${@}"
+		return $?
+		;;
+	shu:io:eputf)
+		printf -- "${@}" >&2
+		return $?
+		;;
+	shu:io:pputf)
+		[[ -n $* ]] || {
+			printf ''
+			return $?
+		}
+		printf -- "${${${SHU_SCRIPT_NAME}//\%/%%}//\\/\\\\}: ${1}" "${@:2}"
+		return $?
+		;;
+	shu:io:epputf)
+		[[ -n $* ]] || {
+			printf ''
+			return $?
+		}
+		printf -- "${${${SHU_SCRIPT_NAME}//\%/%%}//\\/\\\\}: ${1}" "${@:2}" >&2
+		return $?
+		;;
+esac
+
+shu::panic

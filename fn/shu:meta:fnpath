@@ -13,20 +13,46 @@
 #
 # @return 0 if file path was found, >0 otherwise.
 
-local fnpath
+local OPTARG OPTIND __opt __to_scalar __path __ret
 
-[[ ${1:-} == -- ]] && shift
+while getopts :s: __opt; do
+	case $__opt in
+		# Assign result to scalar
+		'+s')
+			(( ${(P)+OPTARG} )) ||
+			shu::panic "No such scalar: ${OPTARG}"
+			[[ "${(Pt)OPTARG}-" == scalar-* ]] ||
+			shu::panic "No such scalar: ${OPTARG}"
+
+			__to_scalar=$OPTARG
+			;;
+		# Errors
+		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+		*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+	esac
+done
+
+shift $(( OPTIND - 1 ))
 
 (( $# < 1 )) && shu::panic 'Too few arguments'
 (( $# > 1 )) && shu::panic 'Too many arguments'
 
-[[ $1 == shu:*:* ]] || shu::panic 'Not a shu function'
+[[ $1 == shu:*:* ]] || shu::panic "Not a shu function: ${1:--}"
 
-# Load the function if we need to
 autoload +X -Uz $1 &> /dev/null
 
-fnpath=${"$( whence -v $1 )"#* is a shell function from }
+__path=${"$( whence -v $1 )"#* is a shell function from }
 
-[[ $fnpath == /* ]] || return 1
-print -r -- $fnpath
-return $?
+[[ $__path == /* ]] || {
+	__path=
+	 __ret=1
+}
+
+(( $#__to_scalar )) && {
+	: ${(P)__to_scalar::=${__path}}
+	return __ret
+}
+
+print -r -- $__path
+return __ret

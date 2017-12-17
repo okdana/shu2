@@ -121,17 +121,3 @@ done
 print -rl -- "${(@)help}"
 
 return 0
-
-help=$(
-	sed -E '/^[[:space:]]*#\?[?:#=+-]( |$)/n;' $1 #|
-	#sed -nE '/^[[:space:]]*#\?[?:#=+-]( |$)/,/^[[:space:]]*([^#]|$)/h; g; /^$/d;' $1 #|
-	#sed -E '
-	#	/^[[:space:]]*#\?:( |$)/!d;
-	#	s/^[[:space:]]*#\?:( |$)//;
-	#'
-)
-
-(( $#help )) || return 1
-
-printf '%s\n' $help
-return $?

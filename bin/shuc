@@ -16,14 +16,14 @@ emulate -R zsh \
 	-o no_unset \
 	-o warn_create_global
 
-this:help() {
+app::help() {
 	printf '%s: Compile shu2\n' ${0:t}
 	printf '\n'
 	printf 'usage: %s [-q]\n' ${0:t}
 	return 0
 }
 
-this:main() {
+app::main() {
 	local    OPTARG OPTIND opt
 	local    quiet shu2 lib lib_zwc fn fn_zwc
 	local -a fn_fns delete
@@ -43,9 +43,9 @@ this:main() {
 		return 1
 	}
 
-	shu2="${0:A:h}/.."
-	 lib="${shu2}/lib"
-	  fn="${shu2}/fn"
+	shu2=${0:A:h}/..
+	 lib=$shu2/lib
+	  fn=$shu2/fn
 
 	[[ -f $lib ]] || {
 		printf '%s: No such file: %s\n' ${0:t} $lib
@@ -56,16 +56,16 @@ this:main() {
 		return 1
 	}
 
-	lib_zwc="${lib}.zwc"
-	 fn_zwc="${shu2}/fn.zwc"
-	 fn_fns=( "${fn}/"*:*(.) )
+	lib_zwc=$lib.zwc
+	 fn_zwc=$shu2/fn.zwc
+	 fn_fns=( $fn/*:*(-.) )
 
 	(( $#fn_fns )) || {
 		printf '%s: No function files found in directory: %s\n' ${0:t} $1
 		return 1
 	}
 
-	delete=( $lib_zwc $fn_zwc "${fn}/"*.zwc(.) )
+	delete=( $lib_zwc $fn_zwc $fn/*.zwc(-.) )
 	(( $#delete )) && rm -f $delete
 
 	zcompile -U  $lib_zwc $lib    || return $?
@@ -79,5 +79,5 @@ this:main() {
 	return 0
 }
 
-this:main "${@}"
+app::main "${@}"
 return $?

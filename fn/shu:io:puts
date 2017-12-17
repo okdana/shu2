@@ -18,6 +18,12 @@
 # predefined `SHU_VERBOSITY_*` constants — `shu:io:puts -vvvvvvvv` has the same
 # effect as `shu:io:puts -vvvvv`.
 #
+# When called as `shu:io:pputs`, the output is prefixed by the base name of the
+# current script.
+#
+# When called as `shu:io:eputs` or `shu:io:epputs`, the output is sent to
+# stderr.
+#
 # @module io
 #
 # @see printf
@@ -62,37 +68,37 @@
 #
 # @param $1 ...
 #   (optional) Zero or more strings to print. Multiple strings are concatenated
-#   by spaces prior to being passed to `printf`. Empty arguments are **not**
-#   elided.
+#   by spaces prior to being passed to `print` or `printf`. Empty arguments are
+#   **not** elided.
 #
-# @return According to `printf`.
+# @return According to `print` or `printf`.
 
 local OPTARG OPTIND opt last_opt last_num_optind
-local indent cmp=$SHU_VERBOSITY_NORMAL op='<=' exact
+local indent cmp=$SHU_VERBOSITY_N0 op='<=' exact
 
-while getopts ':0123456789anNqQvVxX' opt; do
+while getopts :0123456789anNqQvVxX opt; do
 	# Clauses here are ordered roughly according to frequency of use
 	case $opt in
 		'v'|'V')
 			if [[ $last_opt == $opt ]]; then
-				(( cmp < SHU_VERBOSITY_VERBOSE5 )) && (( cmp++ ))
+				(( cmp < SHU_VERBOSITY_V5 )) && (( cmp++ ))
 			else
-				cmp=$SHU_VERBOSITY_VERBOSE1
+				cmp=$SHU_VERBOSITY_V1
 				 op='<='
 				[[ $opt == V ]] && op='>='
 			fi
 			;;
 		'q'|'Q')
 			if [[ $last_opt == $opt ]]; then
-				(( cmp > SHU_VERBOSITY_QUIET5 )) && (( cmp-- ))
+				(( cmp > SHU_VERBOSITY_Q5 )) && (( cmp-- ))
 			else
-				cmp=$SHU_VERBOSITY_QUIET1
+				cmp=$SHU_VERBOSITY_Q1
 				 op='<='
 				[[ $opt == Q ]] && op='>='
 			fi
 			;;
 		'n'|'N')
-			cmp=$SHU_VERBOSITY_NORMAL
+			cmp=$SHU_VERBOSITY_N0
 			 op='<='
 			[[ $opt == N ]] && op='>='
 			;;
@@ -122,5 +128,31 @@ done
 
 shift $(( OPTIND - 1 ))
 
-print -r -- "${(l:$indent:: :):-}${(j< >)@}"
-return $?
+case $0 in
+	shu:io:puts)
+		print -r -- "${(l<$indent>< >):-}${(j< >)@}"
+		return $?
+		;;
+	shu:io:eputs)
+		print -r -- "${(l<$indent>< >):-}${(j< >)@}" >&2
+		return $?
+		;;
+	shu:io:pputs)
+		[[ -n $* ]] || {
+			print
+			return $?
+		}
+		printf "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}"
+		return $?
+		;;
+	shu:io:epputs)
+		[[ -n $* ]] || {
+			print >&2
+			return $?
+		}
+		printf "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}" >&2
+		return $?
+		;;
+esac
+
+shu::panic
