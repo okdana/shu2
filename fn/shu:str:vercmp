@@ -1,55 +1,173 @@
 # vim: set ft=zsh:
 
 ##
-# Compares two version-number strings.
+# Compares a version number against one or more version constraints.
 #
-# Each `.`- or `-`-separated segment in each of the strings is zero-padded to 16
-# characters (empty segments are treated as 0), then the entire normalised
-# strings are compared lexicographically. This method has two significant
-# limitations: It can't reliably compare strings with segments greater than 16
-# characters in length, and it can't reliably compare segments like `beta2` vs
-# `beta10`. @todo These limitations should be corrected some day.
+# This function is inspired by the Composer\Semver PHP project, and works
+# similarly — however, it is only *partially* compliant with semver semantics.
+#
+# Each version string is split into segments divided by one or more characters
+# matching the class `[[:space:]_,.+-]`. In order to properly compare version
+# strings like `1.2.3-alpha4`, segments beginning with the strings `alpha` and
+# `beta` are normalised to `a.` and `b.`, respectively. Then each of the
+# segments is zero-padded to 16 characters, with empty segments filled in by
+# zeroes. Then the normalised strings are compared lexicographically.
+#
+# The obvious limitation of this method is that it can't reliably compare
+# version strings containing segments with more than 16 characters. Also, it may
+# break lexicographical comparisons of strings like `1.2.3-alphabet`, since the
+# segment `alphabet` is converted to `a.bet`.
+#
+# As mentioned above, any missing segments are filled with zeroes. This affects
+# the result of comparisons like `1.2.3 > 1.2`. The `>1.2` in this case could
+# reasonably be interpreted as equivalent to `>=1.3.0` (since 1.3.0 is the first
+# version number that exceeds the 1.2 'line'), but this is not the case — the
+# comparison is instead treated as `1.2.3 > 1.2.0`. This matches the behaviour
+# of Composer\Semver.
+#
+# Even though the function is not really designed to be semver-compliant, the
+# behaviour of the `^` operator is intended to match the semver semantics and
+# is only really useful in that context.
+#
+# Example inputs with their expected results:
+#
+# * MATCH:    shu:str:vercmp '1.2.3'   '1.2.3'
+# * NO MATCH: shu:str:vercmp '1.2.3'   '1.2.2'
+# * MATCH:    shu:str:vercmp '1.2.3' '!=1.2.2'
+# * MATCH:    shu:str:vercmp '1.2.3' '!=1.2'
+# * MATCH:    shu:str:vercmp '1.2.3'  '>1.2.0'
+# * NO MATCH: shu:str:vercmp '1.2.3'  '>1.2.0'  '<1.2.3'
+# * MATCH:    shu:str:vercmp '1.2.3'  '~1.2.0'
+# * NO MATCH: shu:str:vercmp '1.3.3'  '~1.2.0'
+# * MATCH:    shu:str:vercmp '1.2.3'  '^1.2.0'
+# * MATCH:    shu:str:vercmp '1.3.3'  '^1.2.0'
+# * NO MATCH: shu:str:vercmp '2.3.3'  '^1.2.0'
 #
 # @module str
 #
-# @param $1 The first version number.
-# @param $2 A `test`-style operator (`lt`, `ne`, &c.), with or without a hyphen.
-# @param $3 The second version number.
+# @param $1
+#   The version number to compare.
+#
+# @param $2 ...
+#   One or more version constraints. Examples of valid version constraints are
+#   `1.2.3`, `1.2.*`, `>1.2`, `~1.2.3`, `<=1.2.3.4-alpha`, and so on. If no
+#   operator is found at the beginning of the constraint, it is treated as an
+#   implicit `==`. If more than one constraint is provided, they are logically
+#   `AND`ed together. Unlike with Composer\Semver, it is not possible to combine
+#   multiple constraints in a single string (`>=1.0 <2.0`), to logically `OR`
+#   constraints (`>=1.0 <1.1 || >=1.2`), or to specify hyphenated ranges
+#   (`1.2 - 1.4`).
 #
 # @return 0 if comparison is true, >0 if not.
 
-local op
-local -a ver1 ver2
+local          sep_glob='[[:space:]_,.+-]##'
+local        const_glob='[<>=!~^]##'
+local    not_const_glob='[^<>=!~^]'
+local    ver1_ct ver2_ct op next i
+local -a ver1_orig ver1 ver2
 
 [[ ${1:-} == -- ]] && shift
 
-(( $# < 3 )) && shu::panic 'Too few arguments'
-(( $# > 3 )) && shu::panic 'Too few arguments'
+(( $# < 2 )) && shu::panic 'Too few arguments'
 
-case ${2#-} in
-	eq|ge|gt|le|lt|ne) op=${2#-} ;;
-	*) shu::panic "Invalid operator: ${2}"
-esac
+[[ $1 == [[:space:]]#[A-Za-z0-9]* ]] ||
+shu::panic "Illegal version: ${1}"
 
-ver1=( "${(@s<.>)${1//-/.}}" )
-ver2=( "${(@s<.>)${3//-/.}}" )
+ver1_orig=( ${${${1//${~sep_glob}/.}//((#s)|.)alpha/.a.}//((#s)|.)beta/.b.} )
+ver1_orig=( ${(s<.>)ver1_orig} )
+shift
 
-if (( $#ver1 < $#ver2 )); then
-	ver1=( "${(@)ver1}" "${(@)"${(@)ver2:$#ver1 - $#ver2}"//*/0}" )
-elif (( $#ver1 > $#ver2 )); then
-	ver2=( "${(@)ver2}" "${(@)"${(@)ver1:$#ver2 - $#ver1}"//*/0}" )
-fi
+while (( $# )); do
+	ver1=( $ver1_orig )
 
-ver1=( "${(@l<16><0>)ver1}" )
-ver2=( "${(@l<16><0>)ver2}" )
+	op=${1%%${~not_const_glob}*}
+	 1=${1##${~const_glob}}
 
-case $op in
-	eq) [[ $ver1 == $ver2 ]];                         return $? ;;
-	ge) [[ $ver1 >  $ver2 ]] || [[ $ver1 == $ver2 ]]; return $? ;;
-	gt) [[ $ver1 >  $ver2 ]];                         return $? ;;
-	le) [[ $ver1 <  $ver2 ]] || [[ $ver1 == $ver2 ]]; return $? ;;
-	lt) [[ $ver1 <  $ver2 ]];                         return $? ;;
-	ne) [[ $ver1 != $ver2 ]];                         return $? ;;
-esac
+	ver2=( ${${${1//${~sep_glob}/.}//((#s)|.)alpha/.a.}//((#s)|.)beta/.b.} )
+	ver2=( ${(s<.>)ver2} )
+	shift
 
-shu::panic
+	(( $#op )) || op='=='
+
+	ver1_ct=$#ver1
+	ver2_ct=$#ver2
+
+	if (( ver1_ct < ver2_ct )); then
+		ver1=( $ver1 ${(@)${(@)ver2:(ver1_ct - ver2_ct)}//*/0} )
+	elif (( ver1_ct > ver2_ct )); then
+		ver2=( $ver2 ${(@)${(@)ver1:(ver2_ct - ver1_ct)}//*/0} )
+	fi
+
+	for (( i = 1; i <= ver2_ct; i++ )); do
+		[[ $ver2[i] == '*' ]] && ver2[i]=$ver1[i]
+	done
+
+	[[ $op == (\~|\^) ]] && {
+				# `~` operator
+			if [[ $op == '~' ]]; then
+				next=( ${ver2[1,(ver2_ct - 1)]} )
+
+				[[ $next[(ver2_ct - 1)] == [0-9]## ]] &&
+				(( next[(ver2_ct - 1)] += 1 ))
+
+			# `^` operator with major version `0` and >=3 segments
+			elif [[ $ver2[1] == 0## ]] && (( ver2_ct >= 3 )); then
+				next=( ${ver2[1,2]} )
+
+				[[ $next[2] == [0-9]## ]] &&
+				(( next[2] += 1 ))
+
+			# `^` operator with major version `0` and <3 segments
+			elif [[ $ver2[1] == 0## ]]; then
+				next=( ${ver2[1,ver2_ct]} )
+
+				[[ $next[ver2_ct] == [0-9]## ]] &&
+				(( next[ver2_ct] += 1 ))
+
+			# `^` operator
+			else
+				next=( ${ver2[1]} )
+
+				[[ $next[1] == [0-9]## ]] &&
+				(( next[1] += 1 ))
+			fi
+
+			  op='>='
+			argv=( "<${(j<.>)next}" "${(@)argv}" )
+	}
+
+	echo "${(j<.>)ver1} ${op} ${(j<.>)ver2}"
+
+	ver1=( ${(@l<16><0>)ver1} )
+	ver2=( ${(@l<16><0>)ver2} )
+
+	case $op in
+		'='|'==')
+			[[ $ver1 == $ver2 ]]
+			(( $? )) && return 1
+			;;
+		'!='|'<>')
+			[[ $ver1 != $ver2 ]]
+			(( $? )) && return 1
+			;;
+		'>='|'=>')
+			[[ $ver1 > $ver2 ]] || [[ $ver1 == $ver2 ]]
+			(( $? )) && return 1
+			;;
+		'>')
+			[[ $ver1 > $ver2 ]]
+			(( $? )) && return 1
+			;;
+		'<='|'=<')
+			[[ $ver1 < $ver2 ]] || [[ $ver1 == $ver2 ]]
+			(( $? )) && return 1
+			;;
+		'<')
+			[[ $ver1 < $ver2 ]]
+			(( $? )) && return 1
+			;;
+		*) shu::panic "Illegal operator: ${op}" ;;
+	esac
+done
+
+return 0
