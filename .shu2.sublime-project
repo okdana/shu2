@@ -4,13 +4,10 @@
 		{
 			"file_exclude_patterns":
 			[
-				"shu:io:ecat",
-				"shu:io:epputf",
-				"shu:io:epputs",
 				"shu:io:eputf",
+				"shu:io:uputf",
 				"shu:io:eputs",
-				"shu:io:pputf",
-				"shu:io:pputs",
+				"shu:io:uputs",
 				"shu:time:strp",
 				"*.swo",
 				"*.swp",

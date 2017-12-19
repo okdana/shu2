@@ -34,7 +34,7 @@ app::main() {
 	for t in "${@:-.}"; do
 		[[ -e $t ]] || t=$t.test
 		[[ -e $t ]] || {
-			shu:io:pputs >&2 "No such file or directory: ${t}"
+			shu:io:eputs "No such file or directory: ${t}"
 			ret=1
 			continue
 		}
@@ -50,14 +50,14 @@ app::main() {
 	done
 
 	(( $#tests )) || {
-		shu:io:pputs >&2 'No tests found.'
+		shu:io:eputs 'No tests found.'
 		return 1
 	}
 
 	for t in $tests; do
 		grep -qswF assert $t &&
 		[[ "$( file -b $t 2> /dev/null )" == *text* ]] || {
-			shu:io:pputs >&2 "Not a valid test file: ${t}"
+			shu:io:eputs "Not a valid test file: ${t}"
 			ret=1
 			continue
 		}

@@ -10,39 +10,83 @@
 # @module meta
 #
 # @param $1
-#   (optional) The path to the source file. If the path begins with `shu:` and
-#   no such file exists in the CWD, it is interpreted as the name of a shu
-#   function whose definition file should be read. If this argument is not
-#   provided, the function will try to read from `stdin` instead.
+#   The path to the source file. If the path begins with `shu:` and no such file
+#   exists in the CWD, it is interpreted as the name of a shu function whose
+#   definition file should be read.
 #
 # @return 0 on success, >0 on error.
 
-local doc
+local    OPTARG OPTIND __opt __to_array __raw ___fn __line __last
+local -a __lines __doc
 
-[[ ${1:-} == -- ]] && shift
+while getopts :a:r __opt; do
+	case $__opt in
+		# Assign result to array
+		'+a')
+			(( ${(P)+OPTARG} )) ||
+			shu::panic "No such array: ${OPTARG}"
+			[[ "${(Pt)OPTARG}-" == array-* ]] ||
+			shu::panic "No such array: ${OPTARG}"
 
+			__to_array=$OPTARG
+			;;
+		# Return raw/unformatted lines
+		'r') __raw=1 ;;
+		# Errors
+		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+		*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+	esac
+done
+
+shift $(( OPTIND - 1 ))
+
+(( $# < 1 )) && shu::panic 'Too few arguments'
 (( $# > 1 )) && shu::panic 'Too many arguments'
 
-[[ ${1:-} == shu:* ]] &&
-[[ ! -e $1 ]] && {
-	1=$( shu:meta:fnpath $1 )
-	(( $#1 )) || return 1
+___fn=$1
+
+[[ $___fn == shu:* ]] &&
+[[ ! -e $___fn ]] && {
+	shu:meta:fnpath +s ___fn $___fn
+	(( $#___fn )) || return 1
 }
 
-1=${1//.zwc\//\/}
+___fn=${___fn//.zwc\//\/}
 
-doc=$(
-	sed -nE '
-		/^[[:space:]]*##$/,/^[[:space:]]*([^#]|$)/p;
-	' ${1:-} |
-	sed -E '
-		1d;
-		/^[[:space:]]*[^#]/d;
-		s/^[[:space:]]*#( |$)//;
-	'
-)
+[[ -e $___fn ]] || return 1
 
-(( $#doc )) || return 1
+__lines=( "${(@f)mapfile[$___fn]}" )
 
-printf '%s\n' $doc
-return $?
+for __line in "${(@)__lines}"; do
+	[[ -n $__last ]] || {
+		[[ $__line == [[:space:]]#\#\# ]] || continue
+		__last=$__line
+		(( __raw )) && __doc+=( $__line )
+		continue
+	}
+
+	[[ $__line == [[:space:]]#\#(|\ *) ]] || break
+
+	(( __raw )) && {
+		__last=$__line
+		__doc+=( $__line )
+		continue
+	}
+
+	(( $#__line > 2 )) || {
+		__doc+=( '' )
+		continue
+	}
+
+	__doc+=( "${__line[3,-1]}" )
+done
+
+(( $#__to_array )) && {
+	: ${(PA)__to_array::="${(@)__doc}"}
+	return $(( ! $#__doc ))
+}
+
+(( $#__doc )) || return 1
+print -rl -- "${(@)__doc}"
+return 0

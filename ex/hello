@@ -11,7 +11,7 @@ source "${0:h}/../lib"
 shu:io:puts 'Hello, world!'
 shu:io:putf 'Hello, %s!\n' ${@:-whoever you are}
 
-shu:io:pputs >&2 'Hello, world!'
-shu:io:pputf >&2 'Hello, %s!\n' ${@:-whoever you are}
+shu:io:eputs >&2 'Hello, world!'
+shu:io:eputf >&2 'Hello, %s!\n' ${@:-whoever you are}
 
 return 0

@@ -19,7 +19,7 @@
 #
 # @param $1 ...
 #   (optional) Zero or more strings to use as an error message. Multiple strings
-#   are concatenated by spaces prior to being passed to `shu:io:pputs`. Empty
+#   are concatenated by spaces prior to being passed to `shu:io:eputs`. Empty
 #   arguments are **not** elided.
 #
 # @return SHU_EX_PANIC
@@ -70,7 +70,7 @@ local -a trace
 	done
 }
 
-shu:io:pputf >&$SHU_FD_STDERR '%sPanic in %s%s%s\n' \
+shu:io:eputf >&$SHU_FD_STDERR '%sPanic in %s%s%s\n' \
 	"${SHU_ANSI[fg:red]}" \
 	${caller:-(unknown)} \
 	"${@:+: ${(j< >)@}}" \
@@ -78,7 +78,7 @@ shu:io:pputf >&$SHU_FD_STDERR '%sPanic in %s%s%s\n' \
 
 (( SHU_PANIC_TRACE )) &&
 (( $#trace )) && {
-	shu:io:pputs >&$SHU_FD_STDERR 'Trace-back (most recent call on top):'
+	shu:io:eputs >&$SHU_FD_STDERR 'Trace-back (most recent call on top):'
 
 	for i in {1..$#trace}; do
 		shu:io:putf >&$SHU_FD_STDERR \

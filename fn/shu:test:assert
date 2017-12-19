@@ -21,6 +21,9 @@
 #   Note that, somewhat unusually, use of this option does not disable the
 #   normal output of the function; use `-q` for that.
 #
+# @param +c
+#   (optional) Enable ANSI formatting.
+#
 # @param +C
 #   (optional) Disable ANSI formatting.
 #
@@ -87,7 +90,7 @@ local    __to_assoc __desc __no_desc __eval_cmd
 local    __show=-1 __fail_panics __quiet __compare_ret __discard_fd
 local    __expect __op __res __ret __pass __cmd_str __summary
 local -a __cmd
-local -A __assoc SHU_ANSI=( "${(@kv)SHU_ANSI}" )
+local -A __assoc __ansi=( "${(@kv)SHU_ANSI}" )
 
 while getopts ':A:Cd:DeFpPqrsS' __opt; do
 	case $__opt in
@@ -100,8 +103,10 @@ while getopts ':A:Cd:DeFpPqrsS' __opt; do
 
 			 __to_assoc=$OPTARG
 			;;
+		# Enable ANSI formatting
+		'+c') __ansi=( "${(@kv)SHU_ANSI_ACTIVE}" ) ;;
 		# Disable ANSI formatting
-		'+C') SHU_ANSI=( "${(@kv)SHU_ANSI_INACTIVE}" ) ;;
+		'+C') __ansi=( "${(@kv)SHU_ANSI_INACTIVE}" ) ;;
 		# Set assertion description
 		'd') __desc=$OPTARG ;;
 		# Use automatic assertion description
@@ -236,12 +241,12 @@ __summary="\`${__cmd_str}\`: ${(q-)__expect} -${__op} ${(q-)__res}"
 (( __pass )) && {
 	(( __show == -1 || __show == __pass )) &&
 	shu:io:putf $__quiet '%s[PASS]%s %s\n' \
-		"${SHU_ANSI[fg:green]}" "${SHU_ANSI[reset]}" $__desc
+		"${__ansi[fg:green]}" "${__ansi[reset]}" $__desc
 	return 0
 }
 
 (( __show == -1 || __show == __pass )) &&
 shu:io:putf $__quiet '%s[FAIL]%s %s\n' \
-	"${SHU_ANSI[fg:red]}" "${SHU_ANSI[reset]}" $__desc
+	"${__ansi[fg:red]}" "${__ansi[reset]}" $__desc
 (( __fail_panics )) && shu::panic 'Assertion failed'
 return 1

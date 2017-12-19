@@ -18,11 +18,12 @@
 # predefined `SHU_VERBOSITY_*` constants — `shu:io:puts -vvvvvvvv` has the same
 # effect as `shu:io:puts -vvvvv`.
 #
-# When called as `shu:io:pputs`, the output is prefixed by the base name of the
-# current script.
+# When called as `shu:io:eputs`, the output is prefixed by the base name of the
+# current script and sent to `stderr` (suitable for a general error message).
 #
-# When called as `shu:io:eputs` or `shu:io:epputs`, the output is sent to
-# stderr.
+# When called as `shu:io:uputs`, the output is prefixed by the base name of the
+# current script, followed by its usage synopsis (if any), and sent to `stderr`
+# (suitable for a usage-error message).
 #
 # @module io
 #
@@ -49,6 +50,15 @@
 #   (optional) Print only if the current verbosity level is QUIET1 or *lower*.
 #   May be applied cumulatively.
 #
+# @param -r
+#   (optional) Set a trap to return from the calling function. This is primarily
+#   useful with the `eputs` and `uputs` variants. The return status is selected
+#   automatically based on the variant used: `SHU_EX_OK` for `puts`,
+#   `SHU_EX_ERR` for `eputs`, and `SHU_EX_USAGE` for `uputs`.
+#
+# @param -R <ret>
+#   (optional) Like `-r`, but set the trap to return with the status <ret>.
+#
 # @param -v
 #   (optional) Print only if the current verbosity level is VERBOSE1 or
 #   *higher*. May be applied cumulatively.
@@ -73,10 +83,11 @@
 #
 # @return According to `print` or `printf`.
 
-local OPTARG OPTIND opt last_opt last_num_optind
-local indent cmp=$SHU_VERBOSITY_N0 op='<=' exact
+local    OPTARG OPTIND opt last_opt last_num_optind
+local    indent cmp=$SHU_VERBOSITY_N0 op='<=' trap_ret=-1 exact ret
+local -a usage
 
-while getopts :0123456789anNqQvVxX opt; do
+while getopts :0123456789anNqQrR:vVxX opt; do
 	# Clauses here are ordered roughly according to frequency of use
 	case $opt in
 		'v'|'V')
@@ -113,6 +124,22 @@ while getopts :0123456789anNqQvVxX opt; do
 			indent+=$opt
 			last_num_optind=$OPTIND
 			;;
+		'r')
+			case $0 in
+				shu:io:puts)  trap_ret=$SHU_EX_OK ;;
+				shu:io:eputs) trap_ret=$SHU_EX_ERR ;;
+				shu:io:uputs) trap_ret=$SHU_EX_USAGE ;;
+			esac
+			;;
+		'R')
+			if [[ $OPTARG == <0-255> ]]; then
+				trap_ret=$OPTARG
+			elif [[ ${(P)OPTARG:-} == <0-255> ]]; then
+				trap_ret=${(P)OPTARG}
+			else
+				shu::panic "Illegal return status: ${OPTARG}"
+			fi
+			;;
 		'x') exact=1 ;;
 		'X') exact=0 ;;
 		# Errors
@@ -128,30 +155,37 @@ done
 
 shift $(( OPTIND - 1 ))
 
+(( trap_ret > -1 )) &&
+trap "return ${trap_ret}" EXIT
+
 case $0 in
 	shu:io:puts)
 		print -r -- "${(l<$indent>< >):-}${(j< >)@}"
 		return $?
 		;;
 	shu:io:eputs)
-		print -r -- "${(l<$indent>< >):-}${(j< >)@}" >&2
-		return $?
-		;;
-	shu:io:pputs)
-		[[ -n $* ]] || {
-			print
-			return $?
-		}
-		printf "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}"
-		return $?
-		;;
-	shu:io:epputs)
 		[[ -n $* ]] || {
 			print >&2
 			return $?
 		}
-		printf "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}" >&2
+		printf >&2 "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}"
 		return $?
+		;;
+	shu:io:uputs)
+		[[ -n $* ]] && {
+			printf >&2 "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}" ||
+			ret=$?
+		}
+
+		shu:meta:help +a usage -u
+
+		(( $#usage )) && {
+			usage=( "${(@)usage//(#s)/${(l<$indent>< >):-}}" )
+			print -rl >&2 -- "${(@)usage}" ||
+			ret=$?
+		}
+
+		return ret
 		;;
 esac
 

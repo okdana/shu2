@@ -3,18 +3,21 @@
 ##
 # Prints a formatted string.
 #
-# When called as `shu:io:pputf`, the output is prefixed by the base name of the
-# current script.
+# When called as `shu:io:eputf`, the output is prefixed by the base name of the
+# current script and sent to `stderr` (suitable for a general error message).
 #
-# When called as `shu:io:eputf` or `shu:io:epputf`, the output is sent to
-# stderr.
+# When called as `shu:io:uputf`, the output is prefixed by the base name of the
+# current script, followed by its usage synopsis (if any), and sent to `stderr`
+# (suitable for a usage-error message). Note that this variant lacks the
+# indentation options of `shu:io:uputs`.
 #
 # @module io
 #
 # @see printf
 # @see shu:io:puts
 #
-# @param -a, -n, -N, -q, -Q, -v, -V, -x, -X (optional) See `shu:io:puts`.
+# @param -a, -n, -N, -q, -Q, -r, -R, -v, -V, -x, -X
+#   (optional) See `shu:io:puts`.
 #
 # @param $1
 #   (optional) A `printf` format string (e.g., `Hello, %s!\n`). The `*pputf`
@@ -32,9 +35,10 @@
 # @return According to `printf`.
 
 local OPTARG OPTIND opt last_opt
-local cmp=$SHU_VERBOSITY_N0 op='<=' exact
+local cmp=$SHU_VERBOSITY_N0 op='<=' trap_ret=-1 exact ret
+local -a usage
 
-while getopts :anNqQvVxX opt; do
+while getopts :anNqQrR:vVxX opt; do
 	# Clauses here are ordered roughly according to frequency of use
 	case $opt in
 		'v'|'V')
@@ -64,6 +68,22 @@ while getopts :anNqQvVxX opt; do
 			cmp=$SHU_VERBOSITY
 			 op='=='
 			;;
+		'r')
+			case $0 in
+				shu:io:putf)  trap_ret=$SHU_EX_OK ;;
+				shu:io:eputf) trap_ret=$SHU_EX_ERR ;;
+				shu:io:uputf) trap_ret=$SHU_EX_USAGE ;;
+			esac
+			;;
+		'R')
+			if [[ $OPTARG == <0-255> ]]; then
+				trap_ret=$OPTARG
+			elif [[ ${(P)OPTARG:-} == <0-255> ]]; then
+				trap_ret=${(P)OPTARG}
+			else
+				shu::panic "Illegal return status: ${OPTARG}"
+			fi
+			;;
 		'x') exact=1 ;;
 		'X') exact=0 ;;
 		# Errors
@@ -81,30 +101,32 @@ shift $(( OPTIND - 1 ))
 
 (( $# )) || 1=''
 
+(( trap_ret > -1 )) &&
+trap "return ${trap_ret}" EXIT
+
 case $0 in
 	shu:io:putf)
 		printf -- "${@}"
 		return $?
 		;;
 	shu:io:eputf)
-		printf -- "${@}" >&2
+		[[ -n $* ]] || return 0
+		printf >&2 -- "${${${SHU_SCRIPT_NAME}//\%/%%}//\\/\\\\}: ${1}" "${@:2}"
 		return $?
 		;;
-	shu:io:pputf)
-		[[ -n $* ]] || {
-			printf ''
-			return $?
+	shu:io:uputf)
+		[[ -n $* ]] && {
+			printf -- "${@}" || ret=$?
 		}
-		printf -- "${${${SHU_SCRIPT_NAME}//\%/%%}//\\/\\\\}: ${1}" "${@:2}"
-		return $?
-		;;
-	shu:io:epputf)
-		[[ -n $* ]] || {
-			printf ''
-			return $?
+
+		shu:meta:help +a usage -u
+
+		(( $#usage )) && {
+			print -rl >&2 -- "${(@)usage}" ||
+			ret=$?
 		}
-		printf -- "${${${SHU_SCRIPT_NAME}//\%/%%}//\\/\\\\}: ${1}" "${@:2}" >&2
-		return $?
+
+		return ret
 		;;
 esac
 

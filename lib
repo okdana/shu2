@@ -100,6 +100,9 @@
 	declare -gr SHU_VERBOSITY_V3=3
 	declare -gr SHU_VERBOSITY_V4=4
 	declare -gr SHU_VERBOSITY_V5=5
+	declare -gr  SHU_VERBOSITY_Q=-1
+	declare -gr  SHU_VERBOSITY_N=0
+	declare -gr  SHU_VERBOSITY_V=1
 
 	# Glob patterns (use like `[[ $foo == $~SHU_PAT_MATH_INT ]]`)
 	declare -gr   SHU_PAT_MATH_INT_NEG='-[0-9][0-9_]#'
@@ -302,8 +305,10 @@
 	# Force ANSI SGR usage — we'll allow users to control this through the
 	# environment as well. If scripts want to override it (which they *usually*
 	# shouldn't, they can do it by resetting the `SHU_ANSI` array
-	if [[ ${SHU_ANSI_ENABLE:-} == (always|never) ]]; then
-		declare -gx SHU_ANSI_ENABLE=$SHU_ANSI_ENABLE
+	if [[ ${SHU_ANSI_ENABLE:-} == (always|[1tTyY]*) ]]; then
+		declare -gx SHU_ANSI_ENABLE=always
+	elif [[ ${SHU_ANSI_ENABLE:-} == (never|[0fFnN]*) ]]; then
+		declare -gx SHU_ANSI_ENABLE=never
 	else
 		declare -gx SHU_ANSI_ENABLE=auto
 	fi
@@ -362,7 +367,7 @@
 		'RSYNC_*'
 
 	# Some tools can freak out if no TERM is set
-	export TERM=${TERM:-xterm}
+	declare -gx TERM=${TERM:-xterm}
 }
 
 ##

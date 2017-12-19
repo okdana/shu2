@@ -16,8 +16,6 @@
 # EOF
 # ```
 #
-# When called as `shu:io:ecat`, the output is sent to stderr.
-#
 # @module io
 #
 # @see cat
@@ -82,23 +80,11 @@ done
 
 shift $(( OPTIND - 1 ))
 
-case $0 in
-	shu:io:cat)
-		[[ ${*:--} == - ]] && {
-			shu:io:read
-			return $?
-		}
-		cat -- "${@}"
-		return $?
-		;;
-	shu:io:ecat)
-		[[ ${*:--} == - ]] && {
-			shu:io:read >&2
-			return $?
-		}
-		cat -- "${@}" >&2
-		return $?
-		;;
-esac
+[[ ${*:--} == - ]] && {
+	shu:io:read
+	return $?
+}
+cat -- "${@}"
+return $?
 
 shu::panic
