@@ -106,7 +106,7 @@ while (( $# )); do
 	done
 
 	[[ $op == (\~|\^) ]] && {
-				# `~` operator
+			# `~` operator
 			if [[ $op == '~' ]]; then
 				next=( ${ver2[1,(ver2_ct - 1)]} )
 
