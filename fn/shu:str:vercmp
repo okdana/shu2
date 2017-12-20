@@ -60,8 +60,8 @@
 #
 # @return 0 if comparison is true, >0 if not.
 
-local          sep_glob='[[:space:]_,.+-]##'
-local        const_glob='[<>=!~^]##'
+local          sep_glob='[[:space:]_,.+-]'
+local        const_glob='[<>=!~^]'
 local    not_const_glob='[^<>=!~^]'
 local    ver1_ct ver2_ct op next i
 local -a ver1_orig ver1 ver2
@@ -70,10 +70,10 @@ local -a ver1_orig ver1 ver2
 
 (( $# < 2 )) && shu::panic 'Too few arguments'
 
-[[ $1 == [[:space:]]#[A-Za-z0-9]* ]] ||
-shu::panic "Illegal version: ${1}"
+[[ $1 == ${~sep_glob}#[A-Za-z0-9]* ]] ||
+shu::panic "Illegal version: ${1:-?}"
 
-ver1_orig=( ${${${1//${~sep_glob}/.}//((#s)|.)alpha/.a.}//((#s)|.)beta/.b.} )
+ver1_orig=( ${${${1//${~sep_glob}##/.}//((#s)|.)alpha/.a.}//((#s)|.)beta/.b.} )
 ver1_orig=( ${(s<.>)ver1_orig} )
 shift
 
@@ -81,11 +81,14 @@ while (( $# )); do
 	ver1=( $ver1_orig )
 
 	op=${1%%${~not_const_glob}*}
-	 1=${1##${~const_glob}}
+	 1=${1##${~const_glob}##}
 
-	ver2=( ${${${1//${~sep_glob}/.}//((#s)|.)alpha/.a.}//((#s)|.)beta/.b.} )
+	ver2=( ${${${1//${~sep_glob}##/.}//((#s)|.)alpha/.a.}//((#s)|.)beta/.b.} )
 	ver2=( ${(s<.>)ver2} )
 	shift
+
+	[[ ${ver2[1]:-} == [A-Za-z0-9]* ]] ||
+	shu::panic "Illegal version: ${ver2:-?}"
 
 	(( $#op )) || op='=='
 
@@ -135,8 +138,6 @@ while (( $# )); do
 			  op='>='
 			argv=( "<${(j<.>)next}" "${(@)argv}" )
 	}
-
-	echo "${(j<.>)ver1} ${op} ${(j<.>)ver2}"
 
 	ver1=( ${(@l<16><0>)ver1} )
 	ver2=( ${(@l<16><0>)ver2} )
