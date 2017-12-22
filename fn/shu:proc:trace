@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Prints a command and then executes it.
+# Print a command and then execute it.
 #
 # @module proc
 #

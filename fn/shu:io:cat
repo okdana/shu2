@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Concatenates files or prints from `stdin`.
+# Concatenate files or print from `stdin`.
 #
 # This function is provided mainly to avoid having to write code like the
 # following, which was common in shu v1 scripts:

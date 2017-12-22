@@ -1,11 +1,31 @@
 # vim: set ft=zsh:
 
 ##
-# Updates output verbosity level.
+# Update output verbosity level.
 #
 # @module io
 #
-# @param @todo
+# @see shu:io:puts
+#
+# @param -n
+#   (optional) Reset verbosity to level N0 (normal). Always behaves as though
+#   `-x` were specified. This is the default if no other options are specified.
+#
+# @param -q
+#   (optional) Reset verbosity to level Q1 (quiet) or, if already <= Q1 and `-x`
+#   is not specified, reduce verbosity further.
+#
+# @param -q
+#   (optional) Reset verbosity to level V1 (verbose) or, if already >= V1 and
+#   `-x` is not specified, increase verbosity further.
+#
+# @param -x
+#   (optional) Set verbosity to the exact level specified, regardless of the
+#   current verbosity. For example, `-vvvx` sets the verbosity to exactly `V3`.
+#
+# @param -X
+#   (optional) Decrease or increase verbosity level based on the current
+#   verbosity (negate the effect of `-x`). This the default.
 #
 # @return 0
 

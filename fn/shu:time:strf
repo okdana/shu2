@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Formats epoch time.
+# Format epoch time.
 #
 # When called as `shu:time:strp`, parses formatted time back into epoch time.
 #

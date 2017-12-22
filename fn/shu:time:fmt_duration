@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Converts a duration given in (milli/micro)seconds to hh:mm:ss format.
+# Convert a duration given in (milli/micro)seconds to hh:mm:ss format.
 #
 # @module time
 #

@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Gives the sum of a series of numbers.
+# Give the sum of a series of numbers.
 #
 # @module math
 #

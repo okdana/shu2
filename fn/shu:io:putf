@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Prints a formatted string.
+# Print a formatted string.
 #
 # When called as `shu:io:eputf`, the output is prefixed by the base name of the
 # current script and sent to `stderr` (suitable for a general error message).

@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Gives the absolute value of a number.
+# Give the absolute value of a number.
 #
 # Note: The arithmetic function abs() is provided by the `zsh/mathfunc` module;
 # this function is therefore offered only for use in non-arithmetic contexts.

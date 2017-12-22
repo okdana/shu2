@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Pauses for the specified amount of time.
+# Pause for the specified amount of time.
 #
 # This function acts as a portable, native replacement for `sleep(1)`. It
 # requires the `zselect` built-in provided by the `zsh/zselect` module.

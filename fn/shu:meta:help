@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Parses the shu usage-help block out of a script.
+# Parse the shu usage-help block out of a script.
 #
 # Usage-help blocks are comment blocks where each line contains one of the
 # following tags, optionally followed by a space and additional text:

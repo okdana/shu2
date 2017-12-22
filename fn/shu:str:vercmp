@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Compares a version number against one or more version constraints.
+# Compare a version number against one or more version constraints.
 #
 # This function is inspired by the Composer\Semver PHP project, and works
 # similarly — however, it is only *partially* compliant with semver semantics.

@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Trims characters from a string.
+# Trim characters from a string.
 #
 # @module str
 #

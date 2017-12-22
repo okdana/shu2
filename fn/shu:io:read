@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Prints or consumes standard input.
+# Print or consume standard input.
 #
 # This function is meant to be used for variable assignment à la `read`, except
 # that instead of working on delimited 'lines', it consumes all input at once

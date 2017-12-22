@@ -1,9 +1,12 @@
 # vim: set ft=zsh:
 
 ##
-# Returns a list of registered shu functions.
+# Return a list of registered shu functions.
 #
 # @module meta
+#
+# @param +a <name>
+#   (optional) Assign the result to a pre-defined array with the name <name>.
 #
 # @param $1 (optional) The name of a module to restrict the matches to.
 #

@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Tests whether the given command yields the expected result.
+# Test whether the given command yields the expected result.
 #
 # @module test
 #

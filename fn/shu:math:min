@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Gives the lowest of a series of numbers.
+# Give the lowest of a series of numbers.
 #
 # @module math
 #

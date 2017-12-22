@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Prints a new-line-terminated string.
+# Print a new-line-terminated string.
 #
 # By default, output is suppressed if the current verbosity level is quiet or
 # lower. This behaviour can be controlled with the verbosity options described
@@ -36,19 +36,20 @@
 #   (optional) Always print, regardless of the current verbosity level.
 #
 # @param -n
-#   (optional) Print only if the current verbosity level is NORMAL or *higher*.
-#   This is the default.
+#   (optional) Print only if the current verbosity level is `N0` (normal) or
+#   *higher*. This is the default.
 #
 # @param -N
-#   (optional) Print only if the current verbosity level is NORMAL or *lower*.
+#   (optional) Print only if the current verbosity level is `N0` (normal) or
+#   *lower*.
 #
 # @param -q
-#   (optional) Print only if the current verbosity level is QUIET1 or *higher*.
-#   May be applied cumulatively.
+#   (optional) Print only if the current verbosity level is `Q1` (quiet) or
+#   *higher*. May be applied cumulatively.
 #
 # @param -Q
-#   (optional) Print only if the current verbosity level is QUIET1 or *lower*.
-#   May be applied cumulatively.
+#   (optional) Print only if the current verbosity level is `Q1` (quiet) or
+#   *lower*. May be applied cumulatively.
 #
 # @param -r
 #   (optional) Set a trap to return from the calling function. This is primarily
@@ -60,17 +61,17 @@
 #   (optional) Like `-r`, but set the trap to return with the status <ret>.
 #
 # @param -v
-#   (optional) Print only if the current verbosity level is VERBOSE1 or
+#   (optional) Print only if the current verbosity level is `V1` (verbose) or
 #   *higher*. May be applied cumulatively.
 #
 # @param -V
-#   (optional) Print only if the current verbosity level is VERBOSE1 or *lower*.
-#   May be applied cumulatively.
+#   (optional) Print only if the current verbosity level is `V1` (verbose) or
+#   *lower*. May be applied cumulatively.
 #
 # @param -x
 #   (optional) Require the verbosity level to match exactly that specified by
 #   the other verbosity options given. In other words, `-xn` must match exactly
-#   `NORMAL` verbosity, `-xvvv` must match exactly `VERBOSE3` verbosity, &c.
+#   `N0` verbosity, `-xvvv` must match exactly `V3` verbosity, &c.
 #
 # @param -X
 #   (optional) Do not require an exact verbosity-level match (negate the effect

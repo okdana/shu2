@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Triggers a panic.
+# Trigger a panic.
 #
 # Panics are intended for 'unrecoverable' logic errors only. They are **not** a
 # replacement for exceptions (which shu doesn't provide). That said, panics

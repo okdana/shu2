@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Pads a string to the specified length.
+# Pad a string to the specified length.
 #
 # @module str
 #

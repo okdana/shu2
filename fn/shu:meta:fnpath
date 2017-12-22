@@ -1,13 +1,16 @@
 # vim: set ft=zsh:
 
 ##
-# Returns the file path associated with an auto-loadable shu function.
+# Return the file path associated with an auto-loadable shu function.
 #
 # The specified function will be auto-loaded if necessary.
 #
 # @todo Support multiple operands.
 #
 # @module meta
+#
+# @param +s <name>
+#   (optional) Assign the result to a pre-defined scalar with the name <name>.
 #
 # @param $1 The shu function name. Must be a shu function.
 #
