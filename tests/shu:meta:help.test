@@ -1,0 +1,121 @@
+#!/usr/bin/env zsh
+
+##
+# shu-unit tests for shu:meta:help()
+
+fn=${0:t:r}
+file=${0:a}
+
+lines_basic=(
+	''
+	'#?: @1'
+	'#?:'
+	'#?: @2'
+	'# x'
+)
+lines_with_name_version_no_spaces=(
+	''
+	'#?. foo v:1.2.3'
+	'#?# usage:'
+	'#??   ${0} -abc'
+	'#?: @1'
+	'#?:'
+	'#?: @2'
+	'# x'
+)
+lines_with_name_version_spaces=(
+	''
+	'#?. foo bar v:1.2.3'
+	'#?# usage:'
+	'#??   ${0} -abc'
+	'#?: @1'
+	'#?:'
+	'#?: @2'
+	'# x'
+)
+
+@assert -d 'Returns 0 when help is found' \
+	-r 0 -eq \
+	$fn =( print -rl -- "${(@)lines_basic}" )
+@assert -d 'Returns >0 when file does not exist' \
+	-r 0 -lt \
+	$fn .file.does.not.exist
+@assert -d 'Returns >0 when documentation is not found' \
+	-r 0 -lt \
+	$fn =( print -rl -- '' foo bar '# baz' )
+
+@assert -d 'Gives formatted help' \
+	$'@1\n\n@2' -eq \
+	$fn =( print -rl -- "${(@)lines_basic}" )
+@assert -d 'Ignores subsequent help blocks' \
+	$'@1\n\n@2' -eq \
+	$fn =( print -rl -- "${(@)lines_basic}" "${(@)lines_basic}" )
+
+@assert -d 'Gives name/version information with option -V (no spaces)' \
+	'foo version 1.2.3' -eq \
+	$fn -V =( print -rl -- "${(@)lines_with_name_version_no_spaces}" )
+@assert -d 'Gives name/version information with option -V (spaces)' \
+	'foo bar version 1.2.3' -eq \
+	$fn -V =( print -rl -- "${(@)lines_with_name_version_spaces}" )
+
+@assert -d 'Gives usage synopsis with option -u (no spaces)' \
+	'usage: foo -abc' -eq \
+	$fn -u =( print -rl -- "${(@)lines_with_name_version_no_spaces}" )
+@assert -d 'Gives usage synopsis with option -u (spaces)' \
+	'usage: zsh* -abc' -gl \
+	$fn -u =( print -rl -- "${(@)lines_with_name_version_spaces}" )
+
+@assert -d 'Gives usage synopsis with options -nu (no spaces)' \
+	'usage: foo -abc' -eq \
+	$fn -nu =( print -rl -- "${(@)lines_with_name_version_no_spaces}" )
+@assert -d 'Gives usage synopsis with option -nu (spaces)' \
+	'usage: foo bar -abc' -eq \
+	$fn -nu =( print -rl -- "${(@)lines_with_name_version_spaces}" )
+
+@assert -d 'Gives usage synopsis with options -Nu (no spaces)' \
+	'usage: zsh* -abc' -gl \
+	$fn -Nu =( print -rl -- "${(@)lines_with_name_version_no_spaces}" )
+@assert -d 'Gives usage synopsis with option -Nu (spaces)' \
+	'usage: zsh* -abc' -gl \
+	$fn -Nu =( print -rl -- "${(@)lines_with_name_version_spaces}" )
+
+@assert -d 'Gives raw help with option -r' \
+	$'#?: @1\n#?:\n#?: @2' -eq \
+	$fn -r =( print -rl -- "${(@)lines_basic}" )
+@assert -d 'Gives raw name/version information with options -rV' \
+	'#?. foo v:1.2.3' -eq \
+	$fn -rV =( print -rl -- "${(@)lines_with_name_version_no_spaces}" )
+@assert -d 'Gives raw usage synopsis with options -ru' \
+	'#??   ${0} -abc' -eq \
+	$fn -ru =( print -rl -- "${(@)lines_with_name_version_no_spaces}" )
+
+@assert -d 'Supports assignment to array' \
+	-e $'@1\n\n@2' -eq \
+	"
+		declare -a arr
+		${fn} +a arr =( print -rl -- ${(s< >)${(@qq)lines_basic}} )
+		print -rl -- \"\${(@)arr}\"
+	"
+@assert -d 'Supports assignment to array with option -r' \
+	-e $'#?: @1\n#?:\n#?: @2' -eq \
+	"
+		declare -a arr
+		${fn} +a arr -r =( print -rl -- ${(s< >)${(@qq)lines_basic}} )
+		print -rl -- \"\${(@)arr}\"
+	"
+@assert -d 'Panics on attempted assignment to undeclared array' \
+	-er SHU_EX_PANIC -eq \
+	"unset arr; ${fn} +a arr"
+
+@assert -d 'Does not panic with no arguments' \
+	-r SHU_EX_PANIC -ne \
+	$fn
+@assert -d 'Panics with too many arguments' \
+	-r SHU_EX_PANIC -eq \
+	$fn a b c
+
+for p in -Y +Y +v; do
+	@assert -d "Panics with illegal option ${p}" \
+		-r SHU_EX_PANIC -eq \
+		$fn $p
+done

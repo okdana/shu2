@@ -25,6 +25,14 @@
 # comparison is instead treated as `1.2.3 > 1.2.0`. This matches the behaviour
 # of Composer\Semver.
 #
+# There is an exception to the above: If a constraint contains wild cards, even
+# if there are more segments in the version than in the constraint, the wild
+# cards and any remaining segments will be replaced by the equivalent segments
+# in the version. For example, `1.2.3 == 1.*` is equivalent to `1.2.3 == 1.2.3`.
+# This also matches the behaviour of Composer\Semver. Unlike with
+# Composer\Semver, it is possible to supply constraints like `1.*.2`, but this
+# is not recommended.
+#
 # Even though the function is not really designed to be semver-compliant, the
 # behaviour of the `^` operator is intended to match the semver semantics and
 # is only really useful in that context.
@@ -33,6 +41,7 @@
 #
 # * MATCH:    shu:str:vercmp '1.2.3'   '1.2.3'
 # * NO MATCH: shu:str:vercmp '1.2.3'   '1.2.2'
+# * MATCH:    shu:str:vercmp '1.2.3'   '1.*.*'
 # * MATCH:    shu:str:vercmp '1.2.3' '!=1.2.2'
 # * MATCH:    shu:str:vercmp '1.2.3' '!=1.2'
 # * MATCH:    shu:str:vercmp '1.2.3'  '>1.2.0'
@@ -63,7 +72,7 @@
 local          sep_glob='[[:space:]_,.+-]'
 local        const_glob='[<>=!~^]'
 local    not_const_glob='[^<>=!~^]'
-local    ver1_ct ver2_ct op next i
+local    ver1_ct ver2_ct op next i wc
 local -a ver1_orig ver1 ver2
 
 [[ ${1:-} == -- ]] && shift
@@ -87,10 +96,18 @@ while (( $# )); do
 	ver2=( ${(s<.>)ver2} )
 	shift
 
-	[[ ${ver2[1]:-} == [A-Za-z0-9]* ]] ||
+	[[ ${ver2[1]:-} == (\*|[A-Za-z0-9]*) ]] ||
 	shu::panic "Illegal version: ${ver2:-?}"
 
 	(( $#op )) || op='=='
+
+	for (( i = 1, wc = 0; i <= ($#ver2 > $#ver1 ? $#ver2 : $#ver1); i++ )); do
+		[[ ${ver2[i]:-} == '*' ]] && wc=1
+
+		(( wc )) &&
+		[[ ${ver2[i]:-*} == '*' ]] &&
+		ver2[i]=${ver1[i]:-0}
+	done
 
 	ver1_ct=$#ver1
 	ver2_ct=$#ver2
@@ -101,43 +118,43 @@ while (( $# )); do
 		ver2=( $ver2 ${(@)${(@)ver1:(ver2_ct - ver1_ct)}//*/0} )
 	fi
 
-	for (( i = 1; i <= ver2_ct; i++ )); do
-		[[ $ver2[i] == '*' ]] && ver2[i]=$ver1[i]
-	done
-
 	[[ $op == (\~|\^) ]] && {
 		# `~` operator
 		if [[ $op == '~' ]]; then
-			next=( ${ver2[1,(ver2_ct - 1)]} )
+			next=( ${ver2[1,(ver2_ct == 1 ? 1 : ver2_ct - 1)]} )
 
-			[[ $next[(ver2_ct - 1)] == [0-9]## ]] &&
-			(( next[(ver2_ct - 1)] += 1 ))
+			[[ $next[(ver2_ct == 1 ? 1 : ver2_ct - 1)] == [0-9]## ]] &&
+			(( next[(ver2_ct == 1 ? 1 : ver2_ct - 1)] += 1 ))
 
-		# `^` operator with major version `0` and >=3 segments
-		elif [[ $ver2[1] == 0## ]] && (( ver2_ct >= 3 )); then
-			next=( ${ver2[1,2]} )
-
-			[[ $next[2] == [0-9]## ]] &&
-			(( next[2] += 1 ))
-
-		# `^` operator with major version `0` and <3 segments
-		elif [[ $ver2[1] == 0## ]]; then
-			next=( ${ver2[1,ver2_ct]} )
-
-			[[ $next[ver2_ct] == [0-9]## ]] &&
-			(( next[ver2_ct] += 1 ))
-
-		# `^` operator
 		else
-			next=( ${ver2[1]} )
+			# `^` operator with major version `0` and >=3 segments
+			if [[ $ver2[1] == 0## ]] && (( ver2_ct >= 3 )); then
+				next=( ${ver2[1,2]} )
 
-			[[ $next[1] == [0-9]## ]] &&
-			(( next[1] += 1 ))
+				[[ $next[2] == [0-9]## ]] &&
+				(( next[2] += 1 ))
+
+			# `^` operator with major version `0` and <3 segments
+			elif [[ $ver2[1] == 0## ]]; then
+				next=( ${ver2[1,ver2_ct]} )
+
+				[[ $next[ver2_ct] == [0-9]## ]] &&
+				(( next[ver2_ct] += 1 ))
+
+			# `^` operator
+			else
+				next=( ${ver2[1]} )
+
+				[[ $next[1] == [0-9]## ]] &&
+				(( next[1] += 1 ))
+			fi
 		fi
 
 		  op='>='
 		argv=( "<${(j<.>)next}" "${(@)argv}" )
 	}
+
+	echo "${(j<.>)ver1} ${op} ${(j<.>)ver2}"
 
 	ver1=( ${(@l<16><0>)ver1} )
 	ver2=( ${(@l<16><0>)ver2} )

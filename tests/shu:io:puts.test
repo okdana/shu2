@@ -1,87 +1,87 @@
 #!/usr/bin/env zsh
 
 ##
-# shu-unit tests for shu:io:puts() and shu:io:pputs()
+# shu-unit tests for shu:io:puts() and shu:io:eputs()
 
 fn=${0:t:r}
 
-assert -d 'Returns 0 with no arguments' \
+@assert -d 'Returns 0 with no arguments' \
 	-r 0 -eq \
 	$fn
-assert -d 'Returns 0 with multiple arguments' \
+@assert -d 'Returns 0 with multiple arguments' \
 	-r 0 -eq \
 	$fn foo bar baz
 
 # option:verbosity:expected
 provider=(
-	:{QUIET5,QUIET2,QUIET1}:
-	:{NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:foo
+	:{Q5,Q2,Q1}:
+	:{N0,V1,V2,V5}:foo
 
-	-a:{QUIET5,QUIET2,QUIET1,NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:foo
+	-a:{Q5,Q2,Q1,N0,V1,V2,V5}:foo
 
-	-n:{QUIET5,QUIET2,QUIET1}:
-	-n:{NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:foo
+	-n:{Q5,Q2,Q1}:
+	-n:{N0,V1,V2,V5}:foo
 
-	-N:{QUIET5,QUIET2,QUIET1,NORMAL}:foo
-	-N:{VERBOSE1,VERBOSE2,VERBOSE5}:
+	-N:{Q5,Q2,Q1,N0}:foo
+	-N:{V1,V2,V5}:
 
-	-q:{QUIET5,QUIET2}:
-	-q:{QUIET1,NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:foo
+	-q:{Q5,Q2}:
+	-q:{Q1,N0,V1,V2,V5}:foo
 
-	-qq:QUIET5:
-	-qq:{QUIET2,QUIET1,NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:foo
+	-qq:Q5:
+	-qq:{Q2,Q1,N0,V1,V2,V5}:foo
 
-	-Q:{QUIET5,QUIET2,QUIET1}:foo
-	-Q:{NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:
+	-Q:{Q5,Q2,Q1}:foo
+	-Q:{N0,V1,V2,V5}:
 
-	-QQ:{QUIET5,QUIET2}:foo
-	-QQ:{QUIET1,NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:
+	-QQ:{Q5,Q2}:foo
+	-QQ:{Q1,N0,V1,V2,V5}:
 
-	-v:{QUIET5,QUIET2,QUIET1,NORMAL}:
-	-v:{VERBOSE1,VERBOSE2,VERBOSE5}:foo
+	-v:{Q5,Q2,Q1,N0}:
+	-v:{V1,V2,V5}:foo
 
-	-vv:{QUIET5,QUIET2,QUIET1,NORMAL,VERBOSE1}:
-	-vv:{VERBOSE2,VERBOSE5}:foo
+	-vv:{Q5,Q2,Q1,N0,V1}:
+	-vv:{V2,V5}:foo
 
-	-V:{QUIET5,QUIET2,QUIET1,NORMAL,VERBOSE1}:foo
-	-V:{VERBOSE2,VERBOSE5}:
+	-V:{Q5,Q2,Q1,N0,V1}:foo
+	-V:{V2,V5}:
 
-	-VV:{QUIET5,QUIET2,QUIET1,NORMAL,VERBOSE1,VERBOSE2}:foo
-	-VV:VERBOSE5:
+	-VV:{Q5,Q2,Q1,N0,V1,V2}:foo
+	-VV:V5:
 
-	-xn:{QUIET5,QUIET2,QUIET1}:
-	-xn:NORMAL:foo
-	-xn:{VERBOSE1,VERBOSE2,VERBOSE5}:
+	-xn:{Q5,Q2,Q1}:
+	-xn:N0:foo
+	-xn:{V1,V2,V5}:
 
-	-xq:{QUIET5,QUIET2}:
-	-xq:QUIET1:foo
-	-xq:{NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:
+	-xq:{Q5,Q2}:
+	-xq:Q1:foo
+	-xq:{N0,V1,V2,V5}:
 
-	-xqq:QUIET5:
-	-xqq:QUIET2:foo
-	-xqq:{QUIET1,NORMAL,VERBOSE1,VERBOSE2,VERBOSE5}:
+	-xqq:Q5:
+	-xqq:Q2:foo
+	-xqq:{Q1,N0,V1,V2,V5}:
 
-	-xv:{QUIET5,QUIET2,QUIET1,NORMAL}:
-	-xv:VERBOSE1:foo
-	-xv:{VERBOSE2,VERBOSE5}:
+	-xv:{Q5,Q2,Q1,N0}:
+	-xv:V1:foo
+	-xv:{V2,V5}:
 
-	-xvv:{QUIET5,QUIET2,QUIET1,NORMAL,VERBOSE1}:
-	-xvv:VERBOSE2:foo
-	-xvv:VERBOSE5:
+	-xvv:{Q5,Q2,Q1,N0,V1}:
+	-xvv:V2:foo
+	-xvv:V5:
 
-	'-0:NORMAL:foo'
-	'-1:NORMAL: foo'
-	'-10:NORMAL:          foo'
-	'-n10:NORMAL:          foo'
-	'-10n:NORMAL:          foo'
-	'-10 -2:NORMAL:  foo'
-	'-10n2:NORMAL:  foo'
-	'-10n002:NORMAL:  foo'
-	'-10n10:NORMAL:          foo'
+	'-0:N0:foo'
+	'-1:N0: foo'
+	'-10:N0:          foo'
+	'-n10:N0:          foo'
+	'-10n:N0:          foo'
+	'-10 -2:N0:  foo'
+	'-10n2:N0:  foo'
+	'-10n002:N0:  foo'
+	'-10n10:N0:          foo'
 )
 
 for p in $provider; do
-	pa=( "${(s<:>)p}" )
+	pa=( "${(@s<:>)p}" )
 
 	if [[ -n $pa[1] ]]; then
 		like="with option(s) ${pa[1]}"
@@ -90,16 +90,16 @@ for p in $provider; do
 	fi
 
 	[[ -n $pa[3] ]] &&
-	[[ $fn == *:*:pput* ]] &&
+	[[ $fn == *:*:eput* ]] &&
 	pa[3]="${pa[3]%%[^[:space:]]*}${SHU_ARGZERO_TAIL}: ${pa[3]##[[:space:]]##}"
 
-	assert -d "Behaves as expected ${like} given verbosity ${pa[2]}" \
+	@assert -d "Behaves as expected ${like} given verbosity ${pa[2]}" \
 		-e "${pa[3]}" -eq \
 		"SHU_VERBOSITY=\$SHU_VERBOSITY_${pa[2]}; ${fn} ${pa[1]} foo"
 done
 
 for p in -Y +Y +v; do
-	assert -d "Panics with illegal option ${p}" \
+	@assert -d "Panics with illegal option ${p}" \
 		-r SHU_EX_PANIC -eq \
 		$fn $p
 done

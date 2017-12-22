@@ -136,51 +136,86 @@
 	declare -gr     SHU_TIME_FMT_RSS='%a, %d %b %Y %T %z'
 	declare -gr  SHU_TIME_FMT_COOKIE='%A, %d-%b-%Y %T %Z'
 
-	# ANSI SGR escape sequences
-	declare -gr          SHU_ANSI_RESET=$'\033[0m'
-	declare -gr        SHU_ANSI_BOLD_ON=$'\033[1m'
-	declare -gr  SHU_ANSI_UNDERSCORE_ON=$'\033[4m'
-	declare -gr       SHU_ANSI_BLINK_ON=$'\033[5m'
-	declare -gr     SHU_ANSI_REVERSE_ON=$'\033[7m'
-	declare -gr       SHU_ANSI_BOLD_OFF=$'\033[21m'
-	declare -gr SHU_ANSI_UNDERSCORE_OFF=$'\033[24m'
-	declare -gr      SHU_ANSI_BLINK_OFF=$'\033[25m'
-	declare -gr    SHU_ANSI_REVERSE_OFF=$'\033[27m'
-	declare -gr       SHU_ANSI_FG_BLACK=$'\033[30m'
-	declare -gr         SHU_ANSI_FG_RED=$'\033[31m'
-	declare -gr       SHU_ANSI_FG_GREEN=$'\033[32m'
-	declare -gr      SHU_ANSI_FG_YELLOW=$'\033[33m'
-	declare -gr        SHU_ANSI_FG_BLUE=$'\033[34m'
-	declare -gr     SHU_ANSI_FG_MAGENTA=$'\033[35m'
-	declare -gr        SHU_ANSI_FG_CYAN=$'\033[36m'
-	declare -gr       SHU_ANSI_FG_WHITE=$'\033[37m'
-	declare -gr       SHU_ANSI_FG_RESET=$'\033[39m'
-	declare -gr      SHU_ANSI_FG_BLACK2=$'\033[1;30m'
-	declare -gr        SHU_ANSI_FG_RED2=$'\033[1;31m'
-	declare -gr      SHU_ANSI_FG_GREEN2=$'\033[1;32m'
-	declare -gr     SHU_ANSI_FG_YELLOW2=$'\033[1;33m'
-	declare -gr       SHU_ANSI_FG_BLUE2=$'\033[1;34m'
-	declare -gr    SHU_ANSI_FG_MAGENTA2=$'\033[1;35m'
-	declare -gr       SHU_ANSI_FG_CYAN2=$'\033[1;36m'
-	declare -gr      SHU_ANSI_FG_WHITE2=$'\033[1;37m'
-	declare -gr      SHU_ANSI_FG_RESET2=$'\033[22m\033[39m'
-	declare -gr       SHU_ANSI_BG_BLACK=$'\033[40m'
-	declare -gr         SHU_ANSI_BG_RED=$'\033[41m'
-	declare -gr       SHU_ANSI_BG_GREEN=$'\033[42m'
-	declare -gr      SHU_ANSI_BG_YELLOW=$'\033[43m'
-	declare -gr        SHU_ANSI_BG_BLUE=$'\033[44m'
-	declare -gr     SHU_ANSI_BG_MAGENTA=$'\033[45m'
-	declare -gr        SHU_ANSI_BG_CYAN=$'\033[46m'
-	declare -gr       SHU_ANSI_BG_WHITE=$'\033[47m'
-	declare -gr       SHU_ANSI_BG_RESET=$'\033[49m'
+	# ANSI SGR escape sequences (for the most part we're not going to worry about
+	# strange terminals that don't support these; users can set SHU_ANSI_ENABLE=0
+	# if they need to)
+	declare -gr          SHU_ANSI_RESET=$'\e[0m'
+	declare -gr        SHU_ANSI_BOLD_ON=$'\e[1m'
+	declare -gr         SHU_ANSI_DIM_ON=$'\e[2m'
+	declare -gr      SHU_ANSI_ITALIC_ON=$'\e[3m'
+	declare -gr  SHU_ANSI_UNDERSCORE_ON=$'\e[4m'
+	declare -gr       SHU_ANSI_BLINK_ON=$'\e[5m'
+	declare -gr     SHU_ANSI_REVERSE_ON=$'\e[7m'
+	declare -gr       SHU_ANSI_BOLD_OFF=$'\e[22m' # Yes, 22m, NOT 21m!
+	declare -gr        SHU_ANSI_DIM_OFF=$'\e[22m'
+	declare -gr     SHU_ANSI_ITALIC_OFF=$'\e[23m'
+	declare -gr SHU_ANSI_UNDERSCORE_OFF=$'\e[24m'
+	declare -gr      SHU_ANSI_BLINK_OFF=$'\e[25m'
+	declare -gr    SHU_ANSI_REVERSE_OFF=$'\e[27m'
+	declare -gr       SHU_ANSI_FG_BLACK=$'\e[38;5;0m'
+	declare -gr         SHU_ANSI_FG_RED=$'\e[38;5;1m'
+	declare -gr       SHU_ANSI_FG_GREEN=$'\e[38;5;2m'
+	declare -gr      SHU_ANSI_FG_YELLOW=$'\e[38;5;3m'
+	declare -gr        SHU_ANSI_FG_BLUE=$'\e[38;5;4m'
+	declare -gr     SHU_ANSI_FG_MAGENTA=$'\e[38;5;5m'
+	declare -gr        SHU_ANSI_FG_CYAN=$'\e[38;5;6m'
+	declare -gr       SHU_ANSI_FG_WHITE=$'\e[38;5;7m'
+	declare -gr      SHU_ANSI_FG_BLACK2=$'\e[38;5;8m'
+	declare -gr        SHU_ANSI_FG_RED2=$'\e[38;5;9m'
+	declare -gr      SHU_ANSI_FG_GREEN2=$'\e[38;5;10m'
+	declare -gr     SHU_ANSI_FG_YELLOW2=$'\e[38;5;11m'
+	declare -gr       SHU_ANSI_FG_BLUE2=$'\e[38;5;12m'
+	declare -gr    SHU_ANSI_FG_MAGENTA2=$'\e[38;5;13m'
+	declare -gr       SHU_ANSI_FG_CYAN2=$'\e[38;5;14m'
+	declare -gr      SHU_ANSI_FG_WHITE2=$'\e[38;5;15m'
+	declare -gr       SHU_ANSI_FG_RESET=$'\e[39m'
+	declare -gr       SHU_ANSI_BG_BLACK=$'\e[48;5;0m'
+	declare -gr         SHU_ANSI_BG_RED=$'\e[48;5;1m'
+	declare -gr       SHU_ANSI_BG_GREEN=$'\e[48;5;2m'
+	declare -gr      SHU_ANSI_BG_YELLOW=$'\e[48;5;3m'
+	declare -gr        SHU_ANSI_BG_BLUE=$'\e[48;5;4m'
+	declare -gr     SHU_ANSI_BG_MAGENTA=$'\e[48;5;5m'
+	declare -gr        SHU_ANSI_BG_CYAN=$'\e[48;5;6m'
+	declare -gr       SHU_ANSI_BG_WHITE=$'\e[48;5;7m'
+	declare -gr      SHU_ANSI_BG_BLACK2=$'\e[48;5;8m'
+	declare -gr        SHU_ANSI_BG_RED2=$'\e[48;5;9m'
+	declare -gr      SHU_ANSI_BG_GREEN2=$'\e[48;5;10m'
+	declare -gr     SHU_ANSI_BG_YELLOW2=$'\e[48;5;11m'
+	declare -gr       SHU_ANSI_BG_BLUE2=$'\e[48;5;12m'
+	declare -gr    SHU_ANSI_BG_MAGENTA2=$'\e[48;5;13m'
+	declare -gr       SHU_ANSI_BG_CYAN2=$'\e[48;5;14m'
+	declare -gr      SHU_ANSI_BG_WHITE2=$'\e[48;5;15m'
+	declare -gr       SHU_ANSI_BG_RESET=$'\e[49m'
+
+	# If we have a 256-colour terminal we can additionally define some more
+	# precise colours to be used in select cases. (Some people make the 'black'
+	# and 'white' colours in the standard 16 various shades of grey, so they might
+	# look faded on a red background for example. Of course, maybe they also set
+	# their red to a weird colour... but this is at least *more* accurate)
+	if
+		[[ $TERM == *(256c|gnome|konsole|putty)* ]] ||
+		[[ ${VTE_VERSION:+256c} == 256c ]] ||
+		[[ ${KONSOLE_DBUS_SESSION:+256c} == 256c ]]
+	then
+		declare -gr SHU_ANSI_FG_BLACK0=$'\e[38;5;16m'
+		declare -gr SHU_ANSI_FG_WHITE0=$'\e[38;5;231m'
+	# If we don't have 256 colours, just fall back
+	else
+		declare -gr SHU_ANSI_FG_BLACK0=$SHU_ANSI_FG_BLACK
+		declare -gr SHU_ANSI_FG_WHITE0=$SHU_ANSI_FG_WHITE
+	fi
 
 	declare -grA SHU_ANSI_ACTIVE=(
 		reset          $SHU_ANSI_RESET
 		bold:on        $SHU_ANSI_BOLD_ON
+		dim:on         $SHU_ANSI_DIM_ON
+		italic:on      $SHU_ANSI_ITALIC_ON
 		underscore:on  $SHU_ANSI_UNDERSCORE_ON
 		blink:on       $SHU_ANSI_BLINK_ON
 		reverse:on     $SHU_ANSI_REVERSE_ON
 		bold:off       $SHU_ANSI_BOLD_OFF
+		dim:off        $SHU_ANSI_DIM_OFF
+		italic:off     $SHU_ANSI_ITALIC_OFF
 		underscore:off $SHU_ANSI_UNDERSCORE_OFF
 		blink:off      $SHU_ANSI_BLINK_OFF
 		reverse_off    $SHU_ANSI_REVERSE_OFF
@@ -192,7 +227,6 @@
 		fg:magenta     $SHU_ANSI_FG_MAGENTA
 		fg:cyan        $SHU_ANSI_FG_CYAN
 		fg:white       $SHU_ANSI_FG_WHITE
-		fg:reset       $SHU_ANSI_FG_RESET
 		fg:black2      $SHU_ANSI_FG_BLACK2
 		fg:red2        $SHU_ANSI_FG_RED2
 		fg:green2      $SHU_ANSI_FG_GREEN2
@@ -201,7 +235,9 @@
 		fg:magenta2    $SHU_ANSI_FG_MAGENTA2
 		fg:cyan2       $SHU_ANSI_FG_CYAN2
 		fg:white2      $SHU_ANSI_FG_WHITE2
-		fg:reset2      $SHU_ANSI_FG_RESET2
+		fg:black0      $SHU_ANSI_FG_BLACK0
+		fg:white0      $SHU_ANSI_FG_WHITE0
+		fg:reset       $SHU_ANSI_FG_RESET
 		bg:black       $SHU_ANSI_BG_BLACK
 		bg:red         $SHU_ANSI_BG_RED
 		bg:green       $SHU_ANSI_BG_GREEN
@@ -210,16 +246,28 @@
 		bg:magenta     $SHU_ANSI_BG_MAGENTA
 		bg:cyan        $SHU_ANSI_BG_CYAN
 		bg:white       $SHU_ANSI_BG_WHITE
+		bg:black2      $SHU_ANSI_BG_BLACK2
+		bg:red2        $SHU_ANSI_BG_RED2
+		bg:green2      $SHU_ANSI_BG_GREEN2
+		bg:yellow2     $SHU_ANSI_BG_YELLOW2
+		bg:blue2       $SHU_ANSI_BG_BLUE2
+		bg:magenta2    $SHU_ANSI_BG_MAGENTA2
+		bg:cyan2       $SHU_ANSI_BG_CYAN2
+		bg:white2      $SHU_ANSI_BG_WHITE2
 		bg:reset       $SHU_ANSI_BG_RESET
 	)
 
 	declare -grA SHU_ANSI_INACTIVE=(
 		reset          ''
 		bold:on        ''
+		dim:on         ''
+		italic:on      ''
 		underscore:on  ''
 		blink:on       ''
 		reverse        ''
 		bold:off       ''
+		dim:off        ''
+		italic:off     ''
 		underscore:off ''
 		blink:off      ''
 		reverse:off    ''
@@ -231,7 +279,6 @@
 		fg:magenta     ''
 		fg:cyan        ''
 		fg:white       ''
-		fg:reset       ''
 		fg:black2      ''
 		fg:red2        ''
 		fg:green2      ''
@@ -240,7 +287,9 @@
 		fg:magenta2    ''
 		fg:cyan2       ''
 		fg:white2      ''
-		fg:reset2      ''
+		fg:black0      ''
+		fg:white0      ''
+		fg:reset       ''
 		bg:black       ''
 		bg:red         ''
 		bg:green       ''
@@ -249,12 +298,20 @@
 		bg:magenta     ''
 		bg:cyan        ''
 		bg:white       ''
+		bg:black2      ''
+		bg:red2        ''
+		bg:green2      ''
+		bg:yellow2     ''
+		bg:blue2       ''
+		bg:magenta2    ''
+		bg:cyan2       ''
+		bg:white2      ''
 		bg:reset       ''
 	)
 
 	# Determine up-front whether we're on a TTY, so we can decide things like
 	# colouration and interactivity later
-	if [[ -t 0 ]] || [[ -t 1 ]] || [[ -t 2 ]]; then
+	if [[ -t 1 ]]; then
 		declare -gr SHU_HAS_TTY=1
 	else
 		declare -gr SHU_HAS_TTY=0
@@ -306,11 +363,13 @@
 	# environment as well. If scripts want to override it (which they *usually*
 	# shouldn't, they can do it by resetting the `SHU_ANSI` array
 	if [[ ${SHU_ANSI_ENABLE:-} == (always|[1tTyY]*) ]]; then
-		declare -gx SHU_ANSI_ENABLE=always
+		declare -gx SHU_ANSI_ENABLE=1
 	elif [[ ${SHU_ANSI_ENABLE:-} == (never|[0fFnN]*) ]]; then
-		declare -gx SHU_ANSI_ENABLE=never
+		declare -gx SHU_ANSI_ENABLE=0
+	elif (( ! SHU_HAS_TTY )) || [[ $TERM == dumb ]]; then
+		declare -gx SHU_ANSI_ENABLE=0
 	else
-		declare -gx SHU_ANSI_ENABLE=auto
+		declare -gx SHU_ANSI_ENABLE=1
 	fi
 }
 
@@ -379,24 +438,23 @@
 	exec {SHU_FD_STDERR}>&2
 
 	# Populate SHU_ANSI array by default if we're at a TTY
-	if
-		[[ "${SHU_ANSI_ENABLE}${SHU_HAS_TTY}" == auto1 ]] ||
-		[[ $SHU_ANSI_ENABLE == always ]]
-	then
+	if (( SHU_ANSI_ENABLE )); then
 		declare -gA SHU_ANSI=( "${(@kv)SHU_ANSI_ACTIVE}" )
 	else
 		declare -gA SHU_ANSI=( "${(@kv)SHU_ANSI_INACTIVE}" )
 	fi
 
 	# Colourise PS4 if we're on a TTY and don't have any colours already
-	[[ $PS4 != *$'\033['* ]] &&
-	PS4="${SHU_ANSI[fg:black2]}${PS4}${SHU_ANSI[reset]}"
+	[[ $PS4 != *$'\e['* ]] &&
+	PS4="${SHU_ANSI[fg:black2]}${PS4}${SHU_ANSI[fg:reset]}"
 }
 
 ##
 # Function registration
 {
-	# Use the digest file if we have it
+	# Use the digest file if we have it (note: this of course means that zsh's
+	# usually mechanism for detecting newer versions of the functions won't work;
+	# if a function is changed, the digest must be deleted or recompiled)
 	if [[ -e $SHU_FN_DIGEST ]]; then
 		fpath=( $SHU_FN_DIGEST $fpath )
 		autoload -w $SHU_FN_DIGEST

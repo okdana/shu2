@@ -74,7 +74,7 @@
 
 local    OPTARG OPTIND MATCH MBEGIN MEND
 local    __opt __to_array __raw __only __exp_vname=-1
-local    __name __glob __line_raw __line __last __syn_sp
+local    __name __glob __limit_glob __line_raw __line __last __syn_sp
 local -a __lines __help
 local -A __ansi=( "${(@kv)SHU_ANSI}" )
 
@@ -121,14 +121,13 @@ shift $(( OPTIND - 1 ))
 
 [[ -e $1 ]] || return 1
 
-__lines=( "${(@f)mapfile[$1]}" )
-
-__name=${1:t}
+__lines=( "${(@f)mapfile[$1]:-}" )
+ __name=${1:t}
+ __glob='[[:space:]]#\#\?[:.=?#+-](| *)'
 
 case $__only in
-	usage)   __glob='[[:space:]]#\#\?\?(| *)' ;;
-	version) __glob='[[:space:]]#\#\?.(| *)' ;;
-	*)       __glob='[[:space:]]#\#\?[:.=?#+-](| *)' ;;
+	usage)   __limit_glob='[[:space:]]#\#\?\?(| *)' ;;
+	version) __limit_glob='[[:space:]]#\#\?.(| *)' ;;
 esac
 
 for __line_raw in "${(@)__lines}"; do
@@ -138,6 +137,9 @@ for __line_raw in "${(@)__lines}"; do
 	}
 
 	(( __raw )) && {
+		[[ $__line_raw == ${~__limit_glob:-*} ]] ||
+		continue
+
 		 __last=$__line_raw
 		__help+=( $__line_raw )
 		continue
@@ -176,7 +178,7 @@ for __line_raw in "${(@)__lines}"; do
 			;;
 		# Heading
 		[[:space:]]#\#\?\#*)
-			__line="${__ansi[bold:on]}${__line}${__ansi[reset]}"
+			__line="${__ansi[bold:on]}${__line}${__ansi[bold:off]}"
 			;;
 		# Usage synopsis
 		[[:space:]]#\#\?\?*)
@@ -193,12 +195,12 @@ for __line_raw in "${(@)__lines}"; do
 		# Long-format option/operand description
 		[[:space:]]#\#\?\-*)
 			[[ $__line == '  '[\[\<.-]* ]] &&
-			__line="${__ansi[fg:yellow2]}${__line}${__ansi[reset]}"
+			__line="${__ansi[fg:yellow2]}${__line}${__ansi[fg:reset]}"
 			;;
 		# Short-format option/operand description
 		[[:space:]]#\#\?\+*)
 			[[ $__line == '  '[\[\<.-]* ]] &&
-			__line="${(S)__line/(#m)  *  /${__ansi[fg:yellow2]}${MATCH}${__ansi[reset]}}"
+			__line="${(S)__line/(#m)  *  /${__ansi[fg:yellow2]}${MATCH}${__ansi[fg:reset]}}"
 			;;
 	esac
 
@@ -212,6 +214,9 @@ for __line_raw in "${(@)__lines}"; do
 			__line="usage: ${__line[3,-1]}"
 		fi
 	}
+
+	[[ $__line_raw == ${~__limit_glob:-*} ]] ||
+	continue
 
 	 __last=$__line_raw
 	__help+=( "${__line}" )

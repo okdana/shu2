@@ -1,0 +1,43 @@
+#!/usr/bin/env zsh
+
+##
+# shu-unit tests for shu:proc:trace()
+
+fn=${0:t:r}
+
+# expected!verbosity!args
+provider=(
+	$'print foo\nfoo!N0!print foo'
+	$'  print foo\nfoo!N0!-2 print foo'
+	'foo!Q1!print foo'
+	$'print foo\nfoo!Q1!-q print foo'
+)
+
+for p in $provider; do
+	pa=( "${(@s<!>)p}" )
+
+	if [[ -n $pa[3] ]]; then
+		paa=( "${(@z)pa[3]}" )
+	else
+		paa=( )
+	fi
+
+	like="with argument(s) ${(j< >)${(@qq)paa}}"
+
+	@assert -d "Behaves as expected ${like} given verbosity ${pa[2]}" \
+		-e "${pa[1]}" -eq \
+		"
+			SHU_VERBOSITY=\$SHU_VERBOSITY_${pa[2]}
+			${fn} ${(j< >)${(@qq)paa}}
+		"
+done
+
+@assert -d 'Panics with too few arguments' \
+	-r SHU_EX_PANIC -eq \
+	$fn
+
+for p in -Y +Y +v; do
+	@assert -d "Panics with illegal option ${p}" \
+		-r SHU_EX_PANIC -eq \
+		$fn $p
+done

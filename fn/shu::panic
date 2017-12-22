@@ -41,19 +41,19 @@ local -a trace
 			{ (( i == $#functrace ))   && [[ $identifier == $SHU_ARGZERO ]] }
 		then
 			(( i == 1 )) && caller="{${identifier:t}}"
-			identifier="${SHU_ANSI[fg:yellow2]}{${identifier}}${SHU_ANSI[reset]}"
+			identifier="${SHU_ANSI[fg:yellow2]}{${identifier}}${SHU_ANSI[fg:reset]}"
 
 		elif [[ $identifier == '('*')' ]]; then
 			(( i == 1 )) && caller="${identifier}"
-			identifier="${SHU_ANSI[fg:yellow2]}${identifier}${SHU_ANSI[reset]}"
+			identifier="${SHU_ANSI[fg:yellow2]}${identifier}${SHU_ANSI[fg:reset]}"
 
 		else
 			(( i == 1 )) && caller="${identifier}()"
-			identifier="${SHU_ANSI[fg:yellow2]}${identifier}()${SHU_ANSI[reset]}"
+			identifier="${SHU_ANSI[fg:yellow2]}${identifier}()${SHU_ANSI[fg:reset]}"
 		fi
 
 		 trace_line="${identifier}"
-		trace_line+=" @ ${SHU_ANSI[fg:magenta2]}${line_no}${SHU_ANSI[reset]}"
+		trace_line+=" @ ${SHU_ANSI[fg:magenta2]}${line_no}${SHU_ANSI[fg:reset]}"
 
 		# Only add file-level info if requested
 		(( SHU_PANIC_TRACE > 1 )) && {
@@ -61,9 +61,9 @@ local -a trace
 			   line_no=${funcfiletrace[i]##*:}
 			trace_line+=' '
 			trace_line+='('
-			trace_line+="${SHU_ANSI[fg:yellow2]}${identifier:t}${SHU_ANSI[reset]}"
+			trace_line+="${SHU_ANSI[fg:yellow2]}${identifier:t}${SHU_ANSI[fg:reset]}"
 			trace_line+=' @ '
-			trace_line+="${SHU_ANSI[fg:magenta2]}${line_no}${SHU_ANSI[reset]}"
+			trace_line+="${SHU_ANSI[fg:magenta2]}${line_no}${SHU_ANSI[fg:reset]}"
 			trace_line+=')'
 		}
 
@@ -72,12 +72,12 @@ local -a trace
 }
 
 printf >&$SHU_FD_STDERR \
-	'%s: %sPanic in %s%s%s\n' \
+	'%s: %sPANIC in %s!%s%s\n' \
 	$SHU_ARGZERO_TAIL \
-	"${SHU_ANSI[fg:red]}" \
-	${caller:-(unknown)} \
-	"${@:+: ${(j< >)@}}" \
-	"${SHU_ANSI[reset]}"
+	"${SHU_ANSI[bg:red]}${SHU_ANSI[fg:white0]}" \
+	"${caller:-(unknown)}" \
+	"${SHU_ANSI[fg:reset]}${SHU_ANSI[bg:reset]}" \
+	"${@:+ ${SHU_ANSI[fg:red]}${(j< >)@}}${SHU_ANSI[fg:reset]}" \
 
 (( SHU_PANIC_TRACE )) &&
 (( $#trace )) && {
@@ -99,5 +99,5 @@ if [[ $- == *i* ]] || (( SHU_PANIC_IGNORE )); then
 	return SHU_EX_PANIC
 fi
 
-kill -TERM $$
+kill -HUP 0
 exit SHU_EX_PANIC

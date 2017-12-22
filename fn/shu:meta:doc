@@ -9,6 +9,18 @@
 #
 # @module meta
 #
+# @param +a <name>
+#   (optional) Assign the result to a pre-defined array with the name <name>.
+#
+# @param +c
+#   (optional) Enable ANSI formatting.
+#
+# @param +C
+#   (optional) Disable ANSI formatting.
+#
+# @param -r
+#   (optional) Return raw (unformatted) lines.
+#
 # @param $1
 #   The path to the source file. If the path begins with `shu:` and no such file
 #   exists in the CWD, it is interpreted as the name of a shu function whose
@@ -16,10 +28,12 @@
 #
 # @return 0 on success, >0 on error.
 
-local    OPTARG OPTIND __opt __to_array __raw ___fn __line __last
+local    OPTARG OPTIND MATCH MBEGIN MEND
+local    __opt __to_array __raw ___fn __line __last
 local -a __lines __doc
+local -A __ansi=( "${(@kv)SHU_ANSI}" )
 
-while getopts :a:r __opt; do
+while getopts :a:cCr __opt; do
 	case $__opt in
 		# Assign result to array
 		'+a')
@@ -30,6 +44,10 @@ while getopts :a:r __opt; do
 
 			__to_array=$OPTARG
 			;;
+		# Enable ANSI formatting
+		'+c') __ansi=( "${(@kv)SHU_ANSI_ACTIVE}" ) ;;
+		# Disable ANSI formatting
+		'+C') __ansi=( "${(@kv)SHU_ANSI_INACTIVE}" ) ;;
 		# Return raw/unformatted lines
 		'r') __raw=1 ;;
 		# Errors
@@ -52,11 +70,15 @@ ___fn=$1
 	(( $#___fn )) || return 1
 }
 
-___fn=${___fn//.zwc\//\/}
+if [[ $___fn == *.zwc/* ]] && [[ -e ${___fn//*.zwc\//} ]]; then
+	___fn=${___fn//*.zwc\//}
+elif [[ $___fn == *.zwc ]] && [[ -e ${___fn:r} ]]; then
+	___fn=${___fn:r}
+elif [[ ! -e $___fn ]]; then
+	return 1
+fi
 
-[[ -e $___fn ]] || return 1
-
-__lines=( "${(@f)mapfile[$___fn]}" )
+__lines=( "${(@f)mapfile[$___fn]:-}" )
 
 for __line in "${(@)__lines}"; do
 	[[ -n $__last ]] || {
@@ -79,7 +101,10 @@ for __line in "${(@)__lines}"; do
 		continue
 	}
 
-	__doc+=( "${__line[3,-1]}" )
+	__line=${__line[3,-1]}
+	__line=${__line/(#m)(#s)@[^[:space:]]##/${__ansi[bold:on]}${MATCH}${__ansi[bold:off]}}
+
+	__doc+=( "${__line}" )
 done
 
 (( $#__to_array )) && {

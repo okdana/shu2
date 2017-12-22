@@ -1,0 +1,30 @@
+#!/usr/bin/env zsh
+
+##
+# shu-unit tests for shu:meta:fns()
+
+fn=${0:t:r}
+
+@assert -d 'Gives all functions by default' \
+	$'shu::*\nshu:io:*\nshu:meta:*\nshu:time:*' -gl \
+	$fn
+@assert -d 'Gives functions only for module if specified' \
+	'shu:meta:*' -gl \
+	$fn meta
+
+@assert -d 'Supports assignment to array' \
+	-e 'shu:meta:*' -gl \
+	"declare -a arr; ${fn} +a arr meta; print -rl -- \$arr"
+@assert -d 'Panics on attempted assignment to undeclared array' \
+	-er SHU_EX_PANIC -eq \
+	"unset arr; ${fn} +a arr"
+
+@assert -d 'Panics with too many arguments' \
+	-r SHU_EX_PANIC -eq \
+	$fn a b c
+
+for p in -Y +Y +v; do
+	@assert -d "Panics with illegal option ${p}" \
+		-r SHU_EX_PANIC -eq \
+		$fn $p
+done

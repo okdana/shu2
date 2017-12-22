@@ -206,16 +206,21 @@ __ret=$?
 
 (( __compare_ret )) && __res=$__ret
 
-case $__op in
-	eq) [[ $__expect == $__res     ]] && __pass=1 ;;
-	ne) [[ $__expect != $__res     ]] && __pass=1 ;;
-	gl) [[ $__res    == $~__expect ]] && __pass=1 ;;
-	re) [[ $__res    =~ $__expect  ]] && __pass=1 ;;
-	le) (( __expect  <= __res      )) && __pass=1 ;;
-	lt) (( __expect  <  __res      )) && __pass=1 ;;
-	ge) (( __expect  >= __res      )) && __pass=1 ;;
-	gt) (( __expect  >  __res      )) && __pass=1 ;;
-esac
+{
+	case $__op in
+		eq) [[ $__expect == $__res     ]] && __pass=1 ;;
+		ne) [[ $__expect != $__res     ]] && __pass=1 ;;
+		gl) [[ $__res    == $~__expect ]] && __pass=1 ;;
+		re) [[ $__res    =~ $__expect  ]] && __pass=1 ;;
+		le) (( __expect  <= __res      )) && __pass=1 ;;
+		lt) (( __expect  <  __res      )) && __pass=1 ;;
+		ge) (( __expect  >= __res      )) && __pass=1 ;;
+		gt) (( __expect  >  __res      )) && __pass=1 ;;
+	esac
+} always {
+	# Explode if we received a bad glob or regex pattern
+	(( TRY_BLOCK_ERROR )) && shu::panic "Error in pattern: ${__expect}"
+}
 
 if (( __eval_cmd )); then
 	__cmd_str="${(j< >)__cmd}"
@@ -241,12 +246,12 @@ __summary="\`${__cmd_str}\`: ${(q-)__expect} -${__op} ${(q-)__res}"
 (( __pass )) && {
 	(( __show == -1 || __show == __pass )) &&
 	shu:io:putf $__quiet '%s[PASS]%s %s\n' \
-		"${__ansi[fg:green]}" "${__ansi[reset]}" $__desc
+		"${__ansi[fg:green]}" "${__ansi[fg:reset]}" $__desc
 	return 0
 }
 
 (( __show == -1 || __show == __pass )) &&
 shu:io:putf $__quiet '%s[FAIL]%s %s\n' \
-	"${__ansi[fg:red]}" "${__ansi[reset]}" $__desc
+	"${__ansi[fg:red]}" "${__ansi[fg:reset]}" $__desc
 (( __fail_panics )) && shu::panic 'Assertion failed'
 return 1

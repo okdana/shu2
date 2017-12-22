@@ -3,54 +3,54 @@
 ##
 # shu-unit tests for shu:time:strf()
 
-assert -d 'Returns 0 with no arguments' \
+@assert -d 'Returns 0 with no arguments' \
 	-r 0 -eq \
 	shu:time:strf
-assert -d 'Defaults to SHU_TIME_FMT_STD_A' \
+@assert -d 'Defaults to SHU_TIME_FMT_STD_A' \
 	'[0-9-]## [0-9:]##' -gl \
 	shu:time:strf
 
-assert -d 'Supports SHU_TIME_FMT_STD_A by name' \
+@assert -d 'Supports SHU_TIME_FMT_STD_A by name' \
 	'[0-9-]## [0-9:]##' -gl \
 	shu:time:strf SHU_TIME_FMT_STD_A
-assert -d 'Supports SHU_TIME_FMT_STD_A by name (abbreviated)' \
+@assert -d 'Supports SHU_TIME_FMT_STD_A by name (abbreviated)' \
 	'[0-9-]## [0-9:]##' -gl \
 	shu:time:strf FMT_STD_A
-assert -d 'Supports SHU_TIME_FMT_STD_B by name (abbreviated)' \
+@assert -d 'Supports SHU_TIME_FMT_STD_B by name (abbreviated)' \
 	'[A-Za-z]## [0-9-]## [0-9:]##' -gl \
 	shu:time:strf FMT_STD_B
-assert -d 'Supports SHU_TIME_FMT_STD_C by name (abbreviated)' \
+@assert -d 'Supports SHU_TIME_FMT_STD_C by name (abbreviated)' \
 	'[A-Za-z]## [0-9-]## [0-9:]## [A-Za-z]##' -gl \
 	shu:time:strf FMT_STD_C
 
-assert -d 'Supports standard strftime(3) format specifiers' \
+@assert -d 'Supports standard strftime(3) format specifiers' \
 	'<2000-3000> . [0-9:]##' -gl \
 	shu:time:strf '%Y . %T'
 
-assert -d 'Supports optional epoch time' \
+@assert -d 'Supports optional epoch time' \
 	1970 -eq \
 	shu:time:strf -u %Y 1
 
-assert -d 'Supports assignment to scalar' \
+@assert -d 'Supports assignment to scalar' \
 	-e '[0-9-]## [0-9:]##' -gl \
 	's=; shu:time:strf +ss; print -r -- $s'
-assert -d 'Panics on attempted assignment to undeclared scalar' \
+@assert -d 'Panics on attempted assignment to undeclared scalar' \
 	-er SHU_EX_PANIC -eq \
 	'unset s; shu:time:strf +ss'
 
-assert -d 'Panics with format string containing no specifier' \
+@assert -d 'Panics with format string containing no specifier' \
 	-r SHU_EX_PANIC -eq \
 	shu:time:strf x
-assert -d 'Panics with illegal-looking time zone' \
+@assert -d 'Panics with illegal-looking time zone' \
 	-r SHU_EX_PANIC -eq \
 	shu:time:strf -z %T
 
-assert -d 'Panics with too many arguments' \
+@assert -d 'Panics with too many arguments' \
 	-r SHU_EX_PANIC -eq \
 	shu:time:strf %Y 0 0
 
 for p in -Y +Y +z; do
-	assert -d "Panics with illegal option ${p}" \
+	@assert -d "Panics with illegal option ${p}" \
 		-r SHU_EX_PANIC -eq \
 		shu:io:puts $p
 done
