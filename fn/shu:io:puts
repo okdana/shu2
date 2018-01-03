@@ -151,13 +151,13 @@ while getopts :0123456789anNqQrR:vVxX opt; do
 	last_opt=$opt
 done
 
+(( trap_ret > -1 )) &&
+trap "return ${trap_ret}" EXIT
+
 (( exact )) && op='=='
 (( cmp $op SHU_VERBOSITY )) || return 0
 
 shift $(( OPTIND - 1 ))
-
-(( trap_ret > -1 )) &&
-trap "return ${trap_ret}" EXIT
 
 case $0 in
 	shu:io:puts)
