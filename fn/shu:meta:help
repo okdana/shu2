@@ -136,10 +136,12 @@ for __line_raw in "${(@)__lines}"; do
 		continue
 	}
 
-	(( __raw )) && {
-		[[ $__line_raw == ${~__limit_glob:-*} ]] ||
+	[[ $__line_raw == ${~__limit_glob:-*} ]] || {
+		[[ -n $__last ]] && break
 		continue
+	}
 
+	(( __raw )) && {
 		 __last=$__line_raw
 		__help+=( $__line_raw )
 		continue
@@ -214,9 +216,6 @@ for __line_raw in "${(@)__lines}"; do
 			__line="usage: ${__line[3,-1]}"
 		fi
 	}
-
-	[[ $__line_raw == ${~__limit_glob:-*} ]] ||
-	continue
 
 	 __last=$__line_raw
 	__help+=( "${__line}" )
