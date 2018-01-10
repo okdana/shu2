@@ -99,5 +99,6 @@ if [[ $- == *i* ]] || (( SHU_PANIC_IGNORE )); then
 	return SHU_EX_PANIC
 fi
 
+# die_you_gravy_sucking_pig_dog
 kill -HUP 0
 exit SHU_EX_PANIC
