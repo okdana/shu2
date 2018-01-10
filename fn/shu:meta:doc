@@ -70,8 +70,8 @@ ___fn=$1
 	(( $#___fn )) || return 1
 }
 
-if [[ $___fn == *.zwc/* ]] && [[ -e ${___fn//*.zwc\//} ]]; then
-	___fn=${___fn//*.zwc\//}
+if [[ $___fn == *.zwc/* ]] && [[ -e ${___fn/.zwc\///} ]]; then
+	___fn=${___fn/.zwc\///}
 elif [[ $___fn == *.zwc ]] && [[ -e ${___fn:r} ]]; then
 	___fn=${___fn:r}
 elif [[ ! -e $___fn ]]; then
