@@ -25,15 +25,20 @@
 #?+   -v              Increase output verbosity.
 #?+   -t, -x          Enable function xtrace (like `typeset -t`).
 #?+   -T, -X          Enable function xtrace (like `typeset -T`).
+#?+   -V              Display version information and exit.
 
-source ${0:A:h}/../lib
+if [[ -e ${0:A:h}/../lib ]]; then
+  source ${0:A:h}/../lib
+else
+  source /usr/local/shu2/lib
+fi
 
 app::main() {
 	local    OPTARG OPTIND opt
 	local    mode verbosity=0 xtrace func ret o start end
 	local -a options
 
-	while getopts :hHlo:pqtTvxX opt; do
+	while getopts :hHlo:pqtTvxXV opt; do
 		case $opt in
 			h)   shu:meta:help; return 0 ;;
 			H)   mode=doc ;;
@@ -44,6 +49,7 @@ app::main() {
 			v)   verbosity=1 ;;
 			t|x) xtrace=t ;;
 			T|X) xtrace=T ;;
+			V)   shu:meta:help -V; return 0 ;;
 			'?') shu::panic "Invalid option: -${OPTARG}" ;;
 			':') shu::panic "Missing argument to option: -${OPTARG}" ;;
 		esac
@@ -53,7 +59,7 @@ app::main() {
 
 	[[ $mode == fns ]] && {
 		shu:meta:fns ${1:-}
-		return $?
+		return
 	}
 
 	(( $# )) || shu::panic 'Expected function name'
@@ -71,12 +77,12 @@ app::main() {
 
 	[[ $mode == fnpath ]] && {
 		shu:meta:fnpath $func
-		return $?
+		return
 	}
 
 	[[ $mode == doc ]] && {
 		shu:meta:doc $func
-		return $?
+		return
 	}
 
 	for o in $options; do
@@ -86,11 +92,14 @@ app::main() {
 		[[ -v ${o%%=*} ]] ||
 		shu::panic "Unrecognised option: ${o%%=*}"
 
-		declare "${o%%=*}=${o#*=}"
+		typeset "${o%%=*}=${o#*=}"
 	done
 
 	(( verbosity > 0 )) &&
-	printf >&$SHU_FD_STDERR '\033[1m>>> %s %s\033[0m\n' $func "${(j. .)${(q-)@}}"
+	printf >&$SHU_FD_STDERR '%s>>> %s %s%s\n' \
+		"${SHU_ANSI[bold:on]}" \
+		$func "${(j< >)${(q-)@}}" \
+		"${SHU_ANSI[reset]}"
 
 	start=$( shu:time:epoch -u )
 	(( $#xtrace )) && typeset -f -$xtrace $func
@@ -101,16 +110,23 @@ app::main() {
 
 	(( verbosity )) && {
 		if (( ret )); then
-			printf >&$SHU_FD_STDERR '\033[31m<<< %s (%d µs)\033[0m\n' \
-				$ret $(( end - start ))
+			printf >&$SHU_FD_STDERR '%s<<< %s (%d µs)%s\n' \
+				"${SHU_ANSI[fg:red]}" \
+				$ret $(( end - start )) \
+				"${SHU_ANSI[reset]}"
 		else
-			printf >&$SHU_FD_STDERR '\033[32m<<< %s (%d µs)\033[0m\n' \
-				$ret $(( end - start ))
+			printf >&$SHU_FD_STDERR '%s<<< %s (%d µs)%s\n' \
+				"${SHU_ANSI[fg:green]}" \
+				$ret $(( end - start )) \
+				"${SHU_ANSI[reset]}"
 		fi
 	}
 
-	return $ret
+	return ret
 }
 
-app::main "${@}"
-return $?
+[[ $zsh_eval_context == toplevel ]] && {
+	app::main "${@}"
+	return
+}
+:

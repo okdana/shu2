@@ -1,0 +1,97 @@
+#!/usr/bin/env zsh
+
+#?. shu2 compiler v:0.1
+#?:
+#?= Recompile shu2 digest files.
+#?:
+#?# usage:
+#??   ${0} -h
+#??   ${0} [-qv] [-r] [<dir> ...]
+#?:
+#?# operands:
+#?+   <dir> ...  Directories containing the shu library to compile. If not
+#?+              specified, the library directory containing the script (often
+#?+              /usr/local/shu2) will be used instead.
+#?:
+#?# options:
+#?+   -h         Display this usage help and exit.
+#?+   -q         Decrease output verbosity.
+#?+   -r         Delete compiled files only; do not recompile.
+#?+   -v         Increase output verbosity (effective only with -r).
+#?+   -V         Display version information and exit.
+
+if [[ -e ${0:A:h}/../lib ]]; then
+  source ${0:A:h}/../lib
+else
+  source /usr/local/shu2/lib
+fi
+
+app::main() {
+  local    OPTARG OPTIND opt del_only shu2 lib lib_zwc fn fn_zwc
+  local -a fn_fns delete
+
+  while getopts :hqrvV opt; do
+    case $opt in
+      h) shu:meta:help; return 0 ;;
+      q) shu:io:setvrb -q ;;
+      r) del_only=1 ;;
+      v) shu:io:setvrb -v ;;
+      V) shu:meta:help -V; return 0 ;;
+      ':')
+        shu:io:uputs -ar "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+      '?')
+        shu:io:uputs -ar "Invalid option: ${(l:2::-:)OPTARG}" ;;
+      *)
+        shu:io:uputs -ar "Invalid option: ${(l:2::-:)opt}" ;;
+    esac
+  done
+
+  shift $(( OPTIND - 1 ))
+
+  (( $# )) || argv=( ${:-${SHU_ARGZERO_ABS:h}/..} )
+
+  while (( $# )); do
+    shu2=${1:A}
+     lib=$shu2/lib
+      fn=$shu2/fn
+
+    shift
+
+    [[ -d $shu2 ]] || shu:io:eputs -r "No such directory: ${shu2}"
+    [[ -f $lib  ]] || shu:io:eputs -r "Missing lib file: ${lib}"
+    [[ -d $fn   ]] || shu:io:eputs -r "Missing fn directory: ${fn}"
+
+    lib_zwc=$lib.zwc
+     fn_zwc=$fn.zwc
+     fn_fns=( $fn/*:*(-.N) )
+
+    (( $#fn_fns )) || shu:io:eputs -r "Missing function files: ${fn}"
+
+    delete=( $lib_zwc $fn_zwc $fn/*.zwc(-.N) )
+
+    (( $#delete )) && {
+      if (( del_only && SHU_VERBOSITY >= SHU_VERBOSITY_V1 )); then
+        rm -fv $delete
+      else
+        rm -f $delete
+      fi
+    }
+
+    (( del_only )) && continue
+
+    zcompile -U  $lib_zwc $lib    || return $?
+    zcompile -Uz $fn_zwc  $fn_fns || return $?
+
+    shu:io:puts "${fn_zwc}:"
+    zcompile -t $fn_zwc | shu:io:cat
+    (( $? )) && return 1
+  done
+
+  return 0
+}
+
+[[ $zsh_eval_context == toplevel ]] && {
+  app::main "${@}"
+  return
+}
+:
