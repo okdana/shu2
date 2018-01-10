@@ -48,7 +48,7 @@ app::main() {
 
   shift $(( OPTIND - 1 ))
 
-  (( $# )) || argv=( ${:-${SHU_ARGZERO_ABS:h}/..} )
+  (( $# )) || argv=( ${:-${SHU_ARGZERO:A:h}/..} )
 
   while (( $# )); do
     shu2=${1:A}
