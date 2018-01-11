@@ -53,7 +53,7 @@ local    OPTARG OPTIND __opt __to_scalar __to_assoc __time_fmt __utc_opt
 local    __field __file
 local -A __assoc
 
-while getopts ':A:F:s:u' __opt; do
+while getopts :A:F:s:u __opt; do
 	case $__opt in
 		# Assign result to association
 		'+A')
