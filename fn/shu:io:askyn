@@ -1,0 +1,99 @@
+# vim: set ft=zsh:
+
+##
+# Prompt the user to enter yes or no.
+#
+# @todo It would be nice to build this into a more general-purpose prompt/menu
+# function.
+#
+# @module io
+#
+# @see read
+# @see vared
+#
+# @param +s <name>
+#   (optional) Assign the user's final input to a pre-defined scalar with the
+#   name <name>.
+#
+# @param +v <options>
+#   (optional) Verbosity options to pass to `shu:io:putf`. For example,
+#   `shu:io:askyn +v -v` will only display a prompt when the verbosity is `V0`
+#   or higher. These options also apply to error messages.
+#
+# @param -n
+#   (optional) Treat empty input as a 'no' response.
+#
+# @param -y
+#   (optional) Treat empty input as a 'yes' response.
+#
+# @param $1 ...
+#   (optional) Zero or more strings to be used as the prompt/question. All
+#   strings are passed to `shu:io:putf` for printing. If omitted, the prompt
+#   string 'Continue?' is used.
+#
+# @return According to `printf`.
+
+local OPTARG OPTIND __opt __to_scalar
+local __default __prompt __reply
+local -a __vrb_opts
+
+while getopts :ns:v:y __opt; do
+	case $__opt in
+		# Assign result to scalar
+		+s)
+			(( ${(P)+OPTARG} )) ||
+			shu::panic "No such scalar: ${OPTARG}"
+			[[ "${(Pt)OPTARG}-" == scalar-* ]] ||
+			shu::panic "No such scalar: ${OPTARG}"
+
+			__to_scalar=$OPTARG
+			;;
+		# Pass verbosity options to `shu:io:puts`
+		+v) __vrb_opts+=( ${(z)OPTARG} ) ;;
+		# Default to 'no'
+		n) __default=no ;;
+		# Default to 'yes'
+		y) __default=yes ;;
+		# Errors
+		:)  shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+		\?) shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+		*)  shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+	esac
+done
+
+shift $(( OPTIND - 1 ))
+
+1=${${(j< >)@}//((#s)[[:space:]]##|[[:space:]]##(#e))/}
+: ${1:='Continue?'}
+
+case $__default in
+	no)  1+=" ${SHU_ANSI[dim:on]}[no]${SHU_ANSI[dim:off]}" ;;
+	yes) 1+=" ${SHU_ANSI[dim:on]}[yes]${SHU_ANSI[dim:off]}" ;;
+esac
+
+1=$( shu:io:putf $__vrb_opts '%s ' $1 )
+
+setopt local_options no_auto_list menu_complete
+local -a zle_highlight=( paste:none )
+bindkey -e
+
+for (( ;; )); do
+	__reply=
+	vared -ehp "${1}" __reply || return 2
+
+	__reply=${__reply//((#s)[[:space:]]##|[[:space:]]##(#e))/}
+	: ${__reply:=${__default}}
+
+	[[ $__reply == (#i)(n(|o*)|y(|es*)) ]] && {
+		(( $#__to_scalar )) && : ${(P)__to_scalar::=${__reply}}
+		[[ $__reply == [Yy]* ]] && return 0
+		return 1
+	}
+
+	[[ -n $__reply ]] &&
+	shu:io:eputf $__vrb_opts 'Unrecognised input: %s\n' $__reply
+done
+
+print -r - "Got input: ${__reply}"
+
+return 0
