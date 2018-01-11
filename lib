@@ -447,7 +447,7 @@
 
 	# Colourise PS4 if we're on a TTY and don't have any colours already
 	[[ $PS4 != *$'\e['* ]] &&
-	PS4="${SHU_ANSI[fg:black2]}${PS4}${SHU_ANSI[fg:reset]}"
+	PS4="${SHU_ANSI[reset]}${SHU_ANSI[dim:on]}${PS4}${SHU_ANSI[dim:off]}"
 }
 
 ##
@@ -469,4 +469,6 @@
 	functions -M min 1 -1 shu:math:min
 	functions -M max 1 -1 shu:math:max
 	functions -M sum 1 -1 shu:math:sum
+
+	shu::noop() { }
 }
