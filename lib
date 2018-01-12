@@ -70,123 +70,130 @@
 	declare -gr SHU_SECONDS_START=$SECONDS
 
 	# Exit/return codes (many of these are derived from `sysexits(3)`)
-	declare -gr          SHU_EX_OK=0
-	declare -gr         SHU_EX_ERR=1
-	declare -gr       SHU_EX_USAGE=64
-	declare -gr     SHU_EX_DATAERR=65
-	declare -gr     SHU_EX_NOINPUT=66
-	declare -gr      SHU_EX_NOUSER=67
-	declare -gr      SHU_EX_NOHOST=68
-	declare -gr SHU_EX_UNAVAILABLE=69
-	declare -gr    SHU_EX_SOFTWARE=70
-	declare -gr       SHU_EX_OSERR=71
-	declare -gr      SHU_EX_OSFILE=72
-	declare -gr   SHU_EX_CANTCREAT=73
-	declare -gr       SHU_EX_IOERR=74
-	declare -gr    SHU_EX_TEMPFAIL=75
-	declare -gr    SHU_EX_PROTOCOL=76
-	declare -gr      SHU_EX_NOPERM=77
-	declare -gr      SHU_EX_CONFIG=78
-	declare -gr       SHU_EX_PANIC=199
+	declare -gr \
+		SHU_EX_OK=0 \
+		SHU_EX_ERR=1 \
+		SHU_EX_USAGE=64 \
+		SHU_EX_DATAERR=65 \
+		SHU_EX_NOINPUT=66 \
+		SHU_EX_NOUSER=67 \
+		SHU_EX_NOHOST=68 \
+		SHU_EX_UNAVAILABLE=69 \
+		SHU_EX_SOFTWARE=70 \
+		SHU_EX_OSERR=71 \
+		SHU_EX_OSFILE=72 \
+		SHU_EX_CANTCREAT=73 \
+		SHU_EX_IOERR=74 \
+		SHU_EX_TEMPFAIL=75 \
+		SHU_EX_PROTOCOL=76 \
+		SHU_EX_NOPERM=77 \
+		SHU_EX_CONFIG=78 \
+		SHU_EX_PANIC=199
 
 	# Verbosity levels
-	declare -gr SHU_VERBOSITY_Q5=-5
-	declare -gr SHU_VERBOSITY_Q4=-4
-	declare -gr SHU_VERBOSITY_Q3=-3
-	declare -gr SHU_VERBOSITY_Q2=-2
-	declare -gr SHU_VERBOSITY_Q1=-1
-	declare -gr SHU_VERBOSITY_N0=0
-	declare -gr SHU_VERBOSITY_V1=1
-	declare -gr SHU_VERBOSITY_V2=2
-	declare -gr SHU_VERBOSITY_V3=3
-	declare -gr SHU_VERBOSITY_V4=4
-	declare -gr SHU_VERBOSITY_V5=5
-	declare -gr  SHU_VERBOSITY_Q=-1
-	declare -gr  SHU_VERBOSITY_N=0
-	declare -gr  SHU_VERBOSITY_V=1
+	declare -gr \
+		SHU_VERBOSITY_Q5=-5 \
+		SHU_VERBOSITY_Q4=-4 \
+		SHU_VERBOSITY_Q3=-3 \
+		SHU_VERBOSITY_Q2=-2 \
+		SHU_VERBOSITY_Q1=-1 \
+		SHU_VERBOSITY_N0=0 \
+		SHU_VERBOSITY_V1=1 \
+		SHU_VERBOSITY_V2=2 \
+		SHU_VERBOSITY_V3=3 \
+		SHU_VERBOSITY_V4=4 \
+		SHU_VERBOSITY_V5=5 \
+		SHU_VERBOSITY_Q=-1 \
+		SHU_VERBOSITY_N=0 \
+		SHU_VERBOSITY_V=1
 
 	# Glob patterns (use like `[[ $foo == $~SHU_PAT_MATH_INT ]]`)
-	declare -gr   SHU_PAT_MATH_INT_NEG='-[0-9][0-9_]#'
-	declare -gr   SHU_PAT_MATH_INT_POS='(|+)[0-9][0-9_]#'
-	declare -gr       SHU_PAT_MATH_INT='(|[+-])[0-9][0-9_]#'
-	declare -gr SHU_PAT_MATH_FLOAT_NEG='(|-)((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)'
-	declare -gr SHU_PAT_MATH_FLOAT_POS='(|+)((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)'
-	declare -gr     SHU_PAT_MATH_FLOAT='(|[+-])((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)'
-	declare -gr   SHU_PAT_MATH_NUM_NEG="(${SHU_PAT_MATH_INT_NEG}|${SHU_PAT_MATH_FLOAT_NEG})"
-	declare -gr   SHU_PAT_MATH_NUM_POS="(${SHU_PAT_MATH_INT_POS}|${SHU_PAT_MATH_FLOAT_POS})"
-	declare -gr       SHU_PAT_MATH_NUM="(${SHU_PAT_MATH_INT}|${SHU_PAT_MATH_FLOAT})"
-	declare -gr    SHU_PAT_ASCII_ALNUM='[A-Za-z0-9]##'
-	declare -gr    SHU_PAT_ASCII_ALPHA='[A-Za-z]##'
-	declare -gr    SHU_PAT_ASCII_CNTRL=$'[\000-\037\177]##'
-	declare -gr    SHU_PAT_ASCII_DIGIT='[0-9]##'
-	declare -gr    SHU_PAT_ASCII_LOWER='[a-z]##'
-	declare -gr    SHU_PAT_ASCII_PUNCT="[]!\"#\$%&'()*+,./:;<=>?@[\\^_\`{|}~,-]##"
-	declare -gr    SHU_PAT_ASCII_SPACE=$'[ \n\r\t\013\014]##'
-	declare -gr    SHU_PAT_ASCII_UPPER='[A-Z]##'
-	declare -gr     SHU_PAT_ASCII_WORD='[A-Za-z0-9_]##'
-	declare -gr   SHU_PAT_ASCII_XDIGIT='[0-9A-Fa-f]##'
+	declare -gr \
+		SHU_PAT_MATH_INT_NEG='-[0-9][0-9_]#' \
+		SHU_PAT_MATH_INT_POS='(|+)[0-9][0-9_]#' \
+		SHU_PAT_MATH_INT='(|[+-])[0-9][0-9_]#' \
+		SHU_PAT_MATH_FLOAT_NEG='(|-)((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)' \
+		SHU_PAT_MATH_FLOAT_POS='(|+)((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)' \
+		SHU_PAT_MATH_FLOAT='(|[+-])((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)'
+	declare -gr \
+		SHU_PAT_MATH_NUM_NEG="(${SHU_PAT_MATH_INT_NEG}|${SHU_PAT_MATH_FLOAT_NEG})" \
+		SHU_PAT_MATH_NUM_POS="(${SHU_PAT_MATH_INT_POS}|${SHU_PAT_MATH_FLOAT_POS})" \
+		SHU_PAT_MATH_NUM="(${SHU_PAT_MATH_INT}|${SHU_PAT_MATH_FLOAT})"
+	declare -gr \
+		SHU_PAT_ASCII_ALNUM='[A-Za-z0-9]##' \
+		SHU_PAT_ASCII_ALPHA='[A-Za-z]##' \
+		SHU_PAT_ASCII_CNTRL=$'[\000-\037\177]##' \
+		SHU_PAT_ASCII_DIGIT='[0-9]##' \
+		SHU_PAT_ASCII_LOWER='[a-z]##' \
+		SHU_PAT_ASCII_PUNCT="[]!\"#\$%&'()*+,./:;<=>?@[\\^_\`{|}~,-]##" \
+		SHU_PAT_ASCII_SPACE=$'[ \n\r\t\013\014]##' \
+		SHU_PAT_ASCII_UPPER='[A-Z]##' \
+		SHU_PAT_ASCII_WORD='[A-Za-z0-9_]##' \
+		SHU_PAT_ASCII_XDIGIT='[0-9A-Fa-f]##'
 
 	# Time formats (note: there's no portable way to represent RFC 3339 or
 	# ISO-8601's 'extended' format using just a format string)
-	declare -gr   SHU_TIME_FMT_STD_A='%F %T'
-	declare -gr   SHU_TIME_FMT_STD_B='%a %F %T'
-	declare -gr   SHU_TIME_FMT_STD_C='%a %F %T %Z'
-	declare -gr SHU_TIME_FMT_ISO8601='%Y%m%dT%H%M%S%z'
-	declare -gr  SHU_TIME_FMT_RFC822='%a, %d %b %y %T %z'
-	declare -gr  SHU_TIME_FMT_RFC850='%A, %d-%b-%y %T %Z'
-	declare -gr     SHU_TIME_FMT_RSS='%a, %d %b %Y %T %z'
-	declare -gr  SHU_TIME_FMT_COOKIE='%A, %d-%b-%Y %T %Z'
+	declare -gr \
+		SHU_TIME_FMT_STD_A='%F %T' \
+		SHU_TIME_FMT_STD_B='%a %F %T' \
+		SHU_TIME_FMT_STD_C='%a %F %T %Z' \
+		SHU_TIME_FMT_ISO8601='%Y%m%dT%H%M%S%z' \
+		SHU_TIME_FMT_RFC822='%a, %d %b %y %T %z' \
+		SHU_TIME_FMT_RFC850='%A, %d-%b-%y %T %Z' \
+		SHU_TIME_FMT_RSS='%a, %d %b %Y %T %z' \
+		SHU_TIME_FMT_COOKIE='%A, %d-%b-%Y %T %Z'
 
 	# ANSI SGR escape sequences (for the most part we're not going to worry about
 	# strange terminals that don't support these; users can set SHU_ANSI_ENABLE=0
 	# if they need to)
-	declare -gr          SHU_ANSI_RESET=$'\e[0m'
-	declare -gr        SHU_ANSI_BOLD_ON=$'\e[1m'
-	declare -gr         SHU_ANSI_DIM_ON=$'\e[2m'
-	declare -gr      SHU_ANSI_ITALIC_ON=$'\e[3m'
-	declare -gr  SHU_ANSI_UNDERSCORE_ON=$'\e[4m'
-	declare -gr       SHU_ANSI_BLINK_ON=$'\e[5m'
-	declare -gr     SHU_ANSI_REVERSE_ON=$'\e[7m'
-	declare -gr       SHU_ANSI_BOLD_OFF=$'\e[22m' # Yes, 22m, NOT 21m!
-	declare -gr        SHU_ANSI_DIM_OFF=$'\e[22m'
-	declare -gr     SHU_ANSI_ITALIC_OFF=$'\e[23m'
-	declare -gr SHU_ANSI_UNDERSCORE_OFF=$'\e[24m'
-	declare -gr      SHU_ANSI_BLINK_OFF=$'\e[25m'
-	declare -gr    SHU_ANSI_REVERSE_OFF=$'\e[27m'
-	declare -gr       SHU_ANSI_FG_BLACK=$'\e[38;5;0m'
-	declare -gr         SHU_ANSI_FG_RED=$'\e[38;5;1m'
-	declare -gr       SHU_ANSI_FG_GREEN=$'\e[38;5;2m'
-	declare -gr      SHU_ANSI_FG_YELLOW=$'\e[38;5;3m'
-	declare -gr        SHU_ANSI_FG_BLUE=$'\e[38;5;4m'
-	declare -gr     SHU_ANSI_FG_MAGENTA=$'\e[38;5;5m'
-	declare -gr        SHU_ANSI_FG_CYAN=$'\e[38;5;6m'
-	declare -gr       SHU_ANSI_FG_WHITE=$'\e[38;5;7m'
-	declare -gr      SHU_ANSI_FG_BLACK2=$'\e[38;5;8m'
-	declare -gr        SHU_ANSI_FG_RED2=$'\e[38;5;9m'
-	declare -gr      SHU_ANSI_FG_GREEN2=$'\e[38;5;10m'
-	declare -gr     SHU_ANSI_FG_YELLOW2=$'\e[38;5;11m'
-	declare -gr       SHU_ANSI_FG_BLUE2=$'\e[38;5;12m'
-	declare -gr    SHU_ANSI_FG_MAGENTA2=$'\e[38;5;13m'
-	declare -gr       SHU_ANSI_FG_CYAN2=$'\e[38;5;14m'
-	declare -gr      SHU_ANSI_FG_WHITE2=$'\e[38;5;15m'
-	declare -gr       SHU_ANSI_FG_RESET=$'\e[39m'
-	declare -gr       SHU_ANSI_BG_BLACK=$'\e[48;5;0m'
-	declare -gr         SHU_ANSI_BG_RED=$'\e[48;5;1m'
-	declare -gr       SHU_ANSI_BG_GREEN=$'\e[48;5;2m'
-	declare -gr      SHU_ANSI_BG_YELLOW=$'\e[48;5;3m'
-	declare -gr        SHU_ANSI_BG_BLUE=$'\e[48;5;4m'
-	declare -gr     SHU_ANSI_BG_MAGENTA=$'\e[48;5;5m'
-	declare -gr        SHU_ANSI_BG_CYAN=$'\e[48;5;6m'
-	declare -gr       SHU_ANSI_BG_WHITE=$'\e[48;5;7m'
-	declare -gr      SHU_ANSI_BG_BLACK2=$'\e[48;5;8m'
-	declare -gr        SHU_ANSI_BG_RED2=$'\e[48;5;9m'
-	declare -gr      SHU_ANSI_BG_GREEN2=$'\e[48;5;10m'
-	declare -gr     SHU_ANSI_BG_YELLOW2=$'\e[48;5;11m'
-	declare -gr       SHU_ANSI_BG_BLUE2=$'\e[48;5;12m'
-	declare -gr    SHU_ANSI_BG_MAGENTA2=$'\e[48;5;13m'
-	declare -gr       SHU_ANSI_BG_CYAN2=$'\e[48;5;14m'
-	declare -gr      SHU_ANSI_BG_WHITE2=$'\e[48;5;15m'
-	declare -gr       SHU_ANSI_BG_RESET=$'\e[49m'
+	declare -gr \
+		SHU_ANSI_RESET=$'\e[0m' \
+		SHU_ANSI_BOLD_ON=$'\e[1m' \
+		SHU_ANSI_DIM_ON=$'\e[2m' \
+		SHU_ANSI_ITALIC_ON=$'\e[3m' \
+		SHU_ANSI_UNDERSCORE_ON=$'\e[4m' \
+		SHU_ANSI_BLINK_ON=$'\e[5m' \
+		SHU_ANSI_REVERSE_ON=$'\e[7m' \
+		SHU_ANSI_BOLD_OFF=$'\e[22m' \
+		SHU_ANSI_DIM_OFF=$'\e[22m' \
+		SHU_ANSI_ITALIC_OFF=$'\e[23m' \
+		SHU_ANSI_UNDERSCORE_OFF=$'\e[24m' \
+		SHU_ANSI_BLINK_OFF=$'\e[25m' \
+		SHU_ANSI_REVERSE_OFF=$'\e[27m' \
+		SHU_ANSI_FG_BLACK=$'\e[38;5;0m' \
+		SHU_ANSI_FG_RED=$'\e[38;5;1m' \
+		SHU_ANSI_FG_GREEN=$'\e[38;5;2m' \
+		SHU_ANSI_FG_YELLOW=$'\e[38;5;3m' \
+		SHU_ANSI_FG_BLUE=$'\e[38;5;4m' \
+		SHU_ANSI_FG_MAGENTA=$'\e[38;5;5m' \
+		SHU_ANSI_FG_CYAN=$'\e[38;5;6m' \
+		SHU_ANSI_FG_WHITE=$'\e[38;5;7m' \
+		SHU_ANSI_FG_BLACK2=$'\e[38;5;8m' \
+		SHU_ANSI_FG_RED2=$'\e[38;5;9m' \
+		SHU_ANSI_FG_GREEN2=$'\e[38;5;10m' \
+		SHU_ANSI_FG_YELLOW2=$'\e[38;5;11m' \
+		SHU_ANSI_FG_BLUE2=$'\e[38;5;12m' \
+		SHU_ANSI_FG_MAGENTA2=$'\e[38;5;13m' \
+		SHU_ANSI_FG_CYAN2=$'\e[38;5;14m' \
+		SHU_ANSI_FG_WHITE2=$'\e[38;5;15m' \
+		SHU_ANSI_FG_RESET=$'\e[39m' \
+		SHU_ANSI_BG_BLACK=$'\e[48;5;0m' \
+		SHU_ANSI_BG_RED=$'\e[48;5;1m' \
+		SHU_ANSI_BG_GREEN=$'\e[48;5;2m' \
+		SHU_ANSI_BG_YELLOW=$'\e[48;5;3m' \
+		SHU_ANSI_BG_BLUE=$'\e[48;5;4m' \
+		SHU_ANSI_BG_MAGENTA=$'\e[48;5;5m' \
+		SHU_ANSI_BG_CYAN=$'\e[48;5;6m' \
+		SHU_ANSI_BG_WHITE=$'\e[48;5;7m' \
+		SHU_ANSI_BG_BLACK2=$'\e[48;5;8m' \
+		SHU_ANSI_BG_RED2=$'\e[48;5;9m' \
+		SHU_ANSI_BG_GREEN2=$'\e[48;5;10m' \
+		SHU_ANSI_BG_YELLOW2=$'\e[48;5;11m' \
+		SHU_ANSI_BG_BLUE2=$'\e[48;5;12m' \
+		SHU_ANSI_BG_MAGENTA2=$'\e[48;5;13m' \
+		SHU_ANSI_BG_CYAN2=$'\e[48;5;14m' \
+		SHU_ANSI_BG_WHITE2=$'\e[48;5;15m' \
+		SHU_ANSI_BG_RESET=$'\e[49m'
 
 	# If we have a 256-colour terminal we can additionally define some more
 	# precise colours to be used in select cases. (Some people make the 'black'
@@ -198,12 +205,14 @@
 		[[ ${VTE_VERSION:+256c} == 256c ]] ||
 		[[ ${KONSOLE_DBUS_SESSION:+256c} == 256c ]]
 	then
-		declare -gr SHU_ANSI_FG_BLACK0=$'\e[38;5;16m'
-		declare -gr SHU_ANSI_FG_WHITE0=$'\e[38;5;231m'
+		declare -gr \
+			SHU_ANSI_FG_BLACK0=$'\e[38;5;16m' \
+			SHU_ANSI_FG_WHITE0=$'\e[38;5;231m'
 	# If we don't have 256 colours, just fall back
 	else
-		declare -gr SHU_ANSI_FG_BLACK0=$SHU_ANSI_FG_BLACK
-		declare -gr SHU_ANSI_FG_WHITE0=$SHU_ANSI_FG_WHITE
+		declare -gr \
+			SHU_ANSI_FG_BLACK0=$SHU_ANSI_FG_BLACK \
+			SHU_ANSI_FG_WHITE0=$SHU_ANSI_FG_WHITE
 	fi
 
 	declare -grA SHU_ANSI_ACTIVE=(
@@ -323,9 +332,10 @@
 	# of the actual script
 	() {
 		setopt local_options posix_argzero
-		declare -gr      SHU_ARGZERO=$0
-		declare -gr  SHU_ARGZERO_ABS=${0:a}
-		declare -gr SHU_ARGZERO_TAIL=${0:t}
+		declare -gr \
+			SHU_ARGZERO=$0 \
+			SHU_ARGZERO_ABS=${0:A} \
+			SHU_ARGZERO_TAIL=${0:t}
 	}
 
 	# Absolute paths to the fn/ directory and digest file
@@ -425,6 +435,10 @@
 		'GIT_*' \
 		'PG*' \
 		'RSYNC_*'
+
+	# Binding/editor settings
+	local -a zle_highlight=( paste:none )
+	bindkey -e
 
 	# Some tools can freak out if no TERM is set
 	declare -gx TERM=${TERM:-xterm}
