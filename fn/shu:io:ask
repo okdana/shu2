@@ -73,13 +73,19 @@ esac
 
 1=$( shu:io:putf $__vrb_opts '%s ' $1 )
 
+[[ -t 0 ]] &&
 setopt local_options no_auto_list menu_complete
-local -a zle_highlight=( paste:none )
-bindkey -e
 
 for (( ;; )); do
 	__reply=
-	vared -ehp "${1}" __reply || return 2
+
+	if [[ -t 0 ]]; then
+		vared -ehp "${1}" __reply || return 2
+	else
+		print -rn - $1
+		read -r __reply
+		print -r - $__reply
+	fi
 
 	__reply=${__reply//((#s)[[:space:]]##|[[:space:]]##(#e))/}
 	: ${__reply:=${__default}}
