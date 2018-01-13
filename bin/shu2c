@@ -20,10 +20,12 @@
 #?+   -v         Increase output verbosity (effective only with -r).
 #?+   -V         Display version information and exit.
 
-if [[ -e ${0:A:h}/../lib ]]; then
-  source ${0:A:h}/../lib
+if (( $+functions[shu::noop] )); then
+  : # Library already loaded
+elif [[ -e ${0:A:h}/../lib ]]; then
+  source ${0:A:h}/../lib || return 166
 else
-  source /usr/local/shu2/lib
+  source /usr/local/lib/shu2/lib || return 166
 fi
 
 app::main() {

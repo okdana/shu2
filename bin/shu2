@@ -6,128 +6,154 @@
 #?:
 #?# usage:
 #??   ${0} -h
-#??   ${0} -l [<module>]
+#??   ${0} -l [<pattern>]
 #??   ${0} -H|-p <function>
 #??   ${0} [-qvtTx] [-o <param=val>] <function> [<arg> ...]
 #?:
 #?# operands:
-#?+   <module>        The name of a shu2 module (used to limit `-l` output).
-#?+   <function>      The name of a shu2 function.
+#?+   <pattern>       A pattern with which to limit `-l` output.
+#?+   <function>      The name of a shu2/consumer function.
 #?+   <arg> ...       Zero or more arguments to the function.
 #?:
 #?# options:
 #?+   -h              Display this usage help and exit.
 #?+   -H              Display documentation for the specified function and exit.
-#?+   -l              List all shu2 functions and exit.
-#?+   -o <param=val>  Define the value of a special SHU_* parameter.
+#?+   -l              List all shu2/consumer functions and exit.
+#?+   -o <param=val>  Define the value of a special parameter.
 #?+   -p              Display the path of the specified function and exit.
 #?+   -q              Decrease output verbosity.
 #?+   -v              Increase output verbosity.
 #?+   -t, -x          Enable function xtrace (like `typeset -t`).
 #?+   -T, -X          Enable function xtrace (like `typeset -T`).
 #?+   -V              Display version information and exit.
+#?:
+#?# notes:
+#?:   The parameters `reply_scalar`, `reply_array`, and `reply_assoc` are made
+#?:   available for testing functions that accept `+s`, `+a`, and `+A`,
+#?:   respectively. Their values (if any) are shown in the `-v` output.
 
-if [[ -e ${0:A:h}/../lib ]]; then
-  source ${0:A:h}/../lib
+if (( $+functions[shu::noop] )); then
+  : # Library is already loaded
 else
-  source /usr/local/shu2/lib
+  # Don't read this from the environment
+  unset SHU2_FNS_PATTERN
+
+  if [[ -e ${0:A:h}/../lib ]]; then
+    source ${0:A:h}/../lib || return 166
+  else
+    source /usr/local/lib/shu2/lib || return 166
+  fi
 fi
 
+(( $+SHU2_FNS_PATTERN )) ||
+typeset -g SHU2_FNS_PATTERN='shu:*:*'
+
 app::main() {
-	local    OPTARG OPTIND opt
-	local    mode verbosity=0 xtrace func ret o start end
-	local -a options
+  local    OPTARG OPTIND opt
+  local    mode verbosity=0 xtrace func ret o start end
+  local -a options
 
-	while getopts :hHlo:pqtTvxXV opt; do
-		case $opt in
-			h)   shu:meta:help; return 0 ;;
-			H)   mode=doc ;;
-			l)   mode=fns ;;
-			o)   options+=( $OPTARG ) ;;
-			p)   mode=fnpath ;;
-			q)   verbosity=-1 ;;
-			v)   verbosity=1 ;;
-			t|x) xtrace=t ;;
-			T|X) xtrace=T ;;
-			V)   shu:meta:help -V; return 0 ;;
-			':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-			'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-			*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
-		esac
-	done
+  local    reply_scalar
+  local -a reply_array
+  local -A reply_assoc
 
-	shift $(( OPTIND - 1 ))
+  while getopts :hHlo:pqtTvxXV opt; do
+    case $opt in
+      h)   shu:meta:help; return 0 ;;
+      H)   mode=doc ;;
+      l)   mode=fns ;;
+      o)   options+=( $OPTARG ) ;;
+      p)   mode=fnpath ;;
+      q)   verbosity=-1 ;;
+      v)   verbosity=1 ;;
+      t|x) xtrace=t ;;
+      T|X) xtrace=T ;;
+      V)   shu:meta:help -V; return 0 ;;
+      ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+      '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+      *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+    esac
+  done
 
-	[[ $mode == fns ]] && {
-		shu:meta:fns ${1:-}
-		return
-	}
+  shift $(( OPTIND - 1 ))
 
-	(( $# )) || shu::panic 'Expected function name'
+  [[ $mode == fns ]] && {
+    shu:meta:fns ${1:-${SHU2_FNS_PATTERN:-}}
+    return
+  }
 
-	func="${1#shu:}"
-	[[ $func == *:* ]] || func=":${func}"
-	func="shu:${func}"
-	shift
+  (( $# )) || shu::panic 'Expected function name'
 
-	typeset -f $func &> /dev/null ||
-	shu::panic "Function not found: ${func}"
+  func=$1
+  shift
 
-	(( $#mode && $# )) &&
-	shu::panic 'Too many arguments'
+  [[ $func == ${~SHU2_FNS_PATTERN} ]] ||
+  shu::panic "Unsupported function: ${func}"
 
-	[[ $mode == fnpath ]] && {
-		shu:meta:fnpath $func
-		return
-	}
+  (( $+functions[$func] )) ||
+  shu::panic "No such function: ${func}"
 
-	[[ $mode == doc ]] && {
-		shu:meta:doc $func
-		return
-	}
+  (( $#mode && $# )) &&
+  shu::panic 'Too many arguments'
 
-	for o in $options; do
-		[[ $o == SHU_[A-Z0-9_]##'='* ]] ||
-		shu::panic "Illegal option assignment: ${o}"
+  [[ $mode == fnpath ]] && {
+    shu:meta:fnpath $func
+    return
+  }
 
-		[[ -v ${o%%=*} ]] ||
-		shu::panic "Unrecognised option: ${o%%=*}"
+  [[ $mode == doc ]] && {
+    shu:meta:doc $func
+    return
+  }
 
-		typeset "${o%%=*}=${o#*=}"
-	done
+  for o in $options; do
+    [[ $o == [A-Z][A-Z0-9_]##'='* ]] ||
+    shu::panic "Illegal option assignment: ${o}"
 
-	(( verbosity > 0 )) &&
-	printf >&$SHU_FD_STDERR '%s>>> %s %s%s\n' \
-		"${SHU_ANSI[bold:on]}" \
-		$func "${(j< >)${(q-)@}}" \
-		"${SHU_ANSI[reset]}"
+    [[ -v ${o%%=*} ]] ||
+    shu::panic "Unrecognised option: ${o%%=*}"
 
-	start=$( shu:time:epoch -u )
-	(( $#xtrace )) && typeset -f -$xtrace $func
-	() { SHU_PANIC_IGNORE=1; $func "${@}" } "${@}"
-	ret=$?
-	(( $#xtrace )) && typeset -f +$xtrace $func
-	end=$( shu:time:epoch -u )
+    typeset "${o%%=*}=${o#*=}"
+  done
 
-	(( verbosity )) && {
-		if (( ret )); then
-			printf >&$SHU_FD_STDERR '%s<<< %s (%d µs)%s\n' \
-				"${SHU_ANSI[fg:red]}" \
-				$ret $(( end - start )) \
-				"${SHU_ANSI[reset]}"
-		else
-			printf >&$SHU_FD_STDERR '%s<<< %s (%d µs)%s\n' \
-				"${SHU_ANSI[fg:green]}" \
-				$ret $(( end - start )) \
-				"${SHU_ANSI[reset]}"
-		fi
-	}
+  (( verbosity > 0 )) &&
+  printf >&$SHU_FD_STDERR '%s>>> %s %s%s\n' \
+    "${SHU_ANSI[bold:on]}" \
+    $func "${(j< >)${(q-)@}}" \
+    "${SHU_ANSI[reset]}"
 
-	return ret
+  start=$SECONDS
+  (( $#xtrace )) && typeset -f -$xtrace $func
+  () { SHU_PANIC_IGNORE=1; $func "${@}" } "${@}"
+  ret=$?
+  (( $#xtrace )) && typeset -f +$xtrace $func
+  end=$SECONDS
+
+  (( verbosity > 0 )) && {
+    if (( ret )); then
+      print -n - "${SHU_ANSI[fg:red]}"
+    else
+      print -n - "${SHU_ANSI[fg:green]}"
+    fi
+
+    printf '<<< %s (%d µs)' $ret $(( (end - start) * 1_000_000 ))
+
+    if (( $#reply_scalar )); then
+      printf ' [%s]' "${(j< >)${(f)"$( typeset -p reply_scalar )"}#typeset }"
+    elif (( $#reply_array )); then
+      printf ' [%s]' "${(j< >)${(f)"$( typeset -p reply_array )"}#typeset -a }"
+    elif (( $#reply_assoc )); then
+      printf ' [%s]' "${(j< >)${(f)"$( typeset -p reply_assoc )"}#typeset -A }"
+    fi
+
+    print - "${SHU_ANSI[reset]}"
+  } >&$SHU_FD_STDERR
+
+  return ret
 }
 
 [[ $zsh_eval_context == toplevel ]] && {
-	app::main "${@}"
-	return
+  app::main "${@}"
+  return
 }
 return 0
