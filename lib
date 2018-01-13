@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# shu2 — General-purpose shell utility library for zsh scripts
+# shu2 — General-purpose utility library for zsh scripts
 #
 # This file is responsible for boot-strapping the library. It should be sourced
 # at the top of a consuming script, before any other code. Consumers should NOT
@@ -67,10 +67,10 @@
 # Constants
 {
 	# Process start time (set as early as possible)
-	declare -gr SHU_SECONDS_START=$SECONDS
+	typeset -gr SHU_SECONDS_START=$SECONDS
 
 	# Exit/return codes (many of these are derived from `sysexits(3)`)
-	declare -gr \
+	typeset -gr \
 		SHU_EX_OK=0 \
 		SHU_EX_ERR=1 \
 		SHU_EX_USAGE=64 \
@@ -91,7 +91,7 @@
 		SHU_EX_PANIC=199
 
 	# Verbosity levels
-	declare -gr \
+	typeset -gr \
 		SHU_VERBOSITY_Q5=-5 \
 		SHU_VERBOSITY_Q4=-4 \
 		SHU_VERBOSITY_Q3=-3 \
@@ -108,18 +108,18 @@
 		SHU_VERBOSITY_V=1
 
 	# Glob patterns (use like `[[ $foo == $~SHU_PAT_MATH_INT ]]`)
-	declare -gr \
+	typeset -gr \
 		SHU_PAT_MATH_INT_NEG='-[0-9][0-9_]#' \
 		SHU_PAT_MATH_INT_POS='(|+)[0-9][0-9_]#' \
 		SHU_PAT_MATH_INT='(|[+-])[0-9][0-9_]#' \
 		SHU_PAT_MATH_FLOAT_NEG='(|-)((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)' \
 		SHU_PAT_MATH_FLOAT_POS='(|+)((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)' \
 		SHU_PAT_MATH_FLOAT='(|[+-])((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)'
-	declare -gr \
+	typeset -gr \
 		SHU_PAT_MATH_NUM_NEG="(${SHU_PAT_MATH_INT_NEG}|${SHU_PAT_MATH_FLOAT_NEG})" \
 		SHU_PAT_MATH_NUM_POS="(${SHU_PAT_MATH_INT_POS}|${SHU_PAT_MATH_FLOAT_POS})" \
 		SHU_PAT_MATH_NUM="(${SHU_PAT_MATH_INT}|${SHU_PAT_MATH_FLOAT})"
-	declare -gr \
+	typeset -gr \
 		SHU_PAT_ASCII_ALNUM='[A-Za-z0-9]##' \
 		SHU_PAT_ASCII_ALPHA='[A-Za-z]##' \
 		SHU_PAT_ASCII_CNTRL=$'[\000-\037\177]##' \
@@ -133,7 +133,7 @@
 
 	# Time formats (note: there's no portable way to represent RFC 3339 or
 	# ISO-8601's 'extended' format using just a format string)
-	declare -gr \
+	typeset -gr \
 		SHU_TIME_FMT_STD_A='%F %T' \
 		SHU_TIME_FMT_STD_B='%a %F %T' \
 		SHU_TIME_FMT_STD_C='%a %F %T %Z' \
@@ -146,7 +146,7 @@
 	# ANSI SGR escape sequences (for the most part we're not going to worry about
 	# strange terminals that don't support these; users can set SHU_ANSI_ENABLE=0
 	# if they need to)
-	declare -gr \
+	typeset -gr \
 		SHU_ANSI_RESET=$'\e[0m' \
 		SHU_ANSI_BOLD_ON=$'\e[1m' \
 		SHU_ANSI_DIM_ON=$'\e[2m' \
@@ -205,17 +205,17 @@
 		[[ ${VTE_VERSION:+256c} == 256c ]] ||
 		[[ ${KONSOLE_DBUS_SESSION:+256c} == 256c ]]
 	then
-		declare -gr \
+		typeset -gr \
 			SHU_ANSI_FG_BLACK0=$'\e[38;5;16m' \
 			SHU_ANSI_FG_WHITE0=$'\e[38;5;231m'
 	# If we don't have 256 colours, just fall back
 	else
-		declare -gr \
+		typeset -gr \
 			SHU_ANSI_FG_BLACK0=$SHU_ANSI_FG_BLACK \
 			SHU_ANSI_FG_WHITE0=$SHU_ANSI_FG_WHITE
 	fi
 
-	declare -grA SHU_ANSI_ACTIVE=(
+	typeset -grA SHU_ANSI_ACTIVE=(
 		reset          $SHU_ANSI_RESET
 		bold:on        $SHU_ANSI_BOLD_ON
 		dim:on         $SHU_ANSI_DIM_ON
@@ -267,7 +267,7 @@
 		bg:reset       $SHU_ANSI_BG_RESET
 	)
 
-	declare -grA SHU_ANSI_INACTIVE=(
+	typeset -grA SHU_ANSI_INACTIVE=(
 		reset          ''
 		bold:on        ''
 		dim:on         ''
@@ -322,9 +322,9 @@
 	# Determine up-front whether we're on a TTY, so we can decide things like
 	# colouration and interactivity later
 	if [[ -t 1 ]]; then
-		declare -gr SHU_HAS_TTY=1
+		typeset -gr SHU_HAS_TTY=1
 	else
-		declare -gr SHU_HAS_TTY=0
+		typeset -gr SHU_HAS_TTY=0
 	fi
 
 	# Emulate `ZSH_ARGZERO` for versions of zsh that don't have it; this way we
@@ -332,63 +332,65 @@
 	# of the actual script
 	() {
 		setopt local_options posix_argzero
-		declare -gr \
+		typeset -gr \
 			SHU_ARGZERO=$0 \
 			SHU_ARGZERO_ABS=${0:A} \
 			SHU_ARGZERO_TAIL=${0:t}
 	}
 
 	# Absolute paths to the fn/ directory and digest file
-	declare -gr    SHU_FN_DIR=${${${(%):-%N}:A}:h}/fn
-	declare -gr SHU_FN_DIGEST=$SHU_FN_DIR.zwc
+	typeset -gr    SHU_FN_DIR=${${${(%):-%N}:A}:h}/fn
+	typeset -gr SHU_FN_DIGEST=$SHU_FN_DIR.zwc
 }
 
 ##
 # 'Safe' global parameters
 {
 	# Script name — may be overridden by the consumer
-	declare -g SHU_SCRIPT_NAME=$SHU_ARGZERO_TAIL
+	typeset -g SHU_SCRIPT_NAME=$SHU_ARGZERO_TAIL
 
 	# Back-ups of standard FDs — see below
-	declare -g SHU_FD_STDOUT=1
-	declare -g SHU_FD_STDERR=2
+	typeset -g SHU_FD_STDOUT=1
+	typeset -g SHU_FD_STDERR=2
 
 	# Output verbosity level
-	declare -g SHU_VERBOSITY=$SHU_VERBOSITY_N0
+	typeset -g SHU_VERBOSITY=$SHU_VERBOSITY_N0
 
 	# Panic ignore level — if >0, `shu::panic` won't kill the script. This is
 	# intended mostly for use by scripts; we don't allow users to pass this down
 	# through the environment
-	declare -g SHU_PANIC_IGNORE=0
+	typeset -g SHU_PANIC_IGNORE=0
 
 	# Panic trace-back level — if >0, `shu::panic` will show a trace-back. If >1,
 	# `shu::panic` will print extra trace information. Unlike the ignore level,
 	# we'll allow users to control this through the environment
 	if [[ ${SHU_PANIC_TRACE:-} == [0-9]## ]]; then
-		declare -gx SHU_PANIC_TRACE=$SHU_PANIC_TRACE
+		typeset -gx SHU_PANIC_TRACE=$SHU_PANIC_TRACE
 	else
-		declare -gx SHU_PANIC_TRACE=0
+		typeset -gx SHU_PANIC_TRACE=0
 	fi
 
 	# Force ANSI SGR usage — we'll allow users to control this through the
 	# environment as well. If scripts want to override it (which they *usually*
 	# shouldn't, they can do it by resetting the `SHU_ANSI` array
 	if [[ ${SHU_ANSI_ENABLE:-} == (always|[1tTyY]*) ]]; then
-		declare -gx SHU_ANSI_ENABLE=1
+		typeset -gx SHU_ANSI_ENABLE=1
 	elif [[ ${SHU_ANSI_ENABLE:-} == (never|[0fFnN]*) ]]; then
-		declare -gx SHU_ANSI_ENABLE=0
+		typeset -gx SHU_ANSI_ENABLE=0
 	elif (( ! SHU_HAS_TTY )) || [[ $TERM == dumb ]]; then
-		declare -gx SHU_ANSI_ENABLE=0
+		typeset -gx SHU_ANSI_ENABLE=0
 	else
-		declare -gx SHU_ANSI_ENABLE=1
+		typeset -gx SHU_ANSI_ENABLE=1
 	fi
 }
 
 ##
 # Environment sanitisation
-# @todo Move out into a consumer library
+#
+# Note: We don't unset external-tool options like GREP_OPTIONS and
+# POSIXLY_CORRECT here, since the consumer might need to use them. But usually
+# they don't, and they should be sure to unset them themselves!
 {
-	# Used by zsh
 	unset -v \
 		IFS \
 		NULLCMD \
@@ -407,41 +409,17 @@
 		WATCHFMT \
 		ZBEEP
 
-	    NULLCMD=cat
-	     PROMPT='%% '
+	NULLCMD=cat
+	PROMPT='%% '
 	READNULLCMD=cat
-	  TMPPREFIX=/tmp/zsh
-
-	# Used by external tools
-	unset -v \
-		BLOCKSIZE \
-		BZIP{,2} \
-		DEBCONF_FRONTEND \
-		GREP \
-		MAGIC \
-		NMAP_{,UN}PRIVILEGED \
-		PERL5LIB \
-		POSIXLY_CORRECT \
-		QUOTING_STYLE \
-		TIME \
-		TREE_CHARSET \
-		UNZIP \
-		XZ_{DEFAULTS,OPT} \
-		ZIP{INFO,OPT}
-	unset -vm \
-		'*_OPTIONS' \
-		'*_PROXY' \
-		'*_proxy' \
-		'GIT_*' \
-		'PG*' \
-		'RSYNC_*'
+	TMPPREFIX=/tmp/zsh
 
 	# Binding/editor settings
-	local -a zle_highlight=( paste:none )
+	typeset -ga zle_highlight=( paste:none )
 	bindkey -e
 
 	# Some tools can freak out if no TERM is set
-	declare -gx TERM=${TERM:-xterm}
+	typeset -gx TERM=${TERM:-xterm}
 }
 
 ##
@@ -454,9 +432,9 @@
 
 	# Populate SHU_ANSI array by default if we're at a TTY
 	if (( SHU_ANSI_ENABLE )); then
-		declare -gA SHU_ANSI=( "${(@kv)SHU_ANSI_ACTIVE}" )
+		typeset -gA SHU_ANSI=( "${(@kv)SHU_ANSI_ACTIVE}" )
 	else
-		declare -gA SHU_ANSI=( "${(@kv)SHU_ANSI_INACTIVE}" )
+		typeset -gA SHU_ANSI=( "${(@kv)SHU_ANSI_INACTIVE}" )
 	fi
 
 	# Colourise PS4 if we're on a TTY and don't have any colours already
@@ -476,7 +454,7 @@
 	# Otherwise load from separate files
 	else
 		fpath=( $SHU_FN_DIR $fpath )
-		autoload -Uz $SHU_FN_DIR/*:*(-.)
+		autoload -Uz $SHU_FN_DIR/*:*(-.N)
 	fi
 
 	# Maths functions not provided directly by zsh/mathfunc
@@ -486,3 +464,30 @@
 
 	shu::noop() { }
 }
+
+##
+# SHU_DEBUG handling
+#
+# Note: This is dangerous! A malicious user with the ability to control the
+# environment may be able to view sensitive information pulled in from protected
+# files and similar. In many cases, the sudoers file can be used to prevent
+# untrusted users from exporting privileged environment variables. Failing that,
+# or even in addition to it, scripts that deal in sensitive information may want
+# to `unset SHU_DEBUG` before sourcing the library.
+[[ -n ${SHU_DEBUG:-} ]] && {
+	typeset -ga SHU_DEBUG_OPTIONS
+
+	case ",${(L)SHU_DEBUG//_/}," in
+		,(1|on|true|yes),) SHU_DEBUG_OPTIONS+=( xtrace       ) ;;
+		*,errexit,*)       SHU_DEBUG_OPTIONS+=( err_exit     ) ;|
+		*,errreturn,*)     SHU_DEBUG_OPTIONS+=( err_return   ) ;|
+		*,noexec,*)        SHU_DEBUG_OPTIONS+=( no_exec      ) ;|
+		*,sourcetrace,*)   SHU_DEBUG_OPTIONS+=( source_trace ) ;|
+		*,verbose,*)       SHU_DEBUG_OPTIONS+=( verbose      ) ;|
+		*,(|x)trace,*)     SHU_DEBUG_OPTIONS+=( xtrace       ) ;;
+	esac
+
+	(( $#SHU_DEBUG_OPTIONS )) && setopt $SHU_DEBUG_OPTIONS
+}
+
+return 0
