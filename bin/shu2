@@ -130,4 +130,4 @@ app::main() {
 	app::main "${@}"
 	return
 }
-:
+return 0
