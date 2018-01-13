@@ -14,376 +14,376 @@
 ##
 # Shell options, modules
 {
-	# Reset options to those marked `<Z>` in `zshoptions(1)`, plus...
-	emulate -R zsh \
-		-o no_aliases \
-		-o extended_glob \
-		-o local_traps \
-		-o null_glob \
-		-o pipe_fail \
-		-o typeset_silent \
-		-o no_unset \
-		-o warn_create_global
+  # Reset options to those marked `<Z>` in `zshoptions(1)`, plus...
+  emulate -R zsh \
+    -o no_aliases \
+    -o extended_glob \
+    -o local_traps \
+    -o null_glob \
+    -o pipe_fail \
+    -o typeset_silent \
+    -o no_unset \
+    -o warn_create_global
 
-	# Always enable 'native' arithmetic functions like abs()
-	zmodload zsh/mathfunc ||
-	print -r >&2 'shu2: WARNING: Failed to load zsh/mathfunc module!'
+  # Always enable 'native' arithmetic functions like abs()
+  zmodload zsh/mathfunc ||
+  print -r >&2 'shu2: WARNING: Failed to load zsh/mathfunc module!'
 
-	# Register some other modules for auto-loading (some of these are probably
-	# already taken care of, but the only one we'll *trust* is zsh/parameter)
-	zmodload -Fa zsh/datetime \
-		+b:strftime \
-		+p:EPOCHREALTIME \
-		+p:EPOCHSECONDS \
-		+p:epochtime
-	zmodload -Fa zsh/files \
-		+b:zf_chgrp \
-		+b:zf_chown \
-		+b:zf_ln \
-		+b:zf_mkdir \
-		+b:zf_mv \
-		+b:zf_rm \
-		+b:zf_rmdir \
-		+b:zf_sync
-	zmodload -Fa zsh/mapfile \
-		+p:mapfile
-	zmodload -Fa zsh/stat \
-		+b:zstat
-	zmodload -Fa zsh/system \
-		+b:syserror \
-		+b:sysopen \
-		+b:sysread \
-		+b:sysseek \
-		+b:syswrite \
-		+p:sysparams
-	zmodload -Fa zsh/zselect \
-		+b:zselect
+  # Register some other modules for auto-loading (some of these are probably
+  # already taken care of, but the only one we'll *trust* is zsh/parameter)
+  zmodload -Fa zsh/datetime \
+    +b:strftime \
+    +p:EPOCHREALTIME \
+    +p:EPOCHSECONDS \
+    +p:epochtime
+  zmodload -Fa zsh/files \
+    +b:zf_chgrp \
+    +b:zf_chown \
+    +b:zf_ln \
+    +b:zf_mkdir \
+    +b:zf_mv \
+    +b:zf_rm \
+    +b:zf_rmdir \
+    +b:zf_sync
+  zmodload -Fa zsh/mapfile \
+    +p:mapfile
+  zmodload -Fa zsh/stat \
+    +b:zstat
+  zmodload -Fa zsh/system \
+    +b:syserror \
+    +b:sysopen \
+    +b:sysread \
+    +b:sysseek \
+    +b:syswrite \
+    +p:sysparams
+  zmodload -Fa zsh/zselect \
+    +b:zselect
 
-	# Use high-precision session timer
-	typeset -gF SECONDS
+  # Use high-precision session timer
+  typeset -gF SECONDS
 }
 
 ##
 # Constants
 {
-	# Process start time (set as early as possible)
-	typeset -gr SHU_SECONDS_START=$SECONDS
+  # Process start time (set as early as possible)
+  typeset -gr SHU_SECONDS_START=$SECONDS
 
-	# Exit/return codes (many of these are derived from `sysexits(3)`)
-	typeset -gr \
-		SHU_EX_OK=0 \
-		SHU_EX_ERR=1 \
-		SHU_EX_USAGE=64 \
-		SHU_EX_DATAERR=65 \
-		SHU_EX_NOINPUT=66 \
-		SHU_EX_NOUSER=67 \
-		SHU_EX_NOHOST=68 \
-		SHU_EX_UNAVAILABLE=69 \
-		SHU_EX_SOFTWARE=70 \
-		SHU_EX_OSERR=71 \
-		SHU_EX_OSFILE=72 \
-		SHU_EX_CANTCREAT=73 \
-		SHU_EX_IOERR=74 \
-		SHU_EX_TEMPFAIL=75 \
-		SHU_EX_PROTOCOL=76 \
-		SHU_EX_NOPERM=77 \
-		SHU_EX_CONFIG=78 \
-		SHU_EX_PANIC=199
+  # Exit/return codes (many of these are derived from `sysexits(3)`)
+  typeset -gr \
+    SHU_EX_OK=0 \
+    SHU_EX_ERR=1 \
+    SHU_EX_USAGE=64 \
+    SHU_EX_DATAERR=65 \
+    SHU_EX_NOINPUT=66 \
+    SHU_EX_NOUSER=67 \
+    SHU_EX_NOHOST=68 \
+    SHU_EX_UNAVAILABLE=69 \
+    SHU_EX_SOFTWARE=70 \
+    SHU_EX_OSERR=71 \
+    SHU_EX_OSFILE=72 \
+    SHU_EX_CANTCREAT=73 \
+    SHU_EX_IOERR=74 \
+    SHU_EX_TEMPFAIL=75 \
+    SHU_EX_PROTOCOL=76 \
+    SHU_EX_NOPERM=77 \
+    SHU_EX_CONFIG=78 \
+    SHU_EX_PANIC=199
 
-	# Verbosity levels
-	typeset -gr \
-		SHU_VERBOSITY_Q5=-5 \
-		SHU_VERBOSITY_Q4=-4 \
-		SHU_VERBOSITY_Q3=-3 \
-		SHU_VERBOSITY_Q2=-2 \
-		SHU_VERBOSITY_Q1=-1 \
-		SHU_VERBOSITY_N0=0 \
-		SHU_VERBOSITY_V1=1 \
-		SHU_VERBOSITY_V2=2 \
-		SHU_VERBOSITY_V3=3 \
-		SHU_VERBOSITY_V4=4 \
-		SHU_VERBOSITY_V5=5 \
-		SHU_VERBOSITY_Q=-1 \
-		SHU_VERBOSITY_N=0 \
-		SHU_VERBOSITY_V=1
+  # Verbosity levels
+  typeset -gr \
+    SHU_VERBOSITY_Q5=-5 \
+    SHU_VERBOSITY_Q4=-4 \
+    SHU_VERBOSITY_Q3=-3 \
+    SHU_VERBOSITY_Q2=-2 \
+    SHU_VERBOSITY_Q1=-1 \
+    SHU_VERBOSITY_N0=0 \
+    SHU_VERBOSITY_V1=1 \
+    SHU_VERBOSITY_V2=2 \
+    SHU_VERBOSITY_V3=3 \
+    SHU_VERBOSITY_V4=4 \
+    SHU_VERBOSITY_V5=5 \
+    SHU_VERBOSITY_Q=-1 \
+    SHU_VERBOSITY_N=0 \
+    SHU_VERBOSITY_V=1
 
-	# Glob patterns (use like `[[ $foo == $~SHU_PAT_MATH_INT ]]`)
-	typeset -gr \
-		SHU_PAT_MATH_INT_NEG='-[0-9][0-9_]#' \
-		SHU_PAT_MATH_INT_POS='(|+)[0-9][0-9_]#' \
-		SHU_PAT_MATH_INT='(|[+-])[0-9][0-9_]#' \
-		SHU_PAT_MATH_FLOAT_NEG='(|-)((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)' \
-		SHU_PAT_MATH_FLOAT_POS='(|+)((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)' \
-		SHU_PAT_MATH_FLOAT='(|[+-])((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)'
-	typeset -gr \
-		SHU_PAT_MATH_NUM_NEG="(${SHU_PAT_MATH_INT_NEG}|${SHU_PAT_MATH_FLOAT_NEG})" \
-		SHU_PAT_MATH_NUM_POS="(${SHU_PAT_MATH_INT_POS}|${SHU_PAT_MATH_FLOAT_POS})" \
-		SHU_PAT_MATH_NUM="(${SHU_PAT_MATH_INT}|${SHU_PAT_MATH_FLOAT})"
-	typeset -gr \
-		SHU_PAT_ASCII_ALNUM='[A-Za-z0-9]##' \
-		SHU_PAT_ASCII_ALPHA='[A-Za-z]##' \
-		SHU_PAT_ASCII_CNTRL=$'[\000-\037\177]##' \
-		SHU_PAT_ASCII_DIGIT='[0-9]##' \
-		SHU_PAT_ASCII_LOWER='[a-z]##' \
-		SHU_PAT_ASCII_PUNCT="[]!\"#\$%&'()*+,./:;<=>?@[\\^_\`{|}~,-]##" \
-		SHU_PAT_ASCII_SPACE=$'[ \n\r\t\013\014]##' \
-		SHU_PAT_ASCII_UPPER='[A-Z]##' \
-		SHU_PAT_ASCII_WORD='[A-Za-z0-9_]##' \
-		SHU_PAT_ASCII_XDIGIT='[0-9A-Fa-f]##'
+  # Glob patterns (use like `[[ $foo == $~SHU_PAT_MATH_INT ]]`)
+  typeset -gr \
+    SHU_PAT_MATH_INT_NEG='-[0-9][0-9_]#' \
+    SHU_PAT_MATH_INT_POS='(|+)[0-9][0-9_]#' \
+    SHU_PAT_MATH_INT='(|[+-])[0-9][0-9_]#' \
+    SHU_PAT_MATH_FLOAT_NEG='(|-)((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)' \
+    SHU_PAT_MATH_FLOAT_POS='(|+)((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)' \
+    SHU_PAT_MATH_FLOAT='(|[+-])((|[0-9][0-9_]#).[0-9][0-9_]#|[0-9][0-9_]#.)'
+  typeset -gr \
+    SHU_PAT_MATH_NUM_NEG="(${SHU_PAT_MATH_INT_NEG}|${SHU_PAT_MATH_FLOAT_NEG})" \
+    SHU_PAT_MATH_NUM_POS="(${SHU_PAT_MATH_INT_POS}|${SHU_PAT_MATH_FLOAT_POS})" \
+    SHU_PAT_MATH_NUM="(${SHU_PAT_MATH_INT}|${SHU_PAT_MATH_FLOAT})"
+  typeset -gr \
+    SHU_PAT_ASCII_ALNUM='[A-Za-z0-9]##' \
+    SHU_PAT_ASCII_ALPHA='[A-Za-z]##' \
+    SHU_PAT_ASCII_CNTRL=$'[\000-\037\177]##' \
+    SHU_PAT_ASCII_DIGIT='[0-9]##' \
+    SHU_PAT_ASCII_LOWER='[a-z]##' \
+    SHU_PAT_ASCII_PUNCT="[]!\"#\$%&'()*+,./:;<=>?@[\\^_\`{|}~,-]##" \
+    SHU_PAT_ASCII_SPACE=$'[ \n\r\t\013\014]##' \
+    SHU_PAT_ASCII_UPPER='[A-Z]##' \
+    SHU_PAT_ASCII_WORD='[A-Za-z0-9_]##' \
+    SHU_PAT_ASCII_XDIGIT='[0-9A-Fa-f]##'
 
-	# Time formats (note: there's no portable way to represent RFC 3339 or
-	# ISO-8601's 'extended' format using just a format string)
-	typeset -gr \
-		SHU_TIME_FMT_STD_A='%F %T' \
-		SHU_TIME_FMT_STD_B='%a %F %T' \
-		SHU_TIME_FMT_STD_C='%a %F %T %Z' \
-		SHU_TIME_FMT_ISO8601='%Y%m%dT%H%M%S%z' \
-		SHU_TIME_FMT_RFC822='%a, %d %b %y %T %z' \
-		SHU_TIME_FMT_RFC850='%A, %d-%b-%y %T %Z' \
-		SHU_TIME_FMT_RSS='%a, %d %b %Y %T %z' \
-		SHU_TIME_FMT_COOKIE='%A, %d-%b-%Y %T %Z'
+  # Time formats (note: there's no portable way to represent RFC 3339 or
+  # ISO-8601's 'extended' format using just a format string)
+  typeset -gr \
+    SHU_TIME_FMT_STD_A='%F %T' \
+    SHU_TIME_FMT_STD_B='%a %F %T' \
+    SHU_TIME_FMT_STD_C='%a %F %T %Z' \
+    SHU_TIME_FMT_ISO8601='%Y%m%dT%H%M%S%z' \
+    SHU_TIME_FMT_RFC822='%a, %d %b %y %T %z' \
+    SHU_TIME_FMT_RFC850='%A, %d-%b-%y %T %Z' \
+    SHU_TIME_FMT_RSS='%a, %d %b %Y %T %z' \
+    SHU_TIME_FMT_COOKIE='%A, %d-%b-%Y %T %Z'
 
-	# ANSI SGR escape sequences (for the most part we're not going to worry about
-	# strange terminals that don't support these; users can set SHU_ANSI_ENABLE=0
-	# if they need to)
-	typeset -gr \
-		SHU_ANSI_RESET=$'\e[0m' \
-		SHU_ANSI_BOLD_ON=$'\e[1m' \
-		SHU_ANSI_DIM_ON=$'\e[2m' \
-		SHU_ANSI_ITALIC_ON=$'\e[3m' \
-		SHU_ANSI_UNDERSCORE_ON=$'\e[4m' \
-		SHU_ANSI_BLINK_ON=$'\e[5m' \
-		SHU_ANSI_REVERSE_ON=$'\e[7m' \
-		SHU_ANSI_BOLD_OFF=$'\e[22m' \
-		SHU_ANSI_DIM_OFF=$'\e[22m' \
-		SHU_ANSI_ITALIC_OFF=$'\e[23m' \
-		SHU_ANSI_UNDERSCORE_OFF=$'\e[24m' \
-		SHU_ANSI_BLINK_OFF=$'\e[25m' \
-		SHU_ANSI_REVERSE_OFF=$'\e[27m' \
-		SHU_ANSI_FG_BLACK=$'\e[38;5;0m' \
-		SHU_ANSI_FG_RED=$'\e[38;5;1m' \
-		SHU_ANSI_FG_GREEN=$'\e[38;5;2m' \
-		SHU_ANSI_FG_YELLOW=$'\e[38;5;3m' \
-		SHU_ANSI_FG_BLUE=$'\e[38;5;4m' \
-		SHU_ANSI_FG_MAGENTA=$'\e[38;5;5m' \
-		SHU_ANSI_FG_CYAN=$'\e[38;5;6m' \
-		SHU_ANSI_FG_WHITE=$'\e[38;5;7m' \
-		SHU_ANSI_FG_BLACK2=$'\e[38;5;8m' \
-		SHU_ANSI_FG_RED2=$'\e[38;5;9m' \
-		SHU_ANSI_FG_GREEN2=$'\e[38;5;10m' \
-		SHU_ANSI_FG_YELLOW2=$'\e[38;5;11m' \
-		SHU_ANSI_FG_BLUE2=$'\e[38;5;12m' \
-		SHU_ANSI_FG_MAGENTA2=$'\e[38;5;13m' \
-		SHU_ANSI_FG_CYAN2=$'\e[38;5;14m' \
-		SHU_ANSI_FG_WHITE2=$'\e[38;5;15m' \
-		SHU_ANSI_FG_RESET=$'\e[39m' \
-		SHU_ANSI_BG_BLACK=$'\e[48;5;0m' \
-		SHU_ANSI_BG_RED=$'\e[48;5;1m' \
-		SHU_ANSI_BG_GREEN=$'\e[48;5;2m' \
-		SHU_ANSI_BG_YELLOW=$'\e[48;5;3m' \
-		SHU_ANSI_BG_BLUE=$'\e[48;5;4m' \
-		SHU_ANSI_BG_MAGENTA=$'\e[48;5;5m' \
-		SHU_ANSI_BG_CYAN=$'\e[48;5;6m' \
-		SHU_ANSI_BG_WHITE=$'\e[48;5;7m' \
-		SHU_ANSI_BG_BLACK2=$'\e[48;5;8m' \
-		SHU_ANSI_BG_RED2=$'\e[48;5;9m' \
-		SHU_ANSI_BG_GREEN2=$'\e[48;5;10m' \
-		SHU_ANSI_BG_YELLOW2=$'\e[48;5;11m' \
-		SHU_ANSI_BG_BLUE2=$'\e[48;5;12m' \
-		SHU_ANSI_BG_MAGENTA2=$'\e[48;5;13m' \
-		SHU_ANSI_BG_CYAN2=$'\e[48;5;14m' \
-		SHU_ANSI_BG_WHITE2=$'\e[48;5;15m' \
-		SHU_ANSI_BG_RESET=$'\e[49m'
+  # ANSI SGR escape sequences (for the most part we're not going to worry about
+  # strange terminals that don't support these; users can set SHU_ANSI_ENABLE=0
+  # if they need to)
+  typeset -gr \
+    SHU_ANSI_RESET=$'\e[0m' \
+    SHU_ANSI_BOLD_ON=$'\e[1m' \
+    SHU_ANSI_DIM_ON=$'\e[2m' \
+    SHU_ANSI_ITALIC_ON=$'\e[3m' \
+    SHU_ANSI_UNDERSCORE_ON=$'\e[4m' \
+    SHU_ANSI_BLINK_ON=$'\e[5m' \
+    SHU_ANSI_REVERSE_ON=$'\e[7m' \
+    SHU_ANSI_BOLD_OFF=$'\e[22m' \
+    SHU_ANSI_DIM_OFF=$'\e[22m' \
+    SHU_ANSI_ITALIC_OFF=$'\e[23m' \
+    SHU_ANSI_UNDERSCORE_OFF=$'\e[24m' \
+    SHU_ANSI_BLINK_OFF=$'\e[25m' \
+    SHU_ANSI_REVERSE_OFF=$'\e[27m' \
+    SHU_ANSI_FG_BLACK=$'\e[38;5;0m' \
+    SHU_ANSI_FG_RED=$'\e[38;5;1m' \
+    SHU_ANSI_FG_GREEN=$'\e[38;5;2m' \
+    SHU_ANSI_FG_YELLOW=$'\e[38;5;3m' \
+    SHU_ANSI_FG_BLUE=$'\e[38;5;4m' \
+    SHU_ANSI_FG_MAGENTA=$'\e[38;5;5m' \
+    SHU_ANSI_FG_CYAN=$'\e[38;5;6m' \
+    SHU_ANSI_FG_WHITE=$'\e[38;5;7m' \
+    SHU_ANSI_FG_BLACK2=$'\e[38;5;8m' \
+    SHU_ANSI_FG_RED2=$'\e[38;5;9m' \
+    SHU_ANSI_FG_GREEN2=$'\e[38;5;10m' \
+    SHU_ANSI_FG_YELLOW2=$'\e[38;5;11m' \
+    SHU_ANSI_FG_BLUE2=$'\e[38;5;12m' \
+    SHU_ANSI_FG_MAGENTA2=$'\e[38;5;13m' \
+    SHU_ANSI_FG_CYAN2=$'\e[38;5;14m' \
+    SHU_ANSI_FG_WHITE2=$'\e[38;5;15m' \
+    SHU_ANSI_FG_RESET=$'\e[39m' \
+    SHU_ANSI_BG_BLACK=$'\e[48;5;0m' \
+    SHU_ANSI_BG_RED=$'\e[48;5;1m' \
+    SHU_ANSI_BG_GREEN=$'\e[48;5;2m' \
+    SHU_ANSI_BG_YELLOW=$'\e[48;5;3m' \
+    SHU_ANSI_BG_BLUE=$'\e[48;5;4m' \
+    SHU_ANSI_BG_MAGENTA=$'\e[48;5;5m' \
+    SHU_ANSI_BG_CYAN=$'\e[48;5;6m' \
+    SHU_ANSI_BG_WHITE=$'\e[48;5;7m' \
+    SHU_ANSI_BG_BLACK2=$'\e[48;5;8m' \
+    SHU_ANSI_BG_RED2=$'\e[48;5;9m' \
+    SHU_ANSI_BG_GREEN2=$'\e[48;5;10m' \
+    SHU_ANSI_BG_YELLOW2=$'\e[48;5;11m' \
+    SHU_ANSI_BG_BLUE2=$'\e[48;5;12m' \
+    SHU_ANSI_BG_MAGENTA2=$'\e[48;5;13m' \
+    SHU_ANSI_BG_CYAN2=$'\e[48;5;14m' \
+    SHU_ANSI_BG_WHITE2=$'\e[48;5;15m' \
+    SHU_ANSI_BG_RESET=$'\e[49m'
 
-	# If we have a 256-colour terminal we can additionally define some more
-	# precise colours to be used in select cases. (Some people make the 'black'
-	# and 'white' colours in the standard 16 various shades of grey, so they might
-	# look faded on a red background for example. Of course, maybe they also set
-	# their red to a weird colour... but this is at least *more* accurate)
-	if
-		[[ $TERM == *(256c|gnome|konsole|putty)* ]] ||
-		[[ ${VTE_VERSION:+256c} == 256c ]] ||
-		[[ ${KONSOLE_DBUS_SESSION:+256c} == 256c ]]
-	then
-		typeset -gr \
-			SHU_ANSI_FG_BLACK0=$'\e[38;5;16m' \
-			SHU_ANSI_FG_WHITE0=$'\e[38;5;231m'
-	# If we don't have 256 colours, just fall back
-	else
-		typeset -gr \
-			SHU_ANSI_FG_BLACK0=$SHU_ANSI_FG_BLACK \
-			SHU_ANSI_FG_WHITE0=$SHU_ANSI_FG_WHITE
-	fi
+  # If we have a 256-colour terminal we can additionally define some more
+  # precise colours to be used in select cases. (Some people make the 'black'
+  # and 'white' colours in the standard 16 various shades of grey, so they might
+  # look faded on a red background for example. Of course, maybe they also set
+  # their red to a weird colour... but this is at least *more* accurate)
+  if
+    [[ $TERM == *(256c|gnome|konsole|putty)* ]] ||
+    [[ ${VTE_VERSION:+256c} == 256c ]] ||
+    [[ ${KONSOLE_DBUS_SESSION:+256c} == 256c ]]
+  then
+    typeset -gr \
+      SHU_ANSI_FG_BLACK0=$'\e[38;5;16m' \
+      SHU_ANSI_FG_WHITE0=$'\e[38;5;231m'
+  # If we don't have 256 colours, just fall back
+  else
+    typeset -gr \
+      SHU_ANSI_FG_BLACK0=$SHU_ANSI_FG_BLACK \
+      SHU_ANSI_FG_WHITE0=$SHU_ANSI_FG_WHITE
+  fi
 
-	typeset -grA SHU_ANSI_ACTIVE=(
-		reset          $SHU_ANSI_RESET
-		bold:on        $SHU_ANSI_BOLD_ON
-		dim:on         $SHU_ANSI_DIM_ON
-		italic:on      $SHU_ANSI_ITALIC_ON
-		underscore:on  $SHU_ANSI_UNDERSCORE_ON
-		blink:on       $SHU_ANSI_BLINK_ON
-		reverse:on     $SHU_ANSI_REVERSE_ON
-		bold:off       $SHU_ANSI_BOLD_OFF
-		dim:off        $SHU_ANSI_DIM_OFF
-		italic:off     $SHU_ANSI_ITALIC_OFF
-		underscore:off $SHU_ANSI_UNDERSCORE_OFF
-		blink:off      $SHU_ANSI_BLINK_OFF
-		reverse_off    $SHU_ANSI_REVERSE_OFF
-		fg:black       $SHU_ANSI_FG_BLACK
-		fg:red         $SHU_ANSI_FG_RED
-		fg:green       $SHU_ANSI_FG_GREEN
-		fg:yellow      $SHU_ANSI_FG_YELLOW
-		fg:blue        $SHU_ANSI_FG_BLUE
-		fg:magenta     $SHU_ANSI_FG_MAGENTA
-		fg:cyan        $SHU_ANSI_FG_CYAN
-		fg:white       $SHU_ANSI_FG_WHITE
-		fg:black2      $SHU_ANSI_FG_BLACK2
-		fg:red2        $SHU_ANSI_FG_RED2
-		fg:green2      $SHU_ANSI_FG_GREEN2
-		fg:yellow2     $SHU_ANSI_FG_YELLOW2
-		fg:blue2       $SHU_ANSI_FG_BLUE2
-		fg:magenta2    $SHU_ANSI_FG_MAGENTA2
-		fg:cyan2       $SHU_ANSI_FG_CYAN2
-		fg:white2      $SHU_ANSI_FG_WHITE2
-		fg:black0      $SHU_ANSI_FG_BLACK0
-		fg:white0      $SHU_ANSI_FG_WHITE0
-		fg:reset       $SHU_ANSI_FG_RESET
-		bg:black       $SHU_ANSI_BG_BLACK
-		bg:red         $SHU_ANSI_BG_RED
-		bg:green       $SHU_ANSI_BG_GREEN
-		bg:yellow      $SHU_ANSI_BG_YELLOW
-		bg:blue        $SHU_ANSI_BG_BLUE
-		bg:magenta     $SHU_ANSI_BG_MAGENTA
-		bg:cyan        $SHU_ANSI_BG_CYAN
-		bg:white       $SHU_ANSI_BG_WHITE
-		bg:black2      $SHU_ANSI_BG_BLACK2
-		bg:red2        $SHU_ANSI_BG_RED2
-		bg:green2      $SHU_ANSI_BG_GREEN2
-		bg:yellow2     $SHU_ANSI_BG_YELLOW2
-		bg:blue2       $SHU_ANSI_BG_BLUE2
-		bg:magenta2    $SHU_ANSI_BG_MAGENTA2
-		bg:cyan2       $SHU_ANSI_BG_CYAN2
-		bg:white2      $SHU_ANSI_BG_WHITE2
-		bg:reset       $SHU_ANSI_BG_RESET
-	)
+  typeset -grA SHU_ANSI_ACTIVE=(
+    reset          $SHU_ANSI_RESET
+    bold:on        $SHU_ANSI_BOLD_ON
+    dim:on         $SHU_ANSI_DIM_ON
+    italic:on      $SHU_ANSI_ITALIC_ON
+    underscore:on  $SHU_ANSI_UNDERSCORE_ON
+    blink:on       $SHU_ANSI_BLINK_ON
+    reverse:on     $SHU_ANSI_REVERSE_ON
+    bold:off       $SHU_ANSI_BOLD_OFF
+    dim:off        $SHU_ANSI_DIM_OFF
+    italic:off     $SHU_ANSI_ITALIC_OFF
+    underscore:off $SHU_ANSI_UNDERSCORE_OFF
+    blink:off      $SHU_ANSI_BLINK_OFF
+    reverse_off    $SHU_ANSI_REVERSE_OFF
+    fg:black       $SHU_ANSI_FG_BLACK
+    fg:red         $SHU_ANSI_FG_RED
+    fg:green       $SHU_ANSI_FG_GREEN
+    fg:yellow      $SHU_ANSI_FG_YELLOW
+    fg:blue        $SHU_ANSI_FG_BLUE
+    fg:magenta     $SHU_ANSI_FG_MAGENTA
+    fg:cyan        $SHU_ANSI_FG_CYAN
+    fg:white       $SHU_ANSI_FG_WHITE
+    fg:black2      $SHU_ANSI_FG_BLACK2
+    fg:red2        $SHU_ANSI_FG_RED2
+    fg:green2      $SHU_ANSI_FG_GREEN2
+    fg:yellow2     $SHU_ANSI_FG_YELLOW2
+    fg:blue2       $SHU_ANSI_FG_BLUE2
+    fg:magenta2    $SHU_ANSI_FG_MAGENTA2
+    fg:cyan2       $SHU_ANSI_FG_CYAN2
+    fg:white2      $SHU_ANSI_FG_WHITE2
+    fg:black0      $SHU_ANSI_FG_BLACK0
+    fg:white0      $SHU_ANSI_FG_WHITE0
+    fg:reset       $SHU_ANSI_FG_RESET
+    bg:black       $SHU_ANSI_BG_BLACK
+    bg:red         $SHU_ANSI_BG_RED
+    bg:green       $SHU_ANSI_BG_GREEN
+    bg:yellow      $SHU_ANSI_BG_YELLOW
+    bg:blue        $SHU_ANSI_BG_BLUE
+    bg:magenta     $SHU_ANSI_BG_MAGENTA
+    bg:cyan        $SHU_ANSI_BG_CYAN
+    bg:white       $SHU_ANSI_BG_WHITE
+    bg:black2      $SHU_ANSI_BG_BLACK2
+    bg:red2        $SHU_ANSI_BG_RED2
+    bg:green2      $SHU_ANSI_BG_GREEN2
+    bg:yellow2     $SHU_ANSI_BG_YELLOW2
+    bg:blue2       $SHU_ANSI_BG_BLUE2
+    bg:magenta2    $SHU_ANSI_BG_MAGENTA2
+    bg:cyan2       $SHU_ANSI_BG_CYAN2
+    bg:white2      $SHU_ANSI_BG_WHITE2
+    bg:reset       $SHU_ANSI_BG_RESET
+  )
 
-	typeset -grA SHU_ANSI_INACTIVE=(
-		reset          ''
-		bold:on        ''
-		dim:on         ''
-		italic:on      ''
-		underscore:on  ''
-		blink:on       ''
-		reverse        ''
-		bold:off       ''
-		dim:off        ''
-		italic:off     ''
-		underscore:off ''
-		blink:off      ''
-		reverse:off    ''
-		fg:black       ''
-		fg:red         ''
-		fg:green       ''
-		fg:yellow      ''
-		fg:blue        ''
-		fg:magenta     ''
-		fg:cyan        ''
-		fg:white       ''
-		fg:black2      ''
-		fg:red2        ''
-		fg:green2      ''
-		fg:yellow2     ''
-		fg:blue2       ''
-		fg:magenta2    ''
-		fg:cyan2       ''
-		fg:white2      ''
-		fg:black0      ''
-		fg:white0      ''
-		fg:reset       ''
-		bg:black       ''
-		bg:red         ''
-		bg:green       ''
-		bg:yellow      ''
-		bg:blue        ''
-		bg:magenta     ''
-		bg:cyan        ''
-		bg:white       ''
-		bg:black2      ''
-		bg:red2        ''
-		bg:green2      ''
-		bg:yellow2     ''
-		bg:blue2       ''
-		bg:magenta2    ''
-		bg:cyan2       ''
-		bg:white2      ''
-		bg:reset       ''
-	)
+  typeset -grA SHU_ANSI_INACTIVE=(
+    reset          ''
+    bold:on        ''
+    dim:on         ''
+    italic:on      ''
+    underscore:on  ''
+    blink:on       ''
+    reverse        ''
+    bold:off       ''
+    dim:off        ''
+    italic:off     ''
+    underscore:off ''
+    blink:off      ''
+    reverse:off    ''
+    fg:black       ''
+    fg:red         ''
+    fg:green       ''
+    fg:yellow      ''
+    fg:blue        ''
+    fg:magenta     ''
+    fg:cyan        ''
+    fg:white       ''
+    fg:black2      ''
+    fg:red2        ''
+    fg:green2      ''
+    fg:yellow2     ''
+    fg:blue2       ''
+    fg:magenta2    ''
+    fg:cyan2       ''
+    fg:white2      ''
+    fg:black0      ''
+    fg:white0      ''
+    fg:reset       ''
+    bg:black       ''
+    bg:red         ''
+    bg:green       ''
+    bg:yellow      ''
+    bg:blue        ''
+    bg:magenta     ''
+    bg:cyan        ''
+    bg:white       ''
+    bg:black2      ''
+    bg:red2        ''
+    bg:green2      ''
+    bg:yellow2     ''
+    bg:blue2       ''
+    bg:magenta2    ''
+    bg:cyan2       ''
+    bg:white2      ''
+    bg:reset       ''
+  )
 
-	# Determine up-front whether we're on a TTY, so we can decide things like
-	# colouration and interactivity later
-	if [[ -t 1 ]]; then
-		typeset -gr SHU_HAS_TTY=1
-	else
-		typeset -gr SHU_HAS_TTY=0
-	fi
+  # Determine up-front whether we're on a TTY, so we can decide things like
+  # colouration and interactivity later
+  if [[ -t 1 ]]; then
+    typeset -gr SHU_HAS_TTY=1
+  else
+    typeset -gr SHU_HAS_TTY=0
+  fi
 
-	# Absolute paths to the fn/ directory and digest file
-	typeset -gr    SHU_FN_DIR=${${${(%):-%N}:A}:h}/fn
-	typeset -gr SHU_FN_DIGEST=$SHU_FN_DIR.zwc
+  # Absolute paths to the fn/ directory and digest file
+  typeset -gr    SHU_FN_DIR=${${${(%):-%N}:A}:h}/fn
+  typeset -gr SHU_FN_DIGEST=$SHU_FN_DIR.zwc
 }
 
 ##
 # 'Safe' global parameters
 {
-	# Emulate `ZSH_ARGZERO` for versions of zsh that don't have it; this way we
-	# can leave `function_argzero` enabled without sacrificing access to the name
-	# of the actual script. Consumers should change these only in rare cases
-	() {
-		setopt local_options posix_argzero
-		typeset -g \
-			SHU_ARGZERO=$0 \
-			SHU_ARGZERO_ABS=${0:A} \
-			SHU_ARGZERO_TAIL=${0:t}
-	}
+  # Emulate `ZSH_ARGZERO` for versions of zsh that don't have it; this way we
+  # can leave `function_argzero` enabled without sacrificing access to the name
+  # of the actual script. Consumers should change these only in rare cases
+  () {
+    setopt local_options posix_argzero
+    typeset -g \
+      SHU_ARGZERO=$0 \
+      SHU_ARGZERO_ABS=${0:A} \
+      SHU_ARGZERO_TAIL=${0:t}
+  }
 
-	# Script name — these can be used to override the `argzero` information for
-	# things like `shu::panic` and `shu:meta:help`
-	typeset -g SHU_SCRIPT_NAME=$SHU_ARGZERO_TAIL
-	typeset -g SHU_SCRIPT_PATH=$SHU_ARGZERO_ABS
+  # Script name — these can be used to override the `argzero` information for
+  # things like `shu::panic` and `shu:meta:help`
+  typeset -g SHU_SCRIPT_NAME=$SHU_ARGZERO_TAIL
+  typeset -g SHU_SCRIPT_PATH=$SHU_ARGZERO_ABS
 
-	# Back-ups of standard FDs — see below
-	typeset -g SHU_FD_STDOUT=1
-	typeset -g SHU_FD_STDERR=2
+  # Back-ups of standard FDs — see below
+  typeset -g SHU_FD_STDOUT=1
+  typeset -g SHU_FD_STDERR=2
 
-	# Output verbosity level
-	typeset -g SHU_VERBOSITY=$SHU_VERBOSITY_N0
+  # Output verbosity level
+  typeset -g SHU_VERBOSITY=$SHU_VERBOSITY_N0
 
-	# Panic ignore level — if >0, `shu::panic` won't kill the script. This is
-	# intended mostly for use by scripts; we don't allow users to pass this down
-	# through the environment
-	typeset -g SHU_PANIC_IGNORE=0
+  # Panic ignore level — if >0, `shu::panic` won't kill the script. This is
+  # intended mostly for use by scripts; we don't allow users to pass this down
+  # through the environment
+  typeset -g SHU_PANIC_IGNORE=0
 
-	# Panic trace-back level — if >0, `shu::panic` will show a trace-back. If >1,
-	# `shu::panic` will print extra trace information. Unlike the ignore level,
-	# we'll allow users to control this through the environment
-	if [[ ${SHU_PANIC_TRACE:-} == [0-9]## ]]; then
-		typeset -gx SHU_PANIC_TRACE=$SHU_PANIC_TRACE
-	else
-		typeset -gx SHU_PANIC_TRACE=0
-	fi
+  # Panic trace-back level — if >0, `shu::panic` will show a trace-back. If >1,
+  # `shu::panic` will print extra trace information. Unlike the ignore level,
+  # we'll allow users to control this through the environment
+  if [[ ${SHU_PANIC_TRACE:-} == [0-9]## ]]; then
+    typeset -gx SHU_PANIC_TRACE=$SHU_PANIC_TRACE
+  else
+    typeset -gx SHU_PANIC_TRACE=0
+  fi
 
-	# Force ANSI SGR usage — we'll allow users to control this through the
-	# environment as well. If scripts want to override it (which they *usually*
-	# shouldn't, they can do it by resetting the `SHU_ANSI` array
-	if [[ ${SHU_ANSI_ENABLE:-} == (always|[1tTyY]*) ]]; then
-		typeset -gx SHU_ANSI_ENABLE=1
-	elif [[ ${SHU_ANSI_ENABLE:-} == (never|[0fFnN]*) ]]; then
-		typeset -gx SHU_ANSI_ENABLE=0
-	elif (( ! SHU_HAS_TTY )) || [[ $TERM == dumb ]]; then
-		typeset -gx SHU_ANSI_ENABLE=0
-	else
-		typeset -gx SHU_ANSI_ENABLE=1
-	fi
+  # Force ANSI SGR usage — we'll allow users to control this through the
+  # environment as well. If scripts want to override it (which they *usually*
+  # shouldn't, they can do it by resetting the `SHU_ANSI` array
+  if [[ ${SHU_ANSI_ENABLE:-} == (always|[1tTyY]*) ]]; then
+    typeset -gx SHU_ANSI_ENABLE=1
+  elif [[ ${SHU_ANSI_ENABLE:-} == (never|[0fFnN]*) ]]; then
+    typeset -gx SHU_ANSI_ENABLE=0
+  elif (( ! SHU_HAS_TTY )) || [[ $TERM == dumb ]]; then
+    typeset -gx SHU_ANSI_ENABLE=0
+  else
+    typeset -gx SHU_ANSI_ENABLE=1
+  fi
 }
 
 ##
@@ -393,78 +393,78 @@
 # POSIXLY_CORRECT here, since the consumer might need to use them. But usually
 # they don't, and they should be sure to unset them themselves!
 {
-	unset -v \
-		IFS \
-		NULLCMD \
-		PROMPT \
-		PS1 \
-		READNULLCMD \
-		REPLY \
-		REPORTMEMORY \
-		REPORTTIME \
-		RPROMPT \
-		RPS1 \
-		TIMEFMT \
-		TMOUT \
-		TMPPREFIX \
-		TMPSUFFIX \
-		WATCHFMT \
-		ZBEEP
+  unset -v \
+    IFS \
+    NULLCMD \
+    PROMPT \
+    PS1 \
+    READNULLCMD \
+    REPLY \
+    REPORTMEMORY \
+    REPORTTIME \
+    RPROMPT \
+    RPS1 \
+    TIMEFMT \
+    TMOUT \
+    TMPPREFIX \
+    TMPSUFFIX \
+    WATCHFMT \
+    ZBEEP
 
-	NULLCMD=cat
-	PROMPT='%% '
-	READNULLCMD=cat
-	TMPPREFIX=/tmp/zsh
+  NULLCMD=cat
+  PROMPT='%% '
+  READNULLCMD=cat
+  TMPPREFIX=/tmp/zsh
 
-	# Binding/editor settings
-	typeset -ga zle_highlight=( paste:none )
-	bindkey -e
+  # Binding/editor settings
+  typeset -ga zle_highlight=( paste:none )
+  bindkey -e
 
-	# Some tools can freak out if no TERM is set
-	typeset -gx TERM=${TERM:-xterm}
+  # Some tools can freak out if no TERM is set
+  typeset -gx TERM=${TERM:-xterm}
 }
 
 ##
 # Misc. set-up
 {
-	# We create back-ups of these in case we need to bypass redirection later
-	# (see e.g. `shu::panic`)
-	exec {SHU_FD_STDOUT}>&1
-	exec {SHU_FD_STDERR}>&2
+  # We create back-ups of these in case we need to bypass redirection later
+  # (see e.g. `shu::panic`)
+  exec {SHU_FD_STDOUT}>&1
+  exec {SHU_FD_STDERR}>&2
 
-	# Populate SHU_ANSI array by default if we're at a TTY
-	if (( SHU_ANSI_ENABLE )); then
-		typeset -gA SHU_ANSI=( "${(@kv)SHU_ANSI_ACTIVE}" )
-	else
-		typeset -gA SHU_ANSI=( "${(@kv)SHU_ANSI_INACTIVE}" )
-	fi
+  # Populate SHU_ANSI array by default if we're at a TTY
+  if (( SHU_ANSI_ENABLE )); then
+    typeset -gA SHU_ANSI=( "${(@kv)SHU_ANSI_ACTIVE}" )
+  else
+    typeset -gA SHU_ANSI=( "${(@kv)SHU_ANSI_INACTIVE}" )
+  fi
 
-	# Colourise PS4 if we're on a TTY and don't have any colours already
-	[[ $PS4 != *$'\e['* ]] &&
-	PS4="${SHU_ANSI[reset]}${SHU_ANSI[dim:on]}${PS4}${SHU_ANSI[dim:off]}"
+  # Colourise PS4 if we're on a TTY and don't have any colours already
+  [[ $PS4 != *$'\e['* ]] &&
+  PS4="${SHU_ANSI[reset]}${SHU_ANSI[dim:on]}${PS4}${SHU_ANSI[dim:off]}"
 }
 
 ##
 # Function registration
 {
-	# Use the digest file if we have it (note: this of course means that zsh's
-	# usually mechanism for detecting newer versions of the functions won't work;
-	# if a function is changed, the digest must be deleted or recompiled)
-	if [[ -e $SHU_FN_DIGEST ]]; then
-		fpath=( $SHU_FN_DIGEST $fpath )
-		autoload -w $SHU_FN_DIGEST
-	# Otherwise load from separate files
-	else
-		fpath=( $SHU_FN_DIR $fpath )
-		autoload -Uz $SHU_FN_DIR/*:*(-.N)
-	fi
+  # Use the digest file if we have it (note: this of course means that zsh's
+  # usually mechanism for detecting newer versions of the functions won't work;
+  # if a function is changed, the digest must be deleted or recompiled)
+  if [[ -e $SHU_FN_DIGEST ]]; then
+    fpath=( $SHU_FN_DIGEST $fpath )
+    autoload -w $SHU_FN_DIGEST
+  # Otherwise load from separate files
+  else
+    fpath=( $SHU_FN_DIR $fpath )
+    autoload -Uz $SHU_FN_DIR/*:*(-.N)
+  fi
 
-	# Maths functions not provided directly by zsh/mathfunc
-	functions -M min 1 -1 shu:math:min
-	functions -M max 1 -1 shu:math:max
-	functions -M sum 1 -1 shu:math:sum
+  # Maths functions not provided directly by zsh/mathfunc
+  functions -M min 1 -1 shu:math:min
+  functions -M max 1 -1 shu:math:max
+  functions -M sum 1 -1 shu:math:sum
 
-	shu::noop() { }
+  shu::noop() { }
 }
 
 ##
@@ -477,19 +477,19 @@
 # or even in addition to it, scripts that deal in sensitive information may want
 # to `unset SHU_DEBUG` before sourcing the library.
 [[ -n ${SHU_DEBUG:-} ]] && {
-	typeset -ga SHU_DEBUG_OPTIONS
+  typeset -ga SHU_DEBUG_OPTIONS
 
-	case ",${(L)SHU_DEBUG//_/}," in
-		,(1|on|true|yes),) SHU_DEBUG_OPTIONS+=( xtrace       ) ;;
-		*,errexit,*)       SHU_DEBUG_OPTIONS+=( err_exit     ) ;|
-		*,errreturn,*)     SHU_DEBUG_OPTIONS+=( err_return   ) ;|
-		*,noexec,*)        SHU_DEBUG_OPTIONS+=( no_exec      ) ;|
-		*,sourcetrace,*)   SHU_DEBUG_OPTIONS+=( source_trace ) ;|
-		*,verbose,*)       SHU_DEBUG_OPTIONS+=( verbose      ) ;|
-		*,(|x)trace,*)     SHU_DEBUG_OPTIONS+=( xtrace       ) ;;
-	esac
+  case ",${(L)SHU_DEBUG//_/}," in
+    ,(1|on|true|yes),) SHU_DEBUG_OPTIONS+=( xtrace       ) ;;
+    *,errexit,*)       SHU_DEBUG_OPTIONS+=( err_exit     ) ;|
+    *,errreturn,*)     SHU_DEBUG_OPTIONS+=( err_return   ) ;|
+    *,noexec,*)        SHU_DEBUG_OPTIONS+=( no_exec      ) ;|
+    *,sourcetrace,*)   SHU_DEBUG_OPTIONS+=( source_trace ) ;|
+    *,verbose,*)       SHU_DEBUG_OPTIONS+=( verbose      ) ;|
+    *,(|x)trace,*)     SHU_DEBUG_OPTIONS+=( xtrace       ) ;;
+  esac
 
-	(( $#SHU_DEBUG_OPTIONS )) && setopt $SHU_DEBUG_OPTIONS
+  (( $#SHU_DEBUG_OPTIONS )) && setopt $SHU_DEBUG_OPTIONS
 }
 
 return 0
