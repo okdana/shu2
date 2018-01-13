@@ -33,17 +33,17 @@
 local    OPTARG OPTIND opt unit integer remainder places
 local -a real_time
 
-while getopts ':f:mnsu' opt; do
+while getopts :f:mnsu opt; do
 	case $opt in
 		# Floating-point decimal places
-		'f')
+		f)
 			[[ $OPTARG == ${~SHU_PAT_MATH_INT_POS} ]] ||
 			shu::panic "Invalid precision value: ${OPTARG}"
 
 			places=$OPTARG
 			;;
 		# Unit
-		'm'|'n'|'s'|'u') unit=$opt ;;
+		m|n|s|u) unit=$opt ;;
 		# Errors
 		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
 		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
@@ -80,8 +80,7 @@ esac
 (( places )) &&
 (( $#remainder )) && {
 	printf '%s.%s\n' $integer ${(r<$places><0>)remainder}
-	return $?
+	return
 }
 
 printf '%s\n' $integer
-return $?

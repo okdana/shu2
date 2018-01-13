@@ -79,35 +79,35 @@ local -a __lines __help
 local -A __ansi=( "${(@kv)SHU_ANSI}" )
 
 while getopts :a:cCnNruvV __opt; do
-	case $__opt in
-		# Assign result to array
-		'+a')
-			(( ${(P)+OPTARG} )) ||
-			shu::panic "No such array: ${OPTARG}"
-			[[ "${(Pt)OPTARG}-" == array-* ]] ||
-			shu::panic "No such array: ${OPTARG}"
+  case $__opt in
+    # Assign result to array
+    +a)
+      (( ${(P)+OPTARG} )) ||
+      shu::panic "No such array: ${OPTARG}"
+      [[ "${(Pt)OPTARG}-" == array-* ]] ||
+      shu::panic "No such array: ${OPTARG}"
 
-			__to_array=$OPTARG
-			;;
-		# Enable ANSI formatting
-		'+c') __ansi=( "${(@kv)SHU_ANSI_ACTIVE}" ) ;;
-		# Disable ANSI formatting
-		'+C') __ansi=( "${(@kv)SHU_ANSI_INACTIVE}" ) ;;
-		# Always expand `${0}` to version script name
-		'n') __exp_vname=1 ;;
-		# Never expand `${0}` to version script name
-		'N') __exp_vname=0 ;;
-		# Return raw/unformatted lines
-		'r') __raw=1 ;;
-		# Return usage-synopsis lines only
-		'u') __only=usage ;;
-		# Return name/version lines only
-		'v'|'V') __only=version ;;
-		# Errors
-		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-		*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
-	esac
+      __to_array=$OPTARG
+      ;;
+    # Enable ANSI formatting
+    +c) __ansi=( "${(@kv)SHU_ANSI_ACTIVE}" ) ;;
+    # Disable ANSI formatting
+    +C) __ansi=( "${(@kv)SHU_ANSI_INACTIVE}" ) ;;
+    # Always expand `${0}` to version script name
+    n) __exp_vname=1 ;;
+    # Never expand `${0}` to version script name
+    N) __exp_vname=0 ;;
+    # Return raw/unformatted lines
+    r) __raw=1 ;;
+    # Return usage-synopsis lines only
+    u) __only=usage ;;
+    # Return name/version lines only
+    v|V) __only=version ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+  esac
 done
 
 shift $(( OPTIND - 1 ))
@@ -115,10 +115,10 @@ shift $(( OPTIND - 1 ))
 (( $# > 1 )) && shu::panic 'Too many arguments'
 
 if (( ! $# )); then
-	1=$SHU_SCRIPT_PATH
-	__name=$SHU_SCRIPT_NAME
+  1=$SHU_SCRIPT_PATH
+  __name=$SHU_SCRIPT_NAME
 elif [[ $1 != */* ]] && [[ ! -e $1 ]]; then
-	1=${commands[$1]:-}
+  1=${commands[$1]:-}
 fi
 
 [[ -e $1 ]] || return 1
@@ -129,106 +129,105 @@ __lines=( "${(@f)mapfile[$1]:-}" )
  __glob='[[:space:]]#\#\?[:.=?#+-](| *)'
 
 case $__only in
-	usage)   __limit_glob='[[:space:]]#\#\?\?(| *)' ;;
-	version) __limit_glob='[[:space:]]#\#\?.(| *)' ;;
+  usage)   __limit_glob='[[:space:]]#\#\?\?(| *)' ;;
+  version) __limit_glob='[[:space:]]#\#\?.(| *)' ;;
 esac
 
 for __line_raw in "${(@)__lines}"; do
-	[[ $__line_raw == ${~__glob} ]] || {
-		[[ -n $__last ]] && break
-		continue
-	}
+  [[ $__line_raw == ${~__glob} ]] || {
+    [[ -n $__last ]] && break
+    continue
+  }
 
-	[[ $__line_raw == ${~__limit_glob:-*} ]] || {
-		[[ -n $__last ]] && break
-		continue
-	}
+  [[ $__line_raw == ${~__limit_glob:-*} ]] || {
+    [[ -n $__last ]] && break
+    continue
+  }
 
-	(( __raw )) && {
-		 __last=$__line_raw
-		__help+=( $__line_raw )
-		continue
-	}
+  (( __raw )) && {
+     __last=$__line_raw
+    __help+=( $__line_raw )
+    continue
+  }
 
-	(( $#__line_raw > 4 )) || {
-		__last=$__line_raw
-		(( $#__help )) && __help+=( '' )
-		continue
-	}
+  (( $#__line_raw > 4 )) || {
+    __last=$__line_raw
+    (( $#__help )) && __help+=( '' )
+    continue
+  }
 
-	__line=${__line_raw[5,-1]}
+  __line=${__line_raw[5,-1]}
 
-	case $__line_raw in
-		# Name/version
-		[[:space:]]#\#\?.\ ?*)
-			__line=${__line/\$\{0\}/${__name}}
-			# Auto-detect name-expansion behaviour
-			(( __exp_vname < 0 )) && {
-				if [[ ${${:-${__line} v:}%% v:*} == *?' '?* ]]; then
-					__exp_vname=0
-				else
-					__exp_vname=1
-				fi
-			}
-			# Override the name once if applicable
-			(( __exp_vname == 1 )) && {
-				__name=${${:-${__line} v:}%% v:*}
-				__exp_vname=2
-			}
-			__line=${__line/(#m) v:*(#e)/ version ${MATCH[4,-1]}}
-			;;
-		# Description
-		[[:space:]]#\#\?\=\ ?*)
-			__line=${__line/\$\{0\}/${__name}}
-			;;
-		# Heading
-		[[:space:]]#\#\?\#*)
-			__line="${__ansi[bold:on]}${__line}${__ansi[bold:off]}"
-			;;
-		# Usage synopsis
-		[[:space:]]#\#\?\?*)
-			if [[ $__line == '  ${0}'* ]]; then
-				__syn_sp=$#__line
-				  __line=${__line/\$\{0\}/${__name}}
-				__syn_sp=$(( $#__line - __syn_sp ))
-			elif (( __syn_sp > 0 )); then
-				__line="${(l<$__syn_sp>< >):-}${__line}"
-			elif (( __syn_sp < 0 )); then
-				__line="${__line[((__syn_sp * -1) + 1),-1]}"
-			fi
-			;;
-		# Long-format option/operand description
-		[[:space:]]#\#\?\-*)
-			[[ $__line == '  '[\[\<.-]* ]] &&
-			__line="${__ansi[fg:yellow2]}${__line}${__ansi[fg:reset]}"
-			;;
-		# Short-format option/operand description
-		[[:space:]]#\#\?\+*)
-			[[ $__line == '  '[\[\<.-]* ]] &&
-			__line="${(S)__line/(#m)  *  /${__ansi[fg:yellow2]}${MATCH}${__ansi[fg:reset]}}"
-			;;
-	esac
+  case $__line_raw in
+    # Name/version
+    [[:space:]]#\#\?.\ ?*)
+      __line=${__line/\$\{0\}/${__name}}
+      # Auto-detect name-expansion behaviour
+      (( __exp_vname < 0 )) && {
+        if [[ ${${:-${__line} v:}%% v:*} == *?' '?* ]]; then
+          __exp_vname=0
+        else
+          __exp_vname=1
+        fi
+      }
+      # Override the name once if applicable
+      (( __exp_vname == 1 )) && {
+        __name=${${:-${__line} v:}%% v:*}
+        __exp_vname=2
+      }
+      __line=${__line/(#m) v:*(#e)/ version ${MATCH[4,-1]}}
+      ;;
+    # Description
+    [[:space:]]#\#\?\=\ ?*)
+      __line=${__line/\$\{0\}/${__name}}
+      ;;
+    # Heading
+    [[:space:]]#\#\?\#*)
+      __line="${__ansi[bold:on]}${__line}${__ansi[bold:off]}"
+      ;;
+    # Usage synopsis
+    [[:space:]]#\#\?\?*)
+      if [[ $__line == '  ${0}'* ]]; then
+        __syn_sp=$#__line
+          __line=${__line/\$\{0\}/${__name}}
+        __syn_sp=$(( $#__line - __syn_sp ))
+      elif (( __syn_sp > 0 )); then
+        __line="${(l<$__syn_sp>< >):-}${__line}"
+      elif (( __syn_sp < 0 )); then
+        __line="${__line[((__syn_sp * -1) + 1),-1]}"
+      fi
+      ;;
+    # Long-format option/operand description
+    [[:space:]]#\#\?\-*)
+      [[ $__line == '  '[\[\<.-]* ]] &&
+      __line="${__ansi[fg:yellow2]}${__line}${__ansi[fg:reset]}"
+      ;;
+    # Short-format option/operand description
+    [[:space:]]#\#\?\+*)
+      [[ $__line == '  '[\[\<.-]* ]] &&
+      __line="${(S)__line/(#m)  *  /${__ansi[fg:yellow2]}${MATCH}${__ansi[fg:reset]}}"
+      ;;
+  esac
 
-	[[ $__only == usage ]] &&
-	[[ $__line_raw == \#\?\?* ]] && {
-		if [[ $__last == \#\?\?* ]] && [[ $__line == '  '[^\ ]* ]]; then
-			__line="   or: ${__line[3,-1]}"
-		elif [[ $__last == \#\?\?* ]]; then
-			__line="       ${__line[3,-1]}"
-		else
-			__line="usage: ${__line[3,-1]}"
-		fi
-	}
+  [[ $__only == usage ]] &&
+  [[ $__line_raw == \#\?\?* ]] && {
+    if [[ $__last == \#\?\?* ]] && [[ $__line == '  '[^\ ]* ]]; then
+      __line="   or: ${__line[3,-1]}"
+    elif [[ $__last == \#\?\?* ]]; then
+      __line="       ${__line[3,-1]}"
+    else
+      __line="usage: ${__line[3,-1]}"
+    fi
+  }
 
-	 __last=$__line_raw
-	__help+=( "${__line}" )
+   __last=$__line_raw
+  __help+=( "${__line}" )
 done
 
 (( $#__to_array )) && {
-	: ${(PA)__to_array::="${(@)__help}"}
-	return $(( ! $#__help ))
+  : ${(PA)__to_array::="${(@)__help}"}
+  return $(( ! $#__help ))
 }
 
 (( $#__help )) || return 1
 print -rl -- "${(@)__help}"
-return 0

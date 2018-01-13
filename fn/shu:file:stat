@@ -54,46 +54,46 @@ local    __field __file
 local -A __assoc
 
 while getopts :A:F:s:u __opt; do
-	case $__opt in
-		# Assign result to association
-		'+A')
-			(( ${(P)+OPTARG} )) ||
-			shu::panic "No such association: ${OPTARG}"
-			[[ "${(Pt)OPTARG}-" == association-* ]] ||
-			shu::panic "No such association: ${OPTARG}"
+  case $__opt in
+    # Assign result to association
+    +A)
+      (( ${(P)+OPTARG} )) ||
+      shu::panic "No such association: ${OPTARG}"
+      [[ "${(Pt)OPTARG}-" == association-* ]] ||
+      shu::panic "No such association: ${OPTARG}"
 
-			 __to_assoc=$OPTARG
-			__to_scalar=
-			;;
-		# Assign result to scalar
-		'+s')
-			(( ${(P)+OPTARG} )) ||
-			shu::panic "No such scalar: ${OPTARG}"
-			[[ "${(Pt)OPTARG}-" == scalar-* ]] ||
-			shu::panic "No such scalar: ${OPTARG}"
+       __to_assoc=$OPTARG
+      __to_scalar=
+      ;;
+    # Assign result to scalar
+    +s)
+      (( ${(P)+OPTARG} )) ||
+      shu::panic "No such scalar: ${OPTARG}"
+      [[ "${(Pt)OPTARG}-" == scalar-* ]] ||
+      shu::panic "No such scalar: ${OPTARG}"
 
-			 __to_assoc=
-			__to_scalar=$OPTARG
-			;;
-		# Specify date/time format
-		'F')
-			[[ ${OPTARG#SHU_TIME_} == FMT_[A-Z0-9_]# ]] && {
-				OPTARG="SHU_TIME_${OPTARG#SHU_TIME_}"
+       __to_assoc=
+      __to_scalar=$OPTARG
+      ;;
+    # Specify date/time format
+    F)
+      [[ ${OPTARG#SHU_TIME_} == FMT_[A-Z0-9_]# ]] && {
+        OPTARG="SHU_TIME_${OPTARG#SHU_TIME_}"
 
-				(( ${(P)+OPTARG} )) ||
-				shu::panic "No such time format: ${OPTARG}"
+        (( ${(P)+OPTARG} )) ||
+        shu::panic "No such time format: ${OPTARG}"
 
-				OPTARG=${(P)OPTARG}
-			}
-			__time_fmt=$OPTARG
-			;;
-		# UTC time zone
-		'u') __utc_opt=-g ;;
-		# Errors
-		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-		*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
-	esac
+        OPTARG=${(P)OPTARG}
+      }
+      __time_fmt=$OPTARG
+      ;;
+    # UTC time zone
+    u) __utc_opt=-g ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+  esac
 done
 
 shift $(( OPTIND - 1 ))
@@ -104,17 +104,17 @@ shift $(( OPTIND - 1 ))
 (( $# < 2 )) && (( $#__to_scalar )) && shu::panic 'Field required with +s'
 
 if (( $# == 1 )); then
-	__file=$1
+  __file=$1
 
 else
-	 __file=$2
-	__field=${${${(L)1}#+}#st_}
+   __file=$2
+  __field=${${${(L)1}#+}#st_}
 
-	case $__field in
-		device) __field=dev ;;
-		inode)  __field=ino ;;
-		'')     shu::panic 'Field required' ;;
-	esac
+  case $__field in
+    device) __field=dev ;;
+    inode)  __field=ino ;;
+    '')     shu::panic 'Field required' ;;
+  esac
 fi
 
 : ${__time_fmt:=${SHU_TIME_FMT_STD_A}}
@@ -148,19 +148,18 @@ unset -v '__assoc[device]' '__assoc[inode]'
 shu::panic "No such field: ${__field}"
 
 (( $#__to_scalar )) && {
-	: ${(P)__to_scalar::=${__assoc[$__field]}}
-	return $?
+  : ${(P)__to_scalar::=${__assoc[$__field]}}
+  return
 }
 
 (( $#__to_assoc )) && {
-	: ${(PAA)__to_assoc::="${(@kv)__assoc}"}
-	return $?
+  : ${(PAA)__to_assoc::="${(@kv)__assoc}"}
+  return
 }
 
 (( $#__field )) && {
-	print -r -- ${__assoc[$__field]}
-	return $?
+  print -r - ${__assoc[$__field]}
+  return
 }
 
-print -lor -- ${(f)"$( print -rC2 -- "${(@k)__assoc}" "${(@)__assoc}" )"}
-return $?
+print -rlo - ${(f)"$( print -rC2 -- "${(@k)__assoc}" "${(@)__assoc}" )"}

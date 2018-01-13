@@ -36,43 +36,43 @@ local OPTARG OPTIND opt last_opt
 local cmp=$SHU_VERBOSITY_N0 op='<=' exact
 
 while getopts :anNqQvVxX opt; do
-	# Clauses here are ordered roughly according to frequency of use
-	case $opt in
-		'v'|'V')
-			if [[ $last_opt == $opt ]]; then
-				(( cmp < SHU_VERBOSITY_V5 )) && (( cmp++ ))
-			else
-				cmp=$SHU_VERBOSITY_V1
-				 op='<='
-				[[ $opt == V ]] && op='>='
-			fi
-			;;
-		'q'|'Q')
-			if [[ $last_opt == $opt ]]; then
-				(( cmp > SHU_VERBOSITY_Q5 )) && (( cmp-- ))
-			else
-				cmp=$SHU_VERBOSITY_Q1
-				 op='<='
-				[[ $opt == Q ]] && op='>='
-			fi
-			;;
-		'n'|'N')
-			cmp=$SHU_VERBOSITY_N0
-			 op='<='
-			[[ $opt == N ]] && op='>='
-			;;
-		'a')
-			cmp=$SHU_VERBOSITY
-			 op='=='
-			;;
-		'x') exact=1 ;;
-		'X') exact=0 ;;
-		# Errors
-		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-		*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
-	esac
-	last_opt=$opt
+  # Clauses here are ordered roughly according to frequency of use
+  case $opt in
+    v|V)
+      if [[ $last_opt == $opt ]]; then
+        (( cmp < SHU_VERBOSITY_V5 )) && (( cmp++ ))
+      else
+        cmp=$SHU_VERBOSITY_V1
+         op='<='
+        [[ $opt == V ]] && op='>='
+      fi
+      ;;
+    q|Q)
+      if [[ $last_opt == $opt ]]; then
+        (( cmp > SHU_VERBOSITY_Q5 )) && (( cmp-- ))
+      else
+        cmp=$SHU_VERBOSITY_Q1
+         op='<='
+        [[ $opt == Q ]] && op='>='
+      fi
+      ;;
+    n|N)
+      cmp=$SHU_VERBOSITY_N0
+       op='<='
+      [[ $opt == N ]] && op='>='
+      ;;
+    a)
+      cmp=$SHU_VERBOSITY
+       op='=='
+      ;;
+    x) exact=1 ;;
+    X) exact=0 ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+  esac
+  last_opt=$opt
 done
 
 (( exact )) && op='=='
@@ -81,10 +81,8 @@ done
 shift $(( OPTIND - 1 ))
 
 [[ ${*:--} == - ]] && {
-	shu:io:read
-	return $?
+  shu:io:read
+  return
 }
 cat -- "${@}"
-return $?
-
-shu::panic
+return

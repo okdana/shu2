@@ -89,66 +89,66 @@ local    indent cmp=$SHU_VERBOSITY_N0 op='<=' trap_ret=-1 exact ret
 local -a usage
 
 while getopts :0123456789anNqQrR:vVxX opt; do
-	# Clauses here are ordered roughly according to frequency of use
-	case $opt in
-		'v'|'V')
-			if [[ $last_opt == $opt ]]; then
-				(( cmp < SHU_VERBOSITY_V5 )) && (( cmp++ ))
-			else
-				cmp=$SHU_VERBOSITY_V1
-				 op='<='
-				[[ $opt == V ]] && op='>='
-			fi
-			;;
-		'q'|'Q')
-			if [[ $last_opt == $opt ]]; then
-				(( cmp > SHU_VERBOSITY_Q5 )) && (( cmp-- ))
-			else
-				cmp=$SHU_VERBOSITY_Q1
-				 op='<='
-				[[ $opt == Q ]] && op='>='
-			fi
-			;;
-		'n'|'N')
-			cmp=$SHU_VERBOSITY_N0
-			 op='<='
-			[[ $opt == N ]] && op='>='
-			;;
-		'a')
-			cmp=$SHU_VERBOSITY
-			 op='=='
-			;;
-		[0-9])
-			if (( last_num_optind != OPTIND )) || [[ $last_opt != [0-9] ]]; then
-				indent=
-			fi
-			indent+=$opt
-			last_num_optind=$OPTIND
-			;;
-		'r')
-			case $0 in
-				shu:io:puts)  trap_ret=$SHU_EX_OK ;;
-				shu:io:eputs) trap_ret=$SHU_EX_ERR ;;
-				shu:io:uputs) trap_ret=$SHU_EX_USAGE ;;
-			esac
-			;;
-		'R')
-			if [[ $OPTARG == <0-255> ]]; then
-				trap_ret=$OPTARG
-			elif [[ ${(P)OPTARG:-} == <0-255> ]]; then
-				trap_ret=${(P)OPTARG}
-			else
-				shu::panic "Illegal return status: ${OPTARG}"
-			fi
-			;;
-		'x') exact=1 ;;
-		'X') exact=0 ;;
-		# Errors
-		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-		*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
-	esac
-	last_opt=$opt
+  # Clauses here are ordered roughly according to frequency of use
+  case $opt in
+    v|V)
+      if [[ $last_opt == $opt ]]; then
+        (( cmp < SHU_VERBOSITY_V5 )) && (( cmp++ ))
+      else
+        cmp=$SHU_VERBOSITY_V1
+         op='<='
+        [[ $opt == V ]] && op='>='
+      fi
+      ;;
+    q|Q)
+      if [[ $last_opt == $opt ]]; then
+        (( cmp > SHU_VERBOSITY_Q5 )) && (( cmp-- ))
+      else
+        cmp=$SHU_VERBOSITY_Q1
+         op='<='
+        [[ $opt == Q ]] && op='>='
+      fi
+      ;;
+    n|N)
+      cmp=$SHU_VERBOSITY_N0
+       op='<='
+      [[ $opt == N ]] && op='>='
+      ;;
+    a)
+      cmp=$SHU_VERBOSITY
+       op='=='
+      ;;
+    [0-9])
+      if (( last_num_optind != OPTIND )) || [[ $last_opt != [0-9] ]]; then
+        indent=
+      fi
+      indent+=$opt
+      last_num_optind=$OPTIND
+      ;;
+    r)
+      case $0 in
+        shu:io:puts)  trap_ret=$SHU_EX_OK ;;
+        shu:io:eputs) trap_ret=$SHU_EX_ERR ;;
+        shu:io:uputs) trap_ret=$SHU_EX_USAGE ;;
+      esac
+      ;;
+    R)
+      if [[ $OPTARG == <0-255> ]]; then
+        trap_ret=$OPTARG
+      elif [[ ${(P)OPTARG:-} == <0-255> ]]; then
+        trap_ret=${(P)OPTARG}
+      else
+        shu::panic "Illegal return status: ${OPTARG}"
+      fi
+      ;;
+    x) exact=1 ;;
+    X) exact=0 ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+  esac
+  last_opt=$opt
 done
 
 (( trap_ret > -1 )) &&
@@ -160,34 +160,34 @@ trap "return ${trap_ret}" EXIT
 shift $(( OPTIND - 1 ))
 
 case $0 in
-	shu:io:puts)
-		print -r -- "${(l<$indent>< >):-}${(j< >)@}"
-		return $?
-		;;
-	shu:io:eputs)
-		[[ -n $* ]] || {
-			print >&2
-			return $?
-		}
-		printf >&2 "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}"
-		return $?
-		;;
-	shu:io:uputs)
-		[[ -n $* ]] && {
-			printf >&2 "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}" ||
-			ret=$?
-		}
+  shu:io:puts)
+    print -r - "${(l<$indent>< >):-}${(j< >)@}"
+    return
+    ;;
+  shu:io:eputs)
+    [[ -n $* ]] || {
+      print >&2
+      return
+    }
+    printf >&2 "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}"
+    return
+    ;;
+  shu:io:uputs)
+    [[ -n $* ]] && {
+      printf >&2 "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}" ||
+      ret=$?
+    }
 
-		shu:meta:help +a usage -u
+    shu:meta:help +a usage -u
 
-		(( $#usage )) && {
-			usage=( "${(@)usage//(#s)/${(l<$indent>< >):-}}" )
-			print -rl >&2 -- "${(@)usage}" ||
-			ret=$?
-		}
+    (( $#usage )) && {
+      usage=( "${(@)usage//(#s)/${(l<$indent>< >):-}}" )
+      print -rl - >&2 "${(@)usage}" ||
+      ret=$?
+    }
 
-		return ret
-		;;
+    return ret
+    ;;
 esac
 
 shu::panic

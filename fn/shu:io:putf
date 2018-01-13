@@ -39,59 +39,59 @@ local cmp=$SHU_VERBOSITY_N0 op='<=' trap_ret=-1 exact ret
 local -a usage
 
 while getopts :anNqQrR:vVxX opt; do
-	# Clauses here are ordered roughly according to frequency of use
-	case $opt in
-		'v'|'V')
-			if [[ $last_opt == $opt ]]; then
-				(( cmp < SHU_VERBOSITY_V5 )) && (( cmp++ ))
-			else
-				cmp=$SHU_VERBOSITY_V1
-				 op='<='
-				[[ $opt == V ]] && op='>='
-			fi
-			;;
-		'q'|'Q')
-			if [[ $last_opt == $opt ]]; then
-				(( cmp > SHU_VERBOSITY_Q5 )) && (( cmp-- ))
-			else
-				cmp=$SHU_VERBOSITY_Q1
-				 op='<='
-				[[ $opt == Q ]] && op='>='
-			fi
-			;;
-		'n'|'N')
-			cmp=$SHU_VERBOSITY_N0
-			 op='<='
-			[[ $opt == N ]] && op='>='
-			;;
-		'a')
-			cmp=$SHU_VERBOSITY
-			 op='=='
-			;;
-		'r')
-			case $0 in
-				shu:io:putf)  trap_ret=$SHU_EX_OK ;;
-				shu:io:eputf) trap_ret=$SHU_EX_ERR ;;
-				shu:io:uputf) trap_ret=$SHU_EX_USAGE ;;
-			esac
-			;;
-		'R')
-			if [[ $OPTARG == <0-255> ]]; then
-				trap_ret=$OPTARG
-			elif [[ ${(P)OPTARG:-} == <0-255> ]]; then
-				trap_ret=${(P)OPTARG}
-			else
-				shu::panic "Illegal return status: ${OPTARG}"
-			fi
-			;;
-		'x') exact=1 ;;
-		'X') exact=0 ;;
-		# Errors
-		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-		*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
-	esac
-	last_opt=$opt
+  # Clauses here are ordered roughly according to frequency of use
+  case $opt in
+    v|V)
+      if [[ $last_opt == $opt ]]; then
+        (( cmp < SHU_VERBOSITY_V5 )) && (( cmp++ ))
+      else
+        cmp=$SHU_VERBOSITY_V1
+         op='<='
+        [[ $opt == V ]] && op='>='
+      fi
+      ;;
+    q|Q)
+      if [[ $last_opt == $opt ]]; then
+        (( cmp > SHU_VERBOSITY_Q5 )) && (( cmp-- ))
+      else
+        cmp=$SHU_VERBOSITY_Q1
+         op='<='
+        [[ $opt == Q ]] && op='>='
+      fi
+      ;;
+    n|N)
+      cmp=$SHU_VERBOSITY_N0
+       op='<='
+      [[ $opt == N ]] && op='>='
+      ;;
+    a)
+      cmp=$SHU_VERBOSITY
+       op='=='
+      ;;
+    r)
+      case $0 in
+        shu:io:putf)  trap_ret=$SHU_EX_OK ;;
+        shu:io:eputf) trap_ret=$SHU_EX_ERR ;;
+        shu:io:uputf) trap_ret=$SHU_EX_USAGE ;;
+      esac
+      ;;
+    R)
+      if [[ $OPTARG == <0-255> ]]; then
+        trap_ret=$OPTARG
+      elif [[ ${(P)OPTARG:-} == <0-255> ]]; then
+        trap_ret=${(P)OPTARG}
+      else
+        shu::panic "Illegal return status: ${OPTARG}"
+      fi
+      ;;
+    x) exact=1 ;;
+    X) exact=0 ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+  esac
+  last_opt=$opt
 done
 
 (( trap_ret > -1 )) &&
@@ -105,29 +105,29 @@ shift $(( OPTIND - 1 ))
 (( $# )) || 1=
 
 case $0 in
-	shu:io:putf)
-		printf -- "${@}"
-		return $?
-		;;
-	shu:io:eputf)
-		[[ -n $* ]] || return 0
-		printf >&2 -- "${${${SHU_SCRIPT_NAME}//\%/%%}//\\/\\\\}: ${1}" "${@:2}"
-		return $?
-		;;
-	shu:io:uputf)
-		[[ -n $* ]] && {
-			printf -- "${@}" || ret=$?
-		}
+  shu:io:putf)
+    printf - "${@}"
+    return
+    ;;
+  shu:io:eputf)
+    [[ -n $* ]] || return 0
+    printf - >&2 "${${${SHU_SCRIPT_NAME}//\%/%%}//\\/\\\\}: ${1}" "${@:2}"
+    return
+    ;;
+  shu:io:uputf)
+    [[ -n $* ]] && {
+      printf - "${@}" || ret=$?
+    }
 
-		shu:meta:help +a usage -u
+    shu:meta:help +a usage -u
 
-		(( $#usage )) && {
-			print -rl >&2 -- "${(@)usage}" ||
-			ret=$?
-		}
+    (( $#usage )) && {
+      print -rl - >&2 "${(@)usage}" ||
+      ret=$?
+    }
 
-		return ret
-		;;
+    return ret
+    ;;
 esac
 
 shu::panic

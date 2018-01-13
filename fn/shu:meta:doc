@@ -33,27 +33,27 @@ local -a __lines __doc
 local -A __ansi=( "${(@kv)SHU_ANSI}" )
 
 while getopts :a:cCr __opt; do
-	case $__opt in
-		# Assign result to array
-		'+a')
-			(( ${(P)+OPTARG} )) ||
-			shu::panic "No such array: ${OPTARG}"
-			[[ "${(Pt)OPTARG}-" == array-* ]] ||
-			shu::panic "No such array: ${OPTARG}"
+  case $__opt in
+    # Assign result to array
+    +a)
+      (( ${(P)+OPTARG} )) ||
+      shu::panic "No such array: ${OPTARG}"
+      [[ "${(Pt)OPTARG}-" == array-* ]] ||
+      shu::panic "No such array: ${OPTARG}"
 
-			__to_array=$OPTARG
-			;;
-		# Enable ANSI formatting
-		'+c') __ansi=( "${(@kv)SHU_ANSI_ACTIVE}" ) ;;
-		# Disable ANSI formatting
-		'+C') __ansi=( "${(@kv)SHU_ANSI_INACTIVE}" ) ;;
-		# Return raw/unformatted lines
-		'r') __raw=1 ;;
-		# Errors
-		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-		*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
-	esac
+      __to_array=$OPTARG
+      ;;
+    # Enable ANSI formatting
+    +c) __ansi=( "${(@kv)SHU_ANSI_ACTIVE}" ) ;;
+    # Disable ANSI formatting
+    +C) __ansi=( "${(@kv)SHU_ANSI_INACTIVE}" ) ;;
+    # Return raw/unformatted lines
+    r) __raw=1 ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+  esac
 done
 
 shift $(( OPTIND - 1 ))
@@ -64,52 +64,51 @@ shift $(( OPTIND - 1 ))
 ___fn=$1
 
 (( $+functions[$___fn] )) && [[ ! -e $___fn ]] && {
-	shu:meta:fnpath +s ___fn $___fn
-	(( $#___fn )) || return 1
+  shu:meta:fnpath +s ___fn $___fn
+  (( $#___fn )) || return 1
 }
 
 if [[ $___fn == *.zwc/* ]] && [[ -e ${___fn/.zwc\///} ]]; then
-	___fn=${___fn/.zwc\///}
+  ___fn=${___fn/.zwc\///}
 elif [[ $___fn == *.zwc ]] && [[ -e ${___fn:r} ]]; then
-	___fn=${___fn:r}
+  ___fn=${___fn:r}
 elif [[ ! -e $___fn ]]; then
-	return 1
+  return 1
 fi
 
 __lines=( "${(@f)mapfile[$___fn]:-}" )
 
 for __line in "${(@)__lines}"; do
-	[[ -n $__last ]] || {
-		[[ $__line == [[:space:]]#\#\# ]] || continue
-		__last=$__line
-		(( __raw )) && __doc+=( $__line )
-		continue
-	}
+  [[ -n $__last ]] || {
+    [[ $__line == [[:space:]]#\#\# ]] || continue
+    __last=$__line
+    (( __raw )) && __doc+=( $__line )
+    continue
+  }
 
-	[[ $__line == [[:space:]]#\#(|\ *) ]] || break
+  [[ $__line == [[:space:]]#\#(|\ *) ]] || break
 
-	(( __raw )) && {
-		__last=$__line
-		__doc+=( $__line )
-		continue
-	}
+  (( __raw )) && {
+    __last=$__line
+    __doc+=( $__line )
+    continue
+  }
 
-	(( $#__line > 2 )) || {
-		__doc+=( '' )
-		continue
-	}
+  (( $#__line > 2 )) || {
+    __doc+=( '' )
+    continue
+  }
 
-	__line=${__line[3,-1]}
-	__line=${__line/(#m)(#s)@[^[:space:]]##/${__ansi[bold:on]}${MATCH}${__ansi[bold:off]}}
+  __line=${__line[3,-1]}
+  __line=${__line/(#m)(#s)@[^[:space:]]##/${__ansi[bold:on]}${MATCH}${__ansi[bold:off]}}
 
-	__doc+=( "${__line}" )
+  __doc+=( "${__line}" )
 done
 
 (( $#__to_array )) && {
-	: ${(PA)__to_array::="${(@)__doc}"}
-	return $(( ! $#__doc ))
+  : ${(PA)__to_array::="${(@)__doc}"}
+  return $(( ! $#__doc ))
 }
 
 (( $#__doc )) || return 1
-print -rl -- "${(@)__doc}"
-return 0
+print -rl - "${(@)__doc}"

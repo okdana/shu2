@@ -9,7 +9,7 @@
 #   (optional) Assign the result to a pre-defined array with the name <name>.
 #
 # @param $1
-#   (optional) A pattern used to restrict the results. The default is `shu:*:*`.
+#   (optional) A pattern used to restrict the results. The default is `shu:*`.
 #
 # @return 0 if matches were found, >0 otherwise.
 
@@ -17,38 +17,37 @@ local    OPTARG OPTIND __opt __to_array
 local -a __fns
 
 while getopts :a: __opt; do
-	case $__opt in
-		# Assign result to array
-		'+a')
-			(( ${(P)+OPTARG} )) ||
-			shu::panic "No such array: ${OPTARG}"
-			[[ "${(Pt)OPTARG}-" == array-* ]] ||
-			shu::panic "No such array: ${OPTARG}"
+  case $__opt in
+    # Assign result to array
+    +a)
+      (( ${(P)+OPTARG} )) ||
+      shu::panic "No such array: ${OPTARG}"
+      [[ "${(Pt)OPTARG}-" == array-* ]] ||
+      shu::panic "No such array: ${OPTARG}"
 
-			__to_array=$OPTARG
-			;;
-		# Errors
-		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-		*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
-	esac
+      __to_array=$OPTARG
+      ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+  esac
 done
 
 shift $(( OPTIND - 1 ))
 
 (( $# > 1 )) && shu::panic 'Too many arguments'
 
-: ${1:='shu:*:*'}
+: ${1:='shu:*'}
 
 __fns=( ${(f)"$( typeset -f + )"} )
 
 (( $# )) && __fns=( ${(M)__fns:#${~1}} )
 
 (( $#__to_array )) && {
-	: ${(PA)__to_array::="${(@)__fns}"}
-	return $(( ! $#__fns ))
+  : ${(PA)__to_array::="${(@)__fns}"}
+  return $(( ! $#__fns ))
 }
 
 (( $#__fns )) || return 1
-print -rl -- $__fns
-return 0
+print -rl - $__fns

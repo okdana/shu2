@@ -52,32 +52,32 @@ local    OPTARG OPTIND __opt __to_scalar __quiet __tz
 local -a __args
 
 while getopts :qs:uz: __opt; do
-	case $__opt in
-		# Assign result to scalar
-		'+s')
-			(( ${(P)+OPTARG} )) ||
-			shu::panic "No such scalar: ${OPTARG}"
-			[[ "${(Pt)OPTARG}-" == scalar-* ]] ||
-			shu::panic "No such scalar: ${OPTARG}"
+  case $__opt in
+    # Assign result to scalar
+    +s)
+      (( ${(P)+OPTARG} )) ||
+      shu::panic "No such scalar: ${OPTARG}"
+      [[ "${(Pt)OPTARG}-" == scalar-* ]] ||
+      shu::panic "No such scalar: ${OPTARG}"
 
-			__to_scalar=$OPTARG
-			;;
-		# Suppress error messages
-		'q') __quiet=1 ;;
-		# UTC time zone
-		'u') __tz='UTC' ;;
-		# Custom time zone
-		'z')
-			[[ $OPTARG == *'%'* ]] &&
-			shu::panic "Invalid time zone: ${OPTARG}"
+      __to_scalar=$OPTARG
+      ;;
+    # Suppress error messages
+    q) __quiet=1 ;;
+    # UTC time zone
+    u) __tz='UTC' ;;
+    # Custom time zone
+    z)
+      [[ $OPTARG == *'%'* ]] &&
+      shu::panic "Invalid time zone: ${OPTARG}"
 
-			__tz=$OPTARG
-			;;
-		# Errors
-		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-		*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
-	esac
+      __tz=$OPTARG
+      ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+  esac
 done
 
 shift $(( OPTIND - 1 ))
@@ -88,28 +88,27 @@ shift $(( OPTIND - 1 ))
 : ${__tz:=${TZ:-}}
 
 if [[ ${${1:-}#SHU_TIME_} == FMT_[A-Z0-9_]# ]]; then
-	1="SHU_TIME_${1#SHU_TIME_}"
+  1="SHU_TIME_${1#SHU_TIME_}"
 
-	(( ${(P)+1} )) ||
-	shu::panic "No such time format: ${1:-}"
+  (( ${(P)+1} )) ||
+  shu::panic "No such time format: ${1:-}"
 
-	1=${(P)1}
+  1=${(P)1}
 
 elif [[ $0 == shu:time:strf ]] && [[ ${1:-%} != *%* ]]; then
-	shu::panic "No time specifier provided: ${1:-}"
+  shu::panic "No time specifier provided: ${1:-}"
 
 elif [[ $0 != shu:time:strf ]] && [[ ${1:-} != *%* ]]; then
-	shu::panic "No time specifier provided: ${1:-}"
+  shu::panic "No time specifier provided: ${1:-}"
 fi
 
 (( $#__quiet     )) && __args+=( -q )
 (( $#__to_scalar )) && __args+=( -s $__to_scalar )
 
 if [[ $0 == shu:time:strf ]]; then
-	__args+=( -- ${1:-${SHU_TIME_FMT_STD_A}} ${2:-${EPOCHSECONDS}} )
+  __args+=( -- ${1:-${SHU_TIME_FMT_STD_A}} ${2:-${EPOCHSECONDS}} )
 else
-	__args+=( -r -- $1 $2 )
+  __args+=( -r -- $1 $2 )
 fi
 
 TZ=$__tz builtin strftime $__args
-return $?

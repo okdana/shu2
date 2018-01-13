@@ -38,27 +38,27 @@ local __default __prompt __reply
 local -a __vrb_opts
 
 while getopts :ns:v:y __opt; do
-	case $__opt in
-		# Assign result to scalar
-		+s)
-			(( ${(P)+OPTARG} )) ||
-			shu::panic "No such scalar: ${OPTARG}"
-			[[ "${(Pt)OPTARG}-" == scalar-* ]] ||
-			shu::panic "No such scalar: ${OPTARG}"
+  case $__opt in
+    # Assign result to scalar
+    +s)
+      (( ${(P)+OPTARG} )) ||
+      shu::panic "No such scalar: ${OPTARG}"
+      [[ "${(Pt)OPTARG}-" == scalar-* ]] ||
+      shu::panic "No such scalar: ${OPTARG}"
 
-			__to_scalar=$OPTARG
-			;;
-		# Pass verbosity options to `shu:io:puts`
-		+v) __vrb_opts+=( ${(z)OPTARG} ) ;;
-		# Default to 'no'
-		n) __default=no ;;
-		# Default to 'yes'
-		y) __default=yes ;;
-		# Errors
-		:)  shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-		\?) shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-		*)  shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
-	esac
+      __to_scalar=$OPTARG
+      ;;
+    # Pass verbosity options to `shu:io:puts`
+    +v) __vrb_opts+=( ${(z)OPTARG} ) ;;
+    # Default to 'no'
+    n) __default=no ;;
+    # Default to 'yes'
+    y) __default=yes ;;
+    # Errors
+    :)  shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    \?) shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)  shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+  esac
 done
 
 shift $(( OPTIND - 1 ))
@@ -67,8 +67,8 @@ shift $(( OPTIND - 1 ))
 : ${1:='Continue?'}
 
 case $__default in
-	no)  1+=" ${SHU_ANSI[dim:on]}[no]${SHU_ANSI[dim:off]}" ;;
-	yes) 1+=" ${SHU_ANSI[dim:on]}[yes]${SHU_ANSI[dim:off]}" ;;
+  no)  1+=" ${SHU_ANSI[dim:on]}[no]${SHU_ANSI[dim:off]}" ;;
+  yes) 1+=" ${SHU_ANSI[dim:on]}[yes]${SHU_ANSI[dim:off]}" ;;
 esac
 
 1=$( shu:io:putf $__vrb_opts '%s ' $1 )
@@ -77,27 +77,27 @@ esac
 setopt local_options no_auto_list menu_complete
 
 for (( ;; )); do
-	__reply=
+  __reply=
 
-	if [[ -t 0 ]]; then
-		vared -ehp "${1}" __reply || return 2
-	else
-		print -rn - $1
-		read -r __reply
-		print -r - $__reply
-	fi
+  if [[ -t 0 ]]; then
+    vared -ehp "${1}" __reply || return 2
+  else
+    print -rn - $1
+    read -r __reply
+    print -r - $__reply
+  fi
 
-	__reply=${__reply//((#s)[[:space:]]##|[[:space:]]##(#e))/}
-	: ${__reply:=${__default}}
+  __reply=${__reply//((#s)[[:space:]]##|[[:space:]]##(#e))/}
+  : ${__reply:=${__default}}
 
-	[[ $__reply == (#i)(n(|o*)|y(|es*)) ]] && {
-		(( $#__to_scalar )) && : ${(P)__to_scalar::=${__reply}}
-		[[ $__reply == [Yy]* ]] && return 0
-		return 1
-	}
+  [[ $__reply == (#i)(n(|o*)|y(|es*)) ]] && {
+    (( $#__to_scalar )) && : ${(P)__to_scalar::=${__reply}}
+    [[ $__reply == [Yy]* ]] && return 0
+    return 1
+  }
 
-	[[ -n $__reply ]] &&
-	shu:io:eputf $__vrb_opts 'Unrecognised input: %s\n' $__reply
+  [[ -n $__reply ]] &&
+  shu:io:eputf $__vrb_opts 'Unrecognised input: %s\n' $__reply
 done
 
 return 0

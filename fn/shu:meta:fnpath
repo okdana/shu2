@@ -16,24 +16,24 @@
 #
 # @return 0 if file path was found, >0 otherwise.
 
-local OPTARG OPTIND __opt __to_scalar __path __ret
+local OPTARG OPTIND __opt __to_scalar __path
 
 while getopts :s: __opt; do
-	case $__opt in
-		# Assign result to scalar
-		'+s')
-			(( ${(P)+OPTARG} )) ||
-			shu::panic "No such scalar: ${OPTARG}"
-			[[ "${(Pt)OPTARG}-" == scalar-* ]] ||
-			shu::panic "No such scalar: ${OPTARG}"
+  case $__opt in
+    # Assign result to scalar
+    +s)
+      (( ${(P)+OPTARG} )) ||
+      shu::panic "No such scalar: ${OPTARG}"
+      [[ "${(Pt)OPTARG}-" == scalar-* ]] ||
+      shu::panic "No such scalar: ${OPTARG}"
 
-			__to_scalar=$OPTARG
-			;;
-		# Errors
-		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-		*)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
-	esac
+      __to_scalar=$OPTARG
+      ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+  esac
 done
 
 shift $(( OPTIND - 1 ))
@@ -47,15 +47,12 @@ autoload +X -Uz $1 &> /dev/null
 
 __path=${"$( whence -v $1 )"#* is a shell function from }
 
-[[ $__path == /* ]] || {
-	__path=
-	 __ret=1
-}
+[[ $__path == /* ]] || __path=
 
 (( $#__to_scalar )) && {
-	: ${(P)__to_scalar::=${__path}}
-	return __ret
+  : ${(P)__to_scalar::=${__path}}
+  return $(( ! $#__path ))
 }
 
+(( $#__path )) || return 1
 print -r -- $__path
-return __ret
