@@ -91,7 +91,7 @@ for p in $provider; do
 
 	[[ -n $pa[3] ]] &&
 	[[ $fn == *:*:eput* ]] &&
-	pa[3]="${pa[3]%%[^[:space:]]*}${SHU_ARGZERO_TAIL}: ${pa[3]##[[:space:]]##}"
+	pa[3]="${pa[3]%%[^[:space:]]*}${SHU_SCRIPT_NAME}: ${pa[3]##[[:space:]]##}"
 
 	@assert -d "Behaves as expected ${like} given verbosity ${pa[2]}" \
 		-e "${pa[3]}" -eq \
