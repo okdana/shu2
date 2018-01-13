@@ -1,7 +1,7 @@
 # vim: set ft=zsh:
 
 ##
-# Return the file path associated with an auto-loadable shu function.
+# Get the file path associated with a function.
 #
 # The specified function will be auto-loaded if necessary.
 #
@@ -12,7 +12,7 @@
 # @param +s <name>
 #   (optional) Assign the result to a pre-defined scalar with the name <name>.
 #
-# @param $1 The shu function name. Must be a shu function.
+# @param $1 The name of a function to look up the path for.
 #
 # @return 0 if file path was found, >0 otherwise.
 
@@ -41,7 +41,7 @@ shift $(( OPTIND - 1 ))
 (( $# < 1 )) && shu::panic 'Too few arguments'
 (( $# > 1 )) && shu::panic 'Too many arguments'
 
-[[ $1 == shu:*:* ]] || shu::panic "Not a shu function: ${1:--}"
+(( $+functions[$1] )) || shu::panic "No such function: ${1:--}"
 
 autoload +X -Uz $1 &> /dev/null
 

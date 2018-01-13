@@ -68,7 +68,7 @@
 # @param $1
 #   (optional) The path to the source file. If the path does not contain a `/`
 #   and no such file exists in the CWD, a PATH look-up is performed. If this
-#   argument is not provided at all, SHU_ARGZERO_ABS is used instead.
+#   argument is not provided at all, SHU_SCRIPT_PATH is used instead.
 #
 # @return 0 on success, >0 on error.
 
@@ -112,17 +112,20 @@ done
 
 shift $(( OPTIND - 1 ))
 
-(( $#     )) || 1=$SHU_ARGZERO_ABS
 (( $# > 1 )) && shu::panic 'Too many arguments'
 
-[[ $1 != */* ]] &&
-[[ ! -e $1 ]] &&
-1=${commands[$1]:-}
+if (( ! $# )); then
+	1=$SHU_SCRIPT_PATH
+	__name=$SHU_SCRIPT_NAME
+elif [[ $1 != */* ]] && [[ ! -e $1 ]]; then
+	1=${commands[$1]:-}
+fi
 
 [[ -e $1 ]] || return 1
 
+: ${__name:=${1:t}}
+
 __lines=( "${(@f)mapfile[$1]:-}" )
- __name=${1:t}
  __glob='[[:space:]]#\#\?[:.=?#+-](| *)'
 
 case $__only in

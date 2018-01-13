@@ -59,7 +59,7 @@ shift $(( OPTIND - 1 ))
 # on some operating systems...
 real_time=( ${(@s<.>)EPOCHREALTIME} )
 
- integer=${real_time[1]}
+  integer=${real_time[1]}
 remainder=${real_time[2]}
 
 case ${unit} in

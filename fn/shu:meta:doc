@@ -22,9 +22,8 @@
 #   (optional) Return raw (unformatted) lines.
 #
 # @param $1
-#   The path to the source file. If the path begins with `shu:` and no such file
-#   exists in the CWD, it is interpreted as the name of a shu function whose
-#   definition file should be read.
+#   The path to the source file, or the name of a function whose definition file
+#   should be looked up.
 #
 # @return 0 on success, >0 on error.
 
@@ -64,8 +63,7 @@ shift $(( OPTIND - 1 ))
 
 ___fn=$1
 
-[[ $___fn == shu:* ]] &&
-[[ ! -e $___fn ]] && {
+(( $+functions[$___fn] )) && [[ ! -e $___fn ]] && {
 	shu:meta:fnpath +s ___fn $___fn
 	(( $#___fn )) || return 1
 }

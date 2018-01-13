@@ -1,14 +1,15 @@
 # vim: set ft=zsh:
 
 ##
-# Return a list of registered shu functions.
+# Get a list of registered functions.
 #
 # @module meta
 #
 # @param +a <name>
 #   (optional) Assign the result to a pre-defined array with the name <name>.
 #
-# @param $1 (optional) The name of a module to restrict the matches to.
+# @param $1
+#   (optional) A pattern used to restrict the results. The default is `shu:*:*`.
 #
 # @return 0 if matches were found, >0 otherwise.
 
@@ -37,16 +38,11 @@ shift $(( OPTIND - 1 ))
 
 (( $# > 1 )) && shu::panic 'Too many arguments'
 
-if [[ ${1:-} == (core|:) ]]; then
-	1=:
-elif (( $# )); then
-	[[ $1 == [a-z][a-z0-9]## ]] ||
-	shu::panic "Invalid module name: ${1}"
+: ${1:='shu:*:*'}
 
-	1="${1}:"
-fi
+__fns=( ${(f)"$( typeset -f + )"} )
 
-__fns=( ${(@M)${(f)"$( typeset -f + )"}##shu:${1:-}*} )
+(( $# )) && __fns=( ${(M)__fns:#${~1}} )
 
 (( $#__to_array )) && {
 	: ${(PA)__to_array::="${(@)__fns}"}

@@ -73,7 +73,7 @@ local -a trace
 
 printf >&$SHU_FD_STDERR \
 	'%s: %sPANIC in %s!%s%s\n' \
-	$SHU_ARGZERO_TAIL \
+	$SHU_SCRIPT_NAME \
 	"${SHU_ANSI[bg:red]}${SHU_ANSI[fg:white0]}" \
 	"${caller:-(unknown)}" \
 	"${SHU_ANSI[fg:reset]}${SHU_ANSI[bg:reset]}" \
@@ -83,7 +83,7 @@ printf >&$SHU_FD_STDERR \
 (( $#trace )) && {
 	printf >&$SHU_FD_STDERR \
 		'%s: Trace-back (most recent call on top):\n' \
-		$SHU_ARGZERO_TAIL
+		$SHU_SCRIPT_NAME
 
 	for i in {1..$#trace}; do
 		printf >&$SHU_FD_STDERR \
