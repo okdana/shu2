@@ -327,17 +327,6 @@
 		typeset -gr SHU_HAS_TTY=0
 	fi
 
-	# Emulate `ZSH_ARGZERO` for versions of zsh that don't have it; this way we
-	# can leave `function_argzero` enabled without sacrificing access to the name
-	# of the actual script
-	() {
-		setopt local_options posix_argzero
-		typeset -gr \
-			SHU_ARGZERO=$0 \
-			SHU_ARGZERO_ABS=${0:A} \
-			SHU_ARGZERO_TAIL=${0:t}
-	}
-
 	# Absolute paths to the fn/ directory and digest file
 	typeset -gr    SHU_FN_DIR=${${${(%):-%N}:A}:h}/fn
 	typeset -gr SHU_FN_DIGEST=$SHU_FN_DIR.zwc
@@ -346,8 +335,21 @@
 ##
 # 'Safe' global parameters
 {
-	# Script name — may be overridden by the consumer
+	# Emulate `ZSH_ARGZERO` for versions of zsh that don't have it; this way we
+	# can leave `function_argzero` enabled without sacrificing access to the name
+	# of the actual script. Consumers should change these only in rare cases
+	() {
+		setopt local_options posix_argzero
+		typeset -g \
+			SHU_ARGZERO=$0 \
+			SHU_ARGZERO_ABS=${0:A} \
+			SHU_ARGZERO_TAIL=${0:t}
+	}
+
+	# Script name — these can be used to override the `argzero` information for
+	# things like `shu::panic` and `shu:meta:help`
 	typeset -g SHU_SCRIPT_NAME=$SHU_ARGZERO_TAIL
+	typeset -g SHU_SCRIPT_PATH=$SHU_ARGZERO_ABS
 
 	# Back-ups of standard FDs — see below
 	typeset -g SHU_FD_STDOUT=1
