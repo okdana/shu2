@@ -11,7 +11,7 @@ fast and portable) alternatives to external utilities like `date` and `sleep`.
 
 ```
 # Compile library
-% bin/shuc -q
+% bin/shu2c -q
 
 # Run example script
 % ex/hello Alice
@@ -21,17 +21,30 @@ hello: Hello, world!
 hello: Hello, Alice!
 
 # Experiment
-% bin/shu-repl
-Enter commands to evaluate. Press ^C or ^D to exit.
-
+% bin/shu2 -v shu:io:puts hello world
 >>> shu:io:puts hello world
 hello world
-<<< 0 (143 µs)
+<<< 0 (267 µs)
 
+% bin/shu2 -v shu:time:strf FMT_RSS
 >>> shu:time:strf FMT_RSS
-Sat, 25 Nov 2017 16:27:15 -0600
-<<< 0 (548 µs)
+Sat, 13 Jan 2018 02:48:30 -0600
+<<< 0 (373 µs)
+
+% bin/shu2 -v shu:time:strf FMT_BOGUS
+>>> shu:time:strf FMT_BOGUS
+shu2: PANIC in shu:time:strf()! No such time format: SHU_TIME_FMT_BOGUS
+shu2: Trace-back (most recent call on top):
+  4. shu:time:strf() @ 94
+  3. (anon) @ 0
+  2. app::main() @ 76
+  1. {bin/shu2} @ 156
+<<< 199 (703 µs)
 ```
+
+## Details
+
+Refer to the `doc/` directory for additional information.
 
 ## WARNING
 
