@@ -5,7 +5,7 @@
 #?= Interact with shu2 library features from the command line.
 #?:
 #?# usage:
-#??   ${0} -h
+#??   ${0} -h|-V
 #??   ${0} -l [<pattern>]
 #??   ${0} -H|-p <function>
 #??   ${0} [-qvtTx] [-o <param=val>] <function> [<arg> ...]
@@ -22,9 +22,9 @@
 #?+   -o <param=val>  Define the value of a special parameter.
 #?+   -p              Display the path of the specified function and exit.
 #?+   -q              Decrease output verbosity.
-#?+   -v              Increase output verbosity.
 #?+   -t, -x          Enable function xtrace (like `typeset -t`).
 #?+   -T, -X          Enable function xtrace (like `typeset -T`).
+#?+   -v              Increase output verbosity.
 #?+   -V              Display version information and exit.
 #?:
 #?# notes:
