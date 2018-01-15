@@ -228,7 +228,7 @@
     italic:off     $SHU_ANSI_ITALIC_OFF
     underscore:off $SHU_ANSI_UNDERSCORE_OFF
     blink:off      $SHU_ANSI_BLINK_OFF
-    reverse_off    $SHU_ANSI_REVERSE_OFF
+    reverse:off    $SHU_ANSI_REVERSE_OFF
     fg:black       $SHU_ANSI_FG_BLACK
     fg:red         $SHU_ANSI_FG_RED
     fg:green       $SHU_ANSI_FG_GREEN
