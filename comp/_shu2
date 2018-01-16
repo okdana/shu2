@@ -1,0 +1,80 @@
+#compdef shu2
+
+##
+# Wrappers around `shu2` can `compdef _shu2 <wrapper>=shu2` to make use of this
+# function for their own completion purposes.
+
+local ret=1
+local -a context line state state_descr tmp
+local -A opt_args val_args
+
+_arguments -s -S : \
+  + e \
+  '(: -)-h[display usage help]' \
+  '(: -)-V[display version information]' \
+  + m \
+  '(* -)-H[display documentation for specified function]' \
+  '(* -)-l[display functions matching specified pattern]' \
+  '(* -)-p[display definition file path for specified function]' \
+  + o \
+  '(m)*-o+[define specified parameter]: :->options' \
+  '(-t -T -x -X m)'{-t,-x}'[enable function xtrace (like `typeset -ft`)]' \
+  '(-t -T -x -X m)'{-T,-X}'[enable function xtrace (like `typeset -fT`)]' \
+  '(-v)-q[reduce output verbosity]' \
+  '(-q)-v[increase output verbosity]' \
+  '(-)1: :->funcs-pats' \
+  '(-)*: :->func-args' \
+&& ret=0
+
+case $state in
+  options)
+    if [[ $PREFIX == *=* ]]; then
+      _message 'parameter value' && ret=0
+    else
+      _values -ws= parameter \
+        SHU_ANSI \
+        SHU_ANSI_ENABLE \
+        SHU_ARGZERO \
+        SHU_ARGZERO_ABS \
+        SHU_ARGZERO_TAIL \
+        SHU_DEBUG \
+        SHU_FD_STDOUT \
+        SHU_FD_STDERR \
+        SHU_PANIC_IGNORE \
+        SHU_PANIC_TRACE \
+        SHU_SCRIPT_NAME \
+        SHU_SCRIPT_PATH \
+        SHU_VERBOSITY \
+      && ret=0
+    fi
+    ;;
+  funcs-pats)
+    if [[ -n ${opt_args[(i)m--l]} ]]; then
+      _message pattern && ret=0
+    else
+      tmp=( ${${(f)"$( _call_program functions $words[1] -l )"}//:/\\:} )
+      if (( $#tmp )); then
+        _values function $tmp && ret=0
+      else
+        _message function && ret=0
+      fi
+    fi
+    ;;
+  func-args)
+    tmp=( ${(M)${(z)${${(M)${(f)"$(
+      _call_program function-args $words[1] -H $line[1]
+    )"}:#@param [+-]*}//[<>,]/ }}:#[+-]?} )
+
+    if (( $#tmp )); then
+      _alternative \
+        "arguments:function option:( ${(j< >)${(@q-)tmp}} )" \
+        'files:function argument:_files' \
+      && ret=0
+    else
+      _description arguments tmp 'function argument'
+      _files "${(@)tmp}" && ret=0
+    fi
+    ;;
+esac
+
+return ret
