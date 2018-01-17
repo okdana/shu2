@@ -106,23 +106,23 @@ shift $(( OPTIND - 1 ))
 
 case $0 in
   shu:io:putf)
-    printf - "${@}"
+    printf -- "${@}"
     return
     ;;
   shu:io:eputf)
     [[ -n $* ]] || return 0
-    printf - >&2 "${${${SHU_SCRIPT_NAME}//\%/%%}//\\/\\\\}: ${1}" "${@:2}"
+    printf -- >&2 "${${${SHU_SCRIPT_NAME}//\%/%%}//\\/\\\\}: ${1}" "${@:2}"
     return
     ;;
   shu:io:uputf)
     [[ -n $* ]] && {
-      printf - "${@}" || ret=$?
+      printf -- "${@}" || ret=$?
     }
 
     shu:meta:help +a usage -u
 
     (( $#usage )) && {
-      print -rl - >&2 "${(@)usage}" ||
+      print -rl -- >&2 "${(@)usage}" ||
       ret=$?
     }
 

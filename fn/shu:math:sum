@@ -29,7 +29,7 @@ done
 
 # Normal context
 (( nctx )) && {
-	printf '%s\n' ${sum%.}
+	print -r -- ${sum%.}
 	return 0
 }
 # Arithmetic context

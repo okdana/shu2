@@ -43,10 +43,11 @@ shift $(( OPTIND - 1 ))
 
 (( $+functions[$1] )) || shu::panic "No such function: ${1:--}"
 
-autoload +X -Uz $1 &> /dev/null
+autoload +X -Uz -- $1 &> /dev/null
 
-__path=${"$( whence -v $1 )"#* is a shell function from }
+__path=${"$( whence -v -- $1 )"#* is a shell function from }
 
+__path=${__path:a}
 [[ $__path == /* ]] || __path=
 
 (( $#__to_scalar )) && {

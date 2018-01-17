@@ -83,4 +83,4 @@ esac
 	return
 }
 
-printf '%s\n' $integer
+print -r -- $integer

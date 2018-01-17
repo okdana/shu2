@@ -64,7 +64,7 @@ shift $(( OPTIND - 1 ))
 ___fn=$1
 
 (( $+functions[$___fn] )) && [[ ! -e $___fn ]] && {
-  shu:meta:fnpath +s ___fn $___fn
+  shu:meta:fnpath +s ___fn -- $___fn
   (( $#___fn )) || return 1
 }
 
@@ -111,4 +111,4 @@ done
 }
 
 (( $#__doc )) || return 1
-print -rl - "${(@)__doc}"
+print -rl -- "${(@)__doc}"

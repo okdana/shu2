@@ -75,5 +75,5 @@ result=( "${(@)result//#${~glob}/}" )
 [[ $mode == [ar] ]] &&
 result=( "${(@)result//%${~glob}/}" )
 
-printf '%s\n' "${result[@]}"
+print -rl -- "${result[@]}"
 return $?

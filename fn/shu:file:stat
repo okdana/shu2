@@ -119,7 +119,7 @@ fi
 
 : ${__time_fmt:=${SHU_TIME_FMT_STD_A}}
 
-zstat -norH __assoc -F $__time_fmt $__utc_opt $__file || return $?
+zstat -norH __assoc -F $__time_fmt $__utc_opt -- $__file || return $?
 
 __assoc[dev]=${__assoc[device]}
 __assoc[ino]=${__assoc[inode]}
@@ -158,8 +158,8 @@ shu::panic "No such field: ${__field}"
 }
 
 (( $#__field )) && {
-  print -r - ${__assoc[$__field]}
+  print -r -- ${__assoc[$__field]}
   return
 }
 
-print -rlo - ${(f)"$( print -rC2 -- "${(@k)__assoc}" "${(@)__assoc}" )"}
+print -rlo -- ${(f)"$( print -rC2 -- "${(@k)__assoc}" "${(@)__assoc}" )"}

@@ -31,7 +31,7 @@ done
 
 # Normal context
 (( nctx )) && {
-	printf '%s\n' $min
+	print -r -- $min
 	return 0
 }
 # Arithmetic context

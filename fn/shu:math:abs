@@ -26,7 +26,7 @@
 		[[ $1 == ${~SHU_PAT_MATH_NUM} ]] ||
 		shu::panic "Invalid arithmetic argument: ${1}"
 
-		printf '%s\n' ${1#-}
+		print -r -- ${1#-}
 		shift
 	done
 

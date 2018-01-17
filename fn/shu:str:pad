@@ -74,7 +74,7 @@ shift
 for s in "${@}"; do
 	(( ! $#truncate )) &&
 	(( $#s >= len   )) && {
-		printf '%s\n' $s
+		print -r -- $s
 		continue
 	}
 
@@ -89,9 +89,9 @@ for s in "${@}"; do
 	fi
 
 	if [[ $side == r ]]; then
-		printf '%s\n' "${(pr<$len><$c>)s}"
+		print -r -- "${(pr<$len><$c>)s}"
 	else
-		printf '%s\n' "${(pl<$len><$c>)s}"
+		print -r -- "${(pl<$len><$c>)s}"
 	fi
 done
 return $?

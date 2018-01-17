@@ -55,9 +55,9 @@ while getopts :ns:v:y __opt; do
     # Default to 'yes'
     y) __default=yes ;;
     # Errors
-    :)  shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-    \?) shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-    *)  shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
   esac
 done
 
@@ -82,9 +82,9 @@ for (( ;; )); do
   if [[ -t 0 ]]; then
     vared -ehp "${1}" __reply || return 2
   else
-    print -rn - $1
+    print -rn -- $1
     read -r __reply
-    print -r - $__reply
+    print -r -- $__reply
   fi
 
   __reply=${__reply//((#s)[[:space:]]##|[[:space:]]##(#e))/}

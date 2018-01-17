@@ -161,7 +161,7 @@ shift $(( OPTIND - 1 ))
 
 case $0 in
   shu:io:puts)
-    print -r - "${(l<$indent>< >):-}${(j< >)@}"
+    print -r -- "${(l<$indent>< >):-}${(j< >)@}"
     return
     ;;
   shu:io:eputs)
@@ -169,12 +169,12 @@ case $0 in
       print >&2
       return
     }
-    printf >&2 "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}"
+    printf -- >&2 "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}"
     return
     ;;
   shu:io:uputs)
     [[ -n $* ]] && {
-      printf >&2 "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}" ||
+      printf -- >&2 "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}" ||
       ret=$?
     }
 
@@ -182,7 +182,7 @@ case $0 in
 
     (( $#usage )) && {
       usage=( "${(@)usage//(#s)/${(l<$indent>< >):-}}" )
-      print -rl - >&2 "${(@)usage}" ||
+      print -rl -- >&2 "${(@)usage}" ||
       ret=$?
     }
 

@@ -50,4 +50,4 @@ __fns=( ${(f)"$( typeset -f + )"} )
 }
 
 (( $#__fns )) || return 1
-print -rl - $__fns
+print -rl -- $__fns

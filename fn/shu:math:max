@@ -31,7 +31,7 @@ done
 
 # Normal context
 (( nctx )) && {
-	printf '%s\n' $max
+	printf -r -- $max
 	return 0
 }
 # Arithmetic context
