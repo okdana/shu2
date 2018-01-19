@@ -25,7 +25,7 @@ required) to use the same style for shu2 consumer libraries and scripts.
 * Consumer-script source files SHOULD include a 'help block' comment block. The
   format/syntax of these blocks is described in the source for `shu:meta:help`.
 
-* Both 'doc block' and 'help block' comment blocks should be followed by an
+* Both 'doc block' and 'help block' comment blocks SHOULD be followed by an
   empty line.
 
 * All other comments MUST begin with a single `#` (hash) and MUST NOT be
