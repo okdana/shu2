@@ -1,7 +1,7 @@
 # shu2
 
-**shu2** (*shell-utils version 2*) is a general-purpose shell utility library
-for scripts written with [zsh](http://zsh.sourceforge.net/) 5.3+. It provides
+**shu2** (*shell-utils version 2*) is a general-purpose utility library for
+scripts written with [zsh](http://zsh.sourceforge.net/) 5.3+. It provides
 settings and functions commonly needed when writing featureful command-line
 tools. Much of the functionality it offers relates to error handling, output
 verbosity control, and string manipulation; it also provides 'native' (i.e.,
