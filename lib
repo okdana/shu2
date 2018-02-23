@@ -20,9 +20,7 @@
     -o extended_glob \
     -o local_traps \
     -o null_glob \
-    -o pipe_fail \
     -o typeset_silent \
-    -o no_unset \
     -o warn_create_global
 
   # Always enable 'native' arithmetic functions like abs()
