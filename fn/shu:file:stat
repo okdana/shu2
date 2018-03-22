@@ -49,31 +49,35 @@
 #
 # @return 0 on success, >0 on error.
 
-local    OPTARG OPTIND __opt __to_scalar __to_assoc __time_fmt __utc_opt
-local    __field __file
-local -A __assoc
+local    OPTARG OPTIND opt__ to_scalar__ to_assoc__ time_fmt__ utc_opt__
+local    field__ file__
+local -A assoc__
 
-while getopts :A:F:s:u __opt; do
-  case $__opt in
+while getopts :A:F:s:u opt__; do
+  case $opt__ in
     # Assign result to association
     +A)
       (( ${(P)+OPTARG} )) ||
       shu::panic "No such association: ${OPTARG}"
-      [[ "${(Pt)OPTARG}-" == association-* ]] ||
-      shu::panic "No such association: ${OPTARG}"
 
-       __to_assoc=$OPTARG
-      __to_scalar=
+      if [[ "${(Pt)OPTARG}-" != association-* ]] || [[ $OPTARG == *\[* ]]; then
+        shu::panic "No such association: ${OPTARG}"
+      fi
+
+       to_assoc__=$OPTARG
+      to_scalar__=
       ;;
     # Assign result to scalar
     +s)
       (( ${(P)+OPTARG} )) ||
       shu::panic "No such scalar: ${OPTARG}"
-      [[ "${(Pt)OPTARG}-" == scalar-* ]] ||
-      shu::panic "No such scalar: ${OPTARG}"
 
-       __to_assoc=
-      __to_scalar=$OPTARG
+      if [[ "${(Pt)OPTARG}-" != scalar-* ]] && [[ $OPTARG != *\[* ]]; then
+        shu::panic "No such scalar: ${OPTARG}"
+      fi
+
+       to_assoc__=
+      to_scalar__=$OPTARG
       ;;
     # Specify date/time format
     F)
@@ -85,14 +89,14 @@ while getopts :A:F:s:u __opt; do
 
         OPTARG=${(P)OPTARG}
       }
-      __time_fmt=$OPTARG
+      time_fmt__=$OPTARG
       ;;
     # UTC time zone
-    u) __utc_opt=-g ;;
+    u) utc_opt__=-g ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
     '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-    *)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)opt__}" ;;
   esac
 done
 
@@ -101,65 +105,65 @@ shift $(( OPTIND - 1 ))
 (( $# < 1 )) && shu::panic 'Too few arguments'
 (( $# > 2 )) && shu::panic 'Too many arguments'
 
-(( $# < 2 )) && (( $#__to_scalar )) && shu::panic 'Field required with +s'
+(( $# < 2 )) && (( $#to_scalar__ )) && shu::panic 'Field required with +s'
 
 if (( $# == 1 )); then
-  __file=$1
+  file__=$1
 
 else
-   __file=$2
-  __field=${${${(L)1}#+}#st_}
+   file__=$2
+  field__=${${${(L)1}#+}#st_}
 
-  case $__field in
-    device) __field=dev ;;
-    inode)  __field=ino ;;
+  case $field__ in
+    device) field__=dev ;;
+    inode)  field__=ino ;;
     '')     shu::panic 'Field required' ;;
   esac
 fi
 
-: ${__time_fmt:=${SHU_TIME_FMT_STD_A}}
+: ${time_fmt__:=${SHU_TIME_FMT_STD_A}}
 
-zstat -norH __assoc -F $__time_fmt $__utc_opt -- $__file || return $?
+zstat -norH assoc__ -F $time_fmt__ $utc_opt__ -- $file__ || return $?
 
-__assoc[dev]=${__assoc[device]}
-__assoc[ino]=${__assoc[inode]}
+assoc__[dev]=${assoc__[device]}
+assoc__[ino]=${assoc__[inode]}
 
-__assoc[mode_s]=${${${__assoc[mode]}#*\(}%\)}
-  __assoc[mode]=${${${__assoc[mode]}%% *}:2}
+assoc__[mode_s]=${${${assoc__[mode]}#*\(}%\)}
+  assoc__[mode]=${${${assoc__[mode]}%% *}:2}
 
-__assoc[atime_s]=${${${__assoc[atime]}#*\(}%\)}
-  __assoc[atime]=${__assoc[atime]%% *}
+assoc__[atime_s]=${${${assoc__[atime]}#*\(}%\)}
+  assoc__[atime]=${assoc__[atime]%% *}
 
-__assoc[ctime_s]=${${${__assoc[ctime]}#*\(}%\)}
-  __assoc[ctime]=${__assoc[ctime]%% *}
+assoc__[ctime_s]=${${${assoc__[ctime]}#*\(}%\)}
+  assoc__[ctime]=${assoc__[ctime]%% *}
 
-__assoc[mtime_s]=${${${__assoc[mtime]}#*\(}%\)}
-  __assoc[mtime]=${__assoc[mtime]%% *}
+assoc__[mtime_s]=${${${assoc__[mtime]}#*\(}%\)}
+  assoc__[mtime]=${assoc__[mtime]%% *}
 
-__assoc[uid_s]=${${${__assoc[uid]}#*\(}%\)}
-  __assoc[uid]=${__assoc[uid]%% *}
+assoc__[uid_s]=${${${assoc__[uid]}#*\(}%\)}
+  assoc__[uid]=${assoc__[uid]%% *}
 
-__assoc[gid_s]=${${${__assoc[gid]}#*\(}%\)}
-  __assoc[gid]=${__assoc[gid]%% *}
+assoc__[gid_s]=${${${assoc__[gid]}#*\(}%\)}
+  assoc__[gid]=${assoc__[gid]%% *}
 
-unset -v '__assoc[device]' '__assoc[inode]'
+unset -v 'assoc__[device]' 'assoc__[inode]'
 
-(( $#__field && ! ${+__assoc[$__field]} )) &&
-shu::panic "No such field: ${__field}"
+(( $#field__ && ! ${+assoc__[$field__]} )) &&
+shu::panic "No such field: ${field__}"
 
-(( $#__to_scalar )) && {
-  : ${(P)__to_scalar::=${__assoc[$__field]}}
+(( $#to_scalar__ )) && {
+  : ${(P)to_scalar__::=${assoc__[$field__]}}
   return
 }
 
-(( $#__to_assoc )) && {
-  : ${(PAA)__to_assoc::="${(@kv)__assoc}"}
+(( $#to_assoc__ )) && {
+  : ${(PAA)to_assoc__::="${(@kv)assoc__}"}
   return
 }
 
-(( $#__field )) && {
-  print -r -- ${__assoc[$__field]}
+(( $#field__ )) && {
+  print -r -- ${assoc__[$field__]}
   return
 }
 
-print -rlo -- ${(f)"$( print -rC2 -- "${(@k)__assoc}" "${(@)__assoc}" )"}
+print -rlo -- ${(f)"$( print -rC2 -- "${(@k)assoc__}" "${(@)assoc__}" )"}

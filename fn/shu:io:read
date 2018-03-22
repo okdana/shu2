@@ -25,23 +25,25 @@
 #
 # @return 0 on success, >0 on error.
 
-local    OPTARG OPTIND __opt __strip_nl __to_scalar __ret
-local -a __tmp
+local    OPTARG OPTIND opt__ strip_nl__ to_scalar__ ret__
+local -a tmp__
 
-while getopts :ns: __opt; do
-  case $__opt in
+while getopts :ns: opt__; do
+  case $opt__ in
     # Strip new-lines
     n|+n)
-      __strip_nl=1
+      strip_nl__=1
       ;;
     # Assign result to scalar
     +s)
       (( ${(P)+OPTARG} )) ||
       shu::panic "No such scalar: ${OPTARG}"
-      [[ "${(Pt)OPTARG}-" == scalar-* ]] ||
-      shu::panic "No such scalar: ${OPTARG}"
 
-      __to_scalar=$OPTARG
+      if [[ "${(Pt)OPTARG}-" != scalar-* ]] && [[ $OPTARG != *\[* ]]; then
+        shu::panic "No such scalar: ${OPTARG}"
+      fi
+
+      to_scalar__=$OPTARG
       ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
@@ -54,29 +56,29 @@ shift $(( OPTIND - 1 ))
 
 (( $# )) && shu::panic 'Too many arguments'
 
-[[ -n $__to_scalar ]] || {
-  (( __strip_nl )) && shu::panic 'Option +s required with +n'
+[[ -n $to_scalar__ ]] || {
+  (( strip_nl__ )) && shu::panic 'Option +s required with +n'
 
   while sysread -s 65535 -o1; do
-    __ret=$?
-    (( __ret == 5 )) && __ret=0
+    ret__=$?
+    (( ret__ == 5 )) && ret__=0
   done
 
-  return __ret
+  return ret__
 }
 
 # This is very sensitive to the precise method we use to store each pass;
-# seemingly trivial changes (such as using __tmp[idx++] instead) can have
+# seemingly trivial changes (such as using tmp__[idx++] instead) can have
 # significant performance costs!
-while sysread -s 65535 '__tmp[(#__tmp + 1)]'; do
-  __ret=$?
-  (( __ret == 5 )) && ret=0
+while sysread -s 65535 'tmp__[(#tmp__ + 1)]'; do
+  ret__=$?
+  (( ret__ == 5 )) && ret=0
 done
 
-if (( __strip_nl )); then
-  : ${(P)__to_scalar::=${${(j<>)__tmp}%%$'\n'##}}
+if (( strip_nl__ )); then
+  : ${(P)to_scalar__::=${${(j<>)tmp__}%%$'\n'##}}
 else
-  : ${(P)__to_scalar::=${(j<>)__tmp}}
+  : ${(P)to_scalar__::=${(j<>)tmp__}}
 fi
 
-return __ret
+return ret__

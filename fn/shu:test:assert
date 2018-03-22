@@ -85,52 +85,54 @@
 #
 # @return 0 on success, >0 on failure.
 
-local    OPTARG OPTIND __opt
-local    __to_assoc __desc __no_desc __eval_cmd
-local    __show=-1 __fail_panics __quiet __compare_ret __discard_fd
-local    __expect __op __res __ret __pass __cmd_str __summary
-local -a __cmd
-local -A __assoc __ansi=( "${(@kv)SHU_ANSI}" )
+local    OPTARG OPTIND opt__
+local    to_assoc__ desc__ no_desc__ eval_cmd__
+local    show__=-1 fail_panics__ quiet__ compare_ret__ discard_fd__
+local    expect__ op__ res__ ret__ pass__ cmd_str__ summary__
+local -a cmd__
+local -A assoc__ ansi__=( "${(@kv)SHU_ANSI}" )
 
-while getopts :A:Cd:DeFpPqrsS __opt; do
-  case $__opt in
+while getopts :A:Cd:DeFpPqrsS opt__; do
+  case $opt__ in
     # Assign result to association
     +A)
       (( ${(P)+OPTARG} )) ||
       shu::panic "No such association: ${OPTARG}"
-      [[ "${(Pt)OPTARG}-" == association-* ]] ||
-      shu::panic "No such association: ${OPTARG}"
 
-       __to_assoc=$OPTARG
+      if [[ "${(Pt)OPTARG}-" != association-* ]] || [[ $OPTARG == *\[* ]]; then
+        shu::panic "No such association: ${OPTARG}"
+      fi
+
+       to_assoc__=$OPTARG
       ;;
     # Enable ANSI formatting
-    +c) __ansi=( "${(@kv)SHU_ANSI_ACTIVE}" ) ;;
+    +c) ansi__=( "${(@kv)SHU_ANSI_ACTIVE}" ) ;;
     # Disable ANSI formatting
-    +C) __ansi=( "${(@kv)SHU_ANSI_INACTIVE}" ) ;;
+    +C) ansi__=( "${(@kv)SHU_ANSI_INACTIVE}" ) ;;
     # Set assertion description
-    d) __desc=$OPTARG ;;
+    d) desc__=$OPTARG ;;
     # Use automatic assertion description
-    D) __no_desc=1 ;;
+    D) no_desc__=1 ;;
     # Treat $3 as `eval` string
-    e) __eval_cmd=1 ;;
+    e) eval_cmd__=1 ;;
     # Show PASS/FAIL on fail only
-    F) __show=0 ;;
+    F) show__=0 ;;
     # Panic on assertion failure
-    p) __fail_panics=1 ;;
+    p) fail_panics__=1 ;;
     # Show PASS/FAIL on pass only
-    P) __show=1 ;;
+    P) show__=1 ;;
     # Decrease output verbosity
-    q) __quiet=-q ;;
+    q) quiet__=-q ;;
     # Treat $1 as return code
-    r) __compare_ret=1 ;;
+    r) compare_ret__=1 ;;
     # Discard stderr
-    s) __discard_fd=2 ;;
+    s) discard_fd__=2 ;;
     # Discard stdout
-    S) __discard_fd=1 ;;
+    S) discard_fd__=1 ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
     '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-    *)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)opt__}" ;;
   esac
 done
 
@@ -138,47 +140,47 @@ shift $(( OPTIND - 1 ))
 
 (( $# >= 3 )) || shu::panic 'Too few arguments'
 
-__expect=$1
-    __op=$2
-   __cmd=( "${@:3}" )
+expect__=$1
+    op__=$2
+   cmd__=( "${@:3}" )
 
-(( __compare_ret )) && {
-  [[ $__expect == $~SHU_PAT_MATH_INT_POS ]] || {
+(( compare_ret__ )) && {
+  [[ $expect__ == $~SHU_PAT_MATH_INT_POS ]] || {
     if \
-      (( ${(P)+__expect} )) &&
-      [[ "${(Pt)__expect}-" == scalar-* ]] &&
-      [[ ${(P)__expect} == $~SHU_PAT_MATH_INT_POS ]]
+      (( ${(P)+expect__} )) &&
+      [[ "${(Pt)expect__}-" == scalar-* ]] &&
+      [[ ${(P)expect__} == $~SHU_PAT_MATH_INT_POS ]]
     then
-      __expect=${(P)__expect}
+      expect__=${(P)expect__}
     else
-      shu::panic "Not a valid return code: ${__expect}"
+      shu::panic "Not a valid return code: ${expect__}"
     fi
   }
 
-  (( __expect > 255 )) &&
-  shu::panic "Not a valid return code: ${__expect}"
+  (( expect__ > 255 )) &&
+  shu::panic "Not a valid return code: ${expect__}"
 }
 
-case $__op in
-  (-|)eq|'='|'==')   __op='eq' ;;
-  (-|)ne|'!='|'<>')  __op='ne' ;;
-  (-|)gl(|ob)|'~')   __op='gl' ;;
-  (-|)re(|gex)|'=~') __op='re' ;;
-  (-|)le|'<='|'=<')  __op='le' ;;
-  (-|)lt|'<')        __op='lt' ;;
-  (-|)ge|'>='|'=>')  __op='ge' ;;
-  (-|)gt|'>')        __op='gt' ;;
-  *) shu::panic "Illegal operator: ${__op}" ;;
+case $op__ in
+  (-|)eq|'='|'==')   op__='eq' ;;
+  (-|)ne|'!='|'<>')  op__='ne' ;;
+  (-|)gl(|ob)|'~')   op__='gl' ;;
+  (-|)re(|gex)|'=~') op__='re' ;;
+  (-|)le|'<='|'=<')  op__='le' ;;
+  (-|)lt|'<')        op__='lt' ;;
+  (-|)ge|'>='|'=>')  op__='ge' ;;
+  (-|)gt|'>')        op__='gt' ;;
+  *) shu::panic "Illegal operator: ${op__}" ;;
 esac
 
-[[ $__op == [gl][et] ]] &&
-(( ! __compare_ret )) &&
-shu::panic "Operator -${__op} can only be used with return codes"
+[[ $op__ == [gl][et] ]] &&
+(( ! compare_ret__ )) &&
+shu::panic "Operator -${op__} can only be used with return codes"
 
-__res=$(
-  if (( __discard_fd == 2 )); then
+res__=$(
+  if (( discard_fd__ == 2 )); then
     exec 2> /dev/null
-  elif (( __discard_fd == 1 )); then
+  elif (( discard_fd__ == 1 )); then
     exec {fd}>&1
     exec 1> /dev/null
     exec 2>&$fd
@@ -191,67 +193,67 @@ __res=$(
   SHU_PANIC_IGNORE=1
    SHU_PANIC_TRACE=0
 
-  if (( __eval_cmd )); then
-    eval "${(j< >)__cmd}"
+  if (( eval_cmd__ )); then
+    eval "${(j< >)cmd__}"
   else
-    "${(@)__cmd}"
+    "${(@)cmd__}"
   fi
 )
-__ret=$?
+ret__=$?
 
-(( $#__to_assoc )) && {
-  __assoc[return]=$__ret
-  __assoc[result]=$__res
+(( $#to_assoc__ )) && {
+  assoc__[return]=$ret__
+  assoc__[result]=$res__
 }
 
-(( __compare_ret )) && __res=$__ret
+(( compare_ret__ )) && res__=$ret__
 
 {
-  case $__op in
-    eq) [[ $__expect == $__res     ]] && __pass=1 ;;
-    ne) [[ $__expect != $__res     ]] && __pass=1 ;;
-    gl) [[ $__res    == $~__expect ]] && __pass=1 ;;
-    re) [[ $__res    =~ $__expect  ]] && __pass=1 ;;
-    le) (( __expect  <= __res      )) && __pass=1 ;;
-    lt) (( __expect  <  __res      )) && __pass=1 ;;
-    ge) (( __expect  >= __res      )) && __pass=1 ;;
-    gt) (( __expect  >  __res      )) && __pass=1 ;;
+  case $op__ in
+    eq) [[ $expect__ == $res__     ]] && pass__=1 ;;
+    ne) [[ $expect__ != $res__     ]] && pass__=1 ;;
+    gl) [[ $res__    == $~expect__ ]] && pass__=1 ;;
+    re) [[ $res__    =~ $expect__  ]] && pass__=1 ;;
+    le) (( expect__  <= res__      )) && pass__=1 ;;
+    lt) (( expect__  <  res__      )) && pass__=1 ;;
+    ge) (( expect__  >= res__      )) && pass__=1 ;;
+    gt) (( expect__  >  res__      )) && pass__=1 ;;
   esac
 } always {
   # Explode if we received a bad glob or regex pattern
-  (( TRY_BLOCK_ERROR )) && shu::panic "Error in pattern: ${__expect}"
+  (( TRY_BLOCK_ERROR )) && shu::panic "Error in pattern: ${expect__}"
 }
 
-if (( __eval_cmd )); then
-  __cmd_str="${(j< >)__cmd}"
+if (( eval_cmd__ )); then
+  cmd_str__="${(j< >)cmd__}"
 else
-  __cmd_str="${(j< >)${(@q-)__cmd}}"
+  cmd_str__="${(j< >)${(@q-)cmd__}}"
 fi
 
-__summary="\`${__cmd_str}\`: ${(q-)__expect} -${__op} ${(q-)__res}"
+summary__="\`${cmd_str__}\`: ${(q-)expect__} -${op__} ${(q-)res__}"
 
-(( $#__to_assoc )) && {
-         __assoc[pass]=${__pass:-0}
-     __assoc[expected]=$__expect
-     __assoc[operator]=$__op
-      __assoc[command]=$__cmd_str
-  __assoc[description]=$__desc
-      __assoc[summary]=$__summary
+(( $#to_assoc__ )) && {
+         assoc__[pass]=${pass__:-0}
+     assoc__[expected]=$expect__
+     assoc__[operator]=$op__
+      assoc__[command]=$cmd_str__
+  assoc__[description]=$desc__
+      assoc__[summary]=$summary__
 
-  : ${(PAA)__to_assoc::="${(@kv)__assoc}"}
+  : ${(PAA)to_assoc__::="${(@kv)assoc__}"}
 }
 
-(( __no_desc )) && __desc=$__summary
+(( no_desc__ )) && desc__=$summary__
 
-(( __pass )) && {
-  (( __show == -1 || __show == __pass )) &&
-  shu:io:putf $__quiet '%s[PASS]%s %s\n' \
-    "${__ansi[fg:green]}" "${__ansi[fg:reset]}" $__desc
+(( pass__ )) && {
+  (( show__ == -1 || show__ == pass__ )) &&
+  shu:io:putf $quiet__ '%s[PASS]%s %s\n' \
+    "${ansi__[fg:green]}" "${ansi__[fg:reset]}" $desc__
   return 0
 }
 
-(( __show == -1 || __show == __pass )) &&
-shu:io:putf $__quiet '%s[FAIL]%s %s\n' \
-  "${__ansi[fg:red]}" "${__ansi[fg:reset]}" $__desc
-(( __fail_panics )) && shu::panic 'Assertion failed'
+(( show__ == -1 || show__ == pass__ )) &&
+shu:io:putf $quiet__ '%s[FAIL]%s %s\n' \
+  "${ansi__[fg:red]}" "${ansi__[fg:reset]}" $desc__
+(( fail_panics__ )) && shu::panic 'Assertion failed'
 return 1

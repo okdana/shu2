@@ -38,8 +38,10 @@ while getopts :a:cCr __opt; do
     +a)
       (( ${(P)+OPTARG} )) ||
       shu::panic "No such array: ${OPTARG}"
-      [[ "${(Pt)OPTARG}-" == array-* ]] ||
-      shu::panic "No such array: ${OPTARG}"
+
+      if [[ "${(Pt)OPTARG}-" != array-* ]] || [[ $OPTARG == *\[* ]]; then
+        shu::panic "No such array: ${OPTARG}"
+      fi
 
       __to_array=$OPTARG
       ;;
