@@ -14,7 +14,7 @@
 # `shu:io:puts -v -v` both print when the verbosity level is VERBOSE2 or higher,
 # but `shu:io:puts -v1v` and `shu:io:puts -vvvqv` do not.
 #
-# It not is possible to specify a verbosity level outside the bounds of the
+# It is not possible to specify a verbosity level outside the bounds of the
 # predefined `SHU_VERBOSITY_*` constants — `shu:io:puts -vvvvvvvv` has the same
 # effect as `shu:io:puts -vvvvv`.
 #
@@ -34,6 +34,10 @@
 #
 # @param -a
 #   (optional) Always print, regardless of the current verbosity level.
+#
+# @param -l
+#   (optional) Print each string on a separate line instead of concatenating by
+#   spaces. Indentation and script-name prefixing is applied to each line.
 #
 # @param -n
 #   (optional) Print only if the current verbosity level is `N0` (normal) or
@@ -79,16 +83,15 @@
 #
 # @param $1 ...
 #   (optional) Zero or more strings to print. Multiple strings are concatenated
-#   by spaces prior to being passed to `print` or `printf`. Empty arguments are
-#   **not** elided.
+#   by spaces unless `-l` is given. Empty arguments are **not** elided.
 #
 # @return According to `print` or `printf`.
 
 local    OPTARG OPTIND opt last_opt last_num_optind
-local    indent cmp=$SHU_VERBOSITY_N0 op='<=' trap_ret=-1 exact ret
-local -a usage
+local    indent cmp=$SHU_VERBOSITY_N0 op='<=' concat=1 trap_ret=-1 exact ret
+local -a msg usage
 
-while getopts :0123456789anNqQrR:vVxX opt; do
+while getopts :0123456789alnNqQrR:vVxX opt; do
   # Clauses here are ordered roughly according to frequency of use
   case $opt in
     v|V)
@@ -125,6 +128,7 @@ while getopts :0123456789anNqQrR:vVxX opt; do
       indent+=$opt
       last_num_optind=$OPTIND
       ;;
+    l) concat=0 ;;
     r)
       case $0 in
         shu:io:puts)  trap_ret=$SHU_EX_OK ;;
@@ -159,23 +163,30 @@ trap "return ${trap_ret}" EXIT
 
 shift $(( OPTIND - 1 ))
 
+msg=( "${@}" )
+(( concat )) && msg=( "${(j< >)msg}" )
+
 case $0 in
   shu:io:puts)
-    print -r -- "${(l<$indent>< >):-}${(j< >)@}"
+    printf "${(l<$indent>< >):-}%s\n" "${(@)msg}"
     return
     ;;
+
   shu:io:eputs)
     [[ -n $* ]] || {
       print >&2
       return
     }
-    printf -- >&2 "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}"
+
+    msg=( "${(@)msg/(#s)/$SHU_SCRIPT_NAME: }" )
+    printf -- >&2 "${(l<$indent>< >):-}%s\n" "${(@)msg}"
     return
     ;;
+
   shu:io:uputs)
     [[ -n $* ]] && {
-      printf -- >&2 "${(l<$indent>< >):-}%s: %s\n" $SHU_SCRIPT_NAME "${(j< >)@}" ||
-      ret=$?
+      msg=( "${(@)msg/(#s)/$SHU_SCRIPT_NAME: }" )
+      printf -- >&2 "${(l<$indent>< >):-}%s\n" "${(@)msg}" || ret=$?
     }
 
     shu:meta:help +a usage -u
