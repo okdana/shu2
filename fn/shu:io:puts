@@ -37,7 +37,8 @@
 #
 # @param -l
 #   (optional) Print each string on a separate line instead of concatenating by
-#   spaces. Indentation and script-name prefixing is applied to each line.
+#   spaces. Indentation and script-name prefixing is applied to each line
+#   (except for blank lines, which are left as-is).
 #
 # @param -n
 #   (optional) Print only if the current verbosity level is `N0` (normal) or
@@ -87,7 +88,7 @@
 #
 # @return According to `print` or `printf`.
 
-local    OPTARG OPTIND opt last_opt last_num_optind
+local    OPTARG OPTIND MATCH MBEGIN MEND opt last_opt last_num_optind
 local    indent cmp=$SHU_VERBOSITY_N0 op='<=' concat=1 trap_ret=-1 exact ret
 local -a msg usage
 
@@ -168,7 +169,10 @@ msg=( "${@}" )
 
 case $0 in
   shu:io:puts)
-    printf "${(l<$indent>< >):-}%s\n" "${(@)msg}"
+    (( indent )) &&
+    msg=( "${(@)msg/(#m)(#s)?*/${(l<$indent>< >):-}${MATCH}}" )
+
+    print -rl -- "${(@)msg}"
     return
     ;;
 
@@ -178,15 +182,21 @@ case $0 in
       return
     }
 
-    msg=( "${(@)msg/(#s)/$SHU_SCRIPT_NAME: }" )
-    printf -- >&2 "${(l<$indent>< >):-}%s\n" "${(@)msg}"
+    msg=( "${(@)msg/(#m)(#s)?*/$SHU_SCRIPT_NAME: $MATCH}" )
+    (( indent )) &&
+    msg=( "${(@)msg/(#m)(#s)?*/${(l<$indent>< >):-}${MATCH}}" )
+
+    print -rl -- >&2 "${(@)msg}"
     return
     ;;
 
   shu:io:uputs)
     [[ -n $* ]] && {
-      msg=( "${(@)msg/(#s)/$SHU_SCRIPT_NAME: }" )
-      printf -- >&2 "${(l<$indent>< >):-}%s\n" "${(@)msg}" || ret=$?
+      msg=( "${(@)msg/(#m)(#s)?*/$SHU_SCRIPT_NAME: $MATCH}" )
+      (( indent )) &&
+      msg=( "${(@)msg/(#m)(#s)?*/${(l<$indent>< >):-}${MATCH}}" )
+
+      print -rl -- >&2 "${(@)msg}" || ret=$?
     }
 
     shu:meta:help +a usage -u
