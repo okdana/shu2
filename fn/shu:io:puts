@@ -65,6 +65,14 @@
 # @param -R <ret>
 #   (optional) Like `-r`, but set the trap to return with the status <ret>.
 #
+# @param -t
+#   (optional) Prepend a time stamp to the input. The time stamp is inserted as
+#   if it were the first positional string argument.
+#
+# @param -T <format>
+#   (optional) Like `-t`, but accepts a format string to be passed to
+#   `shu:time:strf`.
+#
 # @param -v
 #   (optional) Print only if the current verbosity level is `V1` (verbose) or
 #   *higher*. May be applied cumulatively.
@@ -88,11 +96,16 @@
 #
 # @return According to `print` or `printf`.
 
-local    OPTARG OPTIND MATCH MBEGIN MEND opt last_opt last_num_optind
-local    indent cmp=$SHU_VERBOSITY_N0 op='<=' concat=1 trap_ret=-1 exact ret
+local \
+  OPTARG OPTIND \
+  MATCH MBEGIN MEND \
+  opt last_opt last_num_optind \
+  cmp=$SHU_VERBOSITY_N0 op='<=' \
+  indent concat=1 trap_ret=-1 time exact \
+  ret
 local -a msg usage
 
-while getopts :0123456789alnNqQrR:vVxX opt; do
+while getopts :0123456789alnNqQrR:tT:vVxX opt; do
   # Clauses here are ordered roughly according to frequency of use
   case $opt in
     v|V)
@@ -146,6 +159,8 @@ while getopts :0123456789alnNqQrR:vVxX opt; do
         shu::panic "Illegal return status: ${OPTARG}"
       fi
       ;;
+    t) time=$SHU_TIME_FMT_STD_A ;;
+    T) time=$OPTARG ;;
     x) exact=1 ;;
     X) exact=0 ;;
     # Errors
@@ -165,6 +180,12 @@ trap "return ${trap_ret}" EXIT
 shift $(( OPTIND - 1 ))
 
 msg=( "${@}" )
+
+[[ -n $time ]] && {
+  shu:time:strf +s time $time
+  msg=( $time "${(@)msg}" )
+}
+
 (( concat )) && msg=( "${(j< >)msg}" )
 
 case $0 in
