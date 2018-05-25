@@ -82,7 +82,9 @@ for (( ;; )); do
   reply__=
 
   if [[ -t 0 ]]; then
+    trap 'return 2' SIGINT
     vared -ehp "${1}" reply__ || return 2
+    trap - SIGINT
   else
     print -rn -- $1
     read -r reply__
