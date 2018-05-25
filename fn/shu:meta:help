@@ -75,7 +75,7 @@
 local    OPTARG OPTIND MATCH MBEGIN MEND
 local    opt__ to_array__ raw__ only__ exp_vname__=-1
 local    name__ glob__ limit_glob__ line_raw__ line__ last__ syn_sp__
-local -a lines__ help__
+local -a lines__ help__ cmd__
 local -A ansi__=( "${(@kv)SHU_ANSI}" )
 
 while getopts :a:cCnNruvV opt__; do
@@ -225,6 +225,20 @@ for line_raw__ in "${(@)lines__}"; do
    last__=$line_raw__
   help__+=( "${line__}" )
 done
+
+[[ $only__ == version ]] && {
+  case 1 in
+    $+commands[sha1sum])  cmd__=( sha1sum ) ;;
+    $+commands[gsha1sum]) cmd__=( gsha1sum ) ;;
+    $+commands[sha1])     cmd__=( sha1 -r ) ;;
+    $+commands[shasum])   cmd__=( shasum -a1 ) ;;
+  esac
+
+  (( $#cmd__ )) && {
+    help__+=( '' )
+    help__+=( "(SHA1: ${"$( $cmd__ -- $SHU_SCRIPT_PATH )"%%[[:space:]]*})" )
+  }
+}
 
 (( $#to_array__ )) && {
   : ${(PA)to_array__::="${(@)help__}"}
