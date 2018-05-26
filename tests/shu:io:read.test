@@ -6,31 +6,31 @@
 fn=${0:t:r}
 
 @assert -d 'Returns 0 by default' \
-	-er 0 -eq \
-	'${fn} <<< foo'
+  -er 0 -eq \
+  '${fn} <<< foo'
 @assert -d 'Prints back to stdout by default' \
-	-e foo -eq \
-	'${fn} <<< foo'
+  -e foo -eq \
+  '${fn} <<< foo'
 @assert -d 'Leaves trailing new-lines intact by default' \
-	-e 4 -eq \
-	's=; ${fn} +ss <<< foo; print $#s'
+  -e 4 -eq \
+  's=; ${fn} +ss <<< foo; print $#s'
 @assert -d 'Strips trailing new-lines given option -n' \
-	-e 3 -eq \
-	's=; ${fn} +ss -n <<< foo; print $#s'
+  -e 3 -eq \
+  's=; ${fn} +ss -n <<< foo; print $#s'
 @assert -d 'Strips trailing new-lines given option +n' \
-	-e 3 -eq \
-	's=; ${fn} +nss <<< foo; print $#s'
+  -e 3 -eq \
+  's=; ${fn} +nss <<< foo; print $#s'
 
 @assert -d 'Panics when -n given without +s' \
-	-er SHU_EX_PANIC -eq \
-	'${fn} -n <<< foo'
+  -er SHU_EX_PANIC -eq \
+  '${fn} -n <<< foo'
 
-@assert -d 'Panics with too many arguments' \
-	-r SHU_EX_PANIC -eq \
-	$fn x
+@assert -d 'Panics with too many operands' \
+  -r SHU_EX_PANIC -eq \
+  $fn x
 
 for p in -Y +Y; do
-	@assert -d "Panics with illegal option ${p}" \
-		-r SHU_EX_PANIC -eq \
-		$fn $p
+  @assert -d "Panics with illegal option $p" \
+    -r SHU_EX_PANIC -eq \
+    $fn $p
 done

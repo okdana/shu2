@@ -6,45 +6,45 @@
 fn=${0:t:r}
 
 msleep() {
-	local a b ret=0
+  local a b ret=0
 
-	a=$SECONDS
-	shu:time:sleep "${@}" || ret=$?
-	b=$SECONDS
+  a=$SECONDS
+  shu:time:sleep "${@}" || ret=$?
+  b=$SECONDS
 
-	printf '%d\n' $(( (b - a) * 1000 ))
-	return ret
+  printf '%d\n' $(( (b - a) * 1000 ))
+  return ret
 }
 
 # ms!args
 provider=(
-	'<0-5000>!0'
-	'<0-5000>!0.1'
-	'<0-5500>!0.1s 0.1'
-	'<0-5000>!0.001m 0.1'
-	'<0-5000>!0.00001h 0.1'
+  '<0-5000>!0'
+  '<0-5000>!0.1'
+  '<0-5500>!0.1s 0.1'
+  '<0-5000>!0.001m 0.1'
+  '<0-5000>!0.00001h 0.1'
 )
 
 for p in $provider; do
-	pa=( "${(@s<!>)p}" )
+  pa=( "${(@s<!>)p}" )
 
-	if [[ -n $pa[2] ]]; then
-		paa=( "${(@z)pa[2]}" )
-	else
-		paa=( )
-	fi
+  if [[ -n $pa[2] ]]; then
+    paa=( "${(@z)pa[2]}" )
+  else
+    paa=( )
+  fi
 
-	@assert -d "Behaves as expected with argument(s) ${(j< >)${(@qq)paa}}" \
-		-e "${pa[1]}" -gl \
-		msleep $paa
+  @assert -d "Behaves as expected with argument(s) ${(j< >)${(@qq)paa}}" \
+    -e "${pa[1]}" -gl \
+    msleep $paa
 done
 
-@assert -d 'Panics with too few arguments' \
-	-r SHU_EX_PANIC -eq \
-	$fn
+@assert -d 'Panics with no arguments' \
+  -r SHU_EX_PANIC -eq \
+  $fn
 
 for p in -Y +Y +v; do
-	@assert -d "Panics with illegal option ${p}" \
-		-r SHU_EX_PANIC -eq \
-		$fn $p
+  @assert -d "Panics with illegal option $p" \
+    -r SHU_EX_PANIC -eq \
+    $fn $p
 done

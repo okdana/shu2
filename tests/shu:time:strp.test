@@ -4,55 +4,55 @@
 # shu-unit tests for shu:time:strp()
 
 @assert -d "Returns 0 when format matches input" \
-	-r 0 -eq \
-	shu:time:strp %Y 1980
+  -r 0 -eq \
+  shu:time:strp %Y 1980
 @assert -d "Returns >0 when format doesn't match input" \
-	-r 1 -le \
-	shu:time:strp %Y 'Tue 1980-01-01'
+  -r 1 -le \
+  shu:time:strp %Y 'Tue 1980-01-01'
 
 @assert -d 'Supports SHU_TIME_FMT_STD_A by name' \
-	'<315000000-316000000>' -gl \
-	shu:time:strp SHU_TIME_FMT_STD_A '1980-01-01 00:00:00'
+  '<315000000-316000000>' -gl \
+  shu:time:strp SHU_TIME_FMT_STD_A '1980-01-01 00:00:00'
 @assert -d 'Supports SHU_TIME_FMT_STD_A by name (abbreviated)' \
-	'<315000000-316000000>' -gl \
-	shu:time:strp FMT_STD_A '1980-01-01 00:00:00'
+  '<315000000-316000000>' -gl \
+  shu:time:strp FMT_STD_A '1980-01-01 00:00:00'
 @assert -d 'Supports SHU_TIME_FMT_STD_B by name (abbreviated)' \
-	'<315000000-316000000>' -gl \
-	shu:time:strp FMT_STD_B 'Tue 1980-01-01 00:00:00'
+  '<315000000-316000000>' -gl \
+  shu:time:strp FMT_STD_B 'Tue 1980-01-01 00:00:00'
 @assert -d 'Supports SHU_TIME_FMT_STD_C by name (abbreviated)' \
-	'<315000000-316000000>' -gl \
-	shu:time:strp -u FMT_STD_C 'Tue 1980-01-01 00:00:00 UTC'
+  '<315000000-316000000>' -gl \
+  shu:time:strp -u FMT_STD_C 'Tue 1980-01-01 00:00:00 UTC'
 
 @assert -d 'Supports standard strftime(3) format specifiers' \
-	'<315000000-316000000>' -gl \
-	shu:time:strp '%Y . %T' '1980 . 01:00:00'
+  '<315000000-316000000>' -gl \
+  shu:time:strp '%Y . %T' '1980 . 01:00:00'
 
 @assert -d 'Supports assignment to scalar' \
-	-e '<315000000-316000000>' -gl \
-	's=; shu:time:strp +ss -u %Y 1980; print -r -- $s'
+  -e '<315000000-316000000>' -gl \
+  's=; shu:time:strp +ss -u %Y 1980; print -r -- $s'
 @assert -d 'Panics on attempted assignment to undeclared scalar' \
-	-er SHU_EX_PANIC -eq \
-	'unset s; shu:time:strp +ss %Y 1980'
+  -er SHU_EX_PANIC -eq \
+  'unset s; shu:time:strp +ss %Y 1980'
 
 @assert -d 'Panics with format string containing no specifier' \
-	-r SHU_EX_PANIC -eq \
-	shu:time:strp x 1980
+  -r SHU_EX_PANIC -eq \
+  shu:time:strp x 1980
 @assert -d 'Panics with illegal-looking time zone' \
-	-r SHU_EX_PANIC -eq \
-	shu:time:strp -z %T %Y 1980
+  -r SHU_EX_PANIC -eq \
+  shu:time:strp -z %T %Y 1980
 
 @assert -d 'Panics with no arguments' \
-	-r SHU_EX_PANIC -eq \
-	shu:time:strp
-@assert -d 'Panics with too few arguments' \
-	-r SHU_EX_PANIC -eq \
-	shu:time:strp %Y
-@assert -d 'Panics with too many arguments' \
-	-r SHU_EX_PANIC -eq \
-	shu:time:strp %Y 1980 1990
+  -r SHU_EX_PANIC -eq \
+  shu:time:strp
+@assert -d 'Panics with too few operands' \
+  -r SHU_EX_PANIC -eq \
+  shu:time:strp %Y
+@assert -d 'Panics with too many operands' \
+  -r SHU_EX_PANIC -eq \
+  shu:time:strp %Y 1980 1990
 
 for p in -Y +Y +z; do
-	@assert -d "Panics with illegal option ${p}" \
-		-r SHU_EX_PANIC -eq \
-		shu:io:puts $p
+  @assert -d "Panics with illegal option $p" \
+    -r SHU_EX_PANIC -eq \
+    shu:io:puts $p
 done

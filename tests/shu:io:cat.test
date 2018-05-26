@@ -7,46 +7,46 @@ fn=${0:t:r}
 
 # expected!verbosity!arg1s!stdin
 provider=(
-	# Basic functionality
-	$'foo\nbar!N0!!foo\nbar'
-	$'foo\nbar!N0!-!foo\nbar'
-	$'cat:^*foo*bar*!N0!file.does.not.exist!foo\nbar'
-	$'(foo\nbar\ncat:*|cat:*\nfoo\nbar)!N0!- file.does.not.exist!foo\nbar'
-	# Verbosity options
-	'!Q1!!foo'
-	'foo!V1!!foo'
-	'foo!N0!-q!foo'
-	'!N0!-v!foo'
-	'foo!V1!-v!foo'
-	'!V1!-vv!foo'
-	'foo!V5!-vv!foo'
+  # Basic functionality
+  $'foo\nbar!N0!!foo\nbar'
+  $'foo\nbar!N0!-!foo\nbar'
+  $'cat:^*foo*bar*!N0!file.does.not.exist!foo\nbar'
+  $'(foo\nbar\ncat:*|cat:*\nfoo\nbar)!N0!- file.does.not.exist!foo\nbar'
+  # Verbosity options
+  '!Q1!!foo'
+  'foo!V1!!foo'
+  'foo!N0!-q!foo'
+  '!N0!-v!foo'
+  'foo!V1!-v!foo'
+  '!V1!-vv!foo'
+  'foo!V5!-vv!foo'
 )
 
 for p in $provider; do
-	pa=( "${(@s<!>)p}" )
+  pa=( "${(@s<!>)p}" )
 
-	if [[ -n $pa[3] ]]; then
-		paa=( "${(@z)pa[3]}" )
-	else
-		paa=( )
-	fi
+  if [[ -n $pa[3] ]]; then
+    paa=( "${(@z)pa[3]}" )
+  else
+    paa=( )
+  fi
 
-	if (( $#paa )); then
-		like="with argument(s) ${(j< >)${(@qq)paa}}"
-	else
-		like='by default'
-	fi
+  if (( $#paa )); then
+    like="with argument(s) ${(j< >)${(@qq)paa}}"
+  else
+    like='by default'
+  fi
 
-	@assert -d "Behaves as expected ${like} given verbosity ${pa[2]}" \
-		-e "${pa[1]}" -gl \
-		"
-			SHU_VERBOSITY=\$SHU_VERBOSITY_${pa[2]}
-			${fn} ${(j< >)${(@qq)paa}} <<< \$'${pa[4]}'
-		"
+  @assert -d "Behaves as expected $like given verbosity ${pa[2]}" \
+    -e "${pa[1]}" -gl \
+    "
+      SHU_VERBOSITY=\$SHU_VERBOSITY_${pa[2]}
+      ${fn} ${(j< >)${(@qq)paa}} <<< \$'${pa[4]}'
+    "
 done
 
 for p in -Y +Y +v; do
-	@assert -d "Panics with illegal option ${p}" \
-		-r SHU_EX_PANIC -eq \
-		$fn $p
+  @assert -d "Panics with illegal option $p" \
+    -r SHU_EX_PANIC -eq \
+    $fn $p
 done

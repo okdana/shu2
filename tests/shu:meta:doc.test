@@ -12,41 +12,41 @@ fn=${0:t:r}
 file=${0:a}
 
 @assert -d 'Returns 0 when documentation is found' \
-	-r 0 -eq \
-	$fn $file
+  -r 0 -eq \
+  $fn $file
 @assert -d 'Returns >0 when file does not exist' \
-	-r 0 -lt \
-	$fn $file.does.not.exist
+  -r 0 -lt \
+  $fn $file.does.not.exist
 
 @assert -d 'Gives formatted documentation' \
-	"*${fn}*@1" -gl \
-	$fn $file
+  "*${fn}*@1" -gl \
+  $fn $file
 @assert -d 'Ignores subsequent documentation blocks' \
-	"^*@2*" -gl \
-	$fn $file
+  "^*@2*" -gl \
+  $fn $file
 @assert -d 'Gives raw documentation with option -r' \
-	'\#\#'$'\n'"\#*${fn}*@1" -gl \
-	$fn -r $file
+  '\#\#'$'\n'"\#*${fn}*@1" -gl \
+  $fn -r $file
 
 @assert -d 'Supports assignment to array' \
-	-e "*${fn}*@1" -gl \
-	"declare -a arr; ${fn} +a arr ${(q)file}; print -rl -- \$arr"
+  -e "*${fn}*@1" -gl \
+  "declare -a arr; $fn +a arr ${(q)file}; print -rl -- \$arr"
 @assert -d 'Supports assignment to array with option -r' \
-	-e '\#\#'$'\n'"\#*${fn}*@1" -gl \
-	"declare -a arr; ${fn} +a arr -r ${(q)file}; print -rl -- \$arr"
+  -e '\#\#'$'\n'"\#*${fn}*@1" -gl \
+  "declare -a arr; $fn +a arr -r ${(q)file}; print -rl -- \$arr"
 @assert -d 'Panics on attempted assignment to undeclared array' \
-	-er SHU_EX_PANIC -eq \
-	"unset arr; ${fn} +a arr"
+  -er SHU_EX_PANIC -eq \
+  "unset arr; $fn +a arr"
 
 @assert -d 'Panics with no arguments' \
-	-r SHU_EX_PANIC -eq \
-	$fn
-@assert -d 'Panics with too many arguments' \
-	-r SHU_EX_PANIC -eq \
-	$fn a b c
+  -r SHU_EX_PANIC -eq \
+  $fn
+@assert -d 'Panics with too many operands' \
+  -r SHU_EX_PANIC -eq \
+  $fn a b c
 
 for p in -Y +Y +v; do
-	@assert -d "Panics with illegal option ${p}" \
-		-r SHU_EX_PANIC -eq \
-		$fn $p
+  @assert -d "Panics with illegal option $p" \
+    -r SHU_EX_PANIC -eq \
+    $fn $p
 done

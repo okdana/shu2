@@ -6,32 +6,32 @@
 fn=${0:t:r}
 
 @assert -d 'Returns 0 when function path is found' \
-	-r 0 -gl \
-	$fn shu::panic
+  -r 0 -gl \
+  $fn shu::panic
 @assert -d 'Returns >0 when function path is not found' \
-	-r 0 -lt \
-	$fn shu::fakefunc
+  -r 0 -lt \
+  $fn shu::fakefunc
 
 @assert -d 'Gives path for specified module' \
-	'/*fn*/shu::panic' -gl \
-	$fn shu::panic
+  '/*fn*/shu::panic' -gl \
+  $fn shu::panic
 
 @assert -d 'Supports assignment to scalar' \
-	-e '/*fn*/shu::panic' -gl \
-	"sca=; ${fn} +s sca shu::panic; print -rl -- \$sca"
+  -e '/*fn*/shu::panic' -gl \
+  "sca=; $fn +s sca shu::panic; print -rl -- \$sca"
 @assert -d 'Panics on attempted assignment to undeclared scalar' \
-	-er SHU_EX_PANIC -eq \
-	"unset sca; ${fn} +a sca shu::panic"
+  -er SHU_EX_PANIC -eq \
+  "unset sca; $fn +a sca shu::panic"
 
-@assert -d 'Panics with too few arguments' \
-	-r SHU_EX_PANIC -eq \
-	$fn
-@assert -d 'Panics with too many arguments' \
-	-r SHU_EX_PANIC -eq \
-	$fn a b c
+@assert -d 'Panics with no arguments' \
+  -r SHU_EX_PANIC -eq \
+  $fn
+@assert -d 'Panics with too many operands' \
+  -r SHU_EX_PANIC -eq \
+  $fn a b c
 
 for p in -Y +Y +v; do
-	@assert -d "Panics with illegal option ${p}" \
-		-r SHU_EX_PANIC -eq \
-		$fn $p
+  @assert -d "Panics with illegal option $p" \
+    -r SHU_EX_PANIC -eq \
+    $fn $p
 done

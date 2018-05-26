@@ -6,82 +6,82 @@
 fn=${0:t:r}
 
 @assert -d 'Returns 0 with no arguments' \
-	-r 0 -eq \
-	$fn
+  -r 0 -eq \
+  $fn
 
 # before:options:after
 provider=(
-	# Normal
-	N0::N0
-	N0:-n:N0
-	N0:-nnn:N0
-	Q1:-n:N0
-	V1:-n:N0
-	# Quiet
-	N0:-q:Q1
-	N0:-qq:Q2
-	N0:-qqq:Q3
-	N0:-qqqq:Q4
-	N0:-qqqqq:Q5
-	N0:-qqqqqqqq:Q5
-	V1:-q:Q1
-	Q1:-q:Q2
-	Q2:-q:Q3
-	Q1:-qq:Q3
-	Q1:-qqqqqqqq:Q5
-	# Verbose
-	N0:-v:V1
-	N0:-vv:V2
-	N0:-vvv:V3
-	N0:-vvvv:V4
-	N0:-vvvvv:V5
-	N0:-vvvvvvvv:V5
-	Q1:-v:V1
-	V1:-v:V2
-	V2:-v:V3
-	V1:-vv:V3
-	V1:-vvvvvvvv:V5
-	# Exact
-	N0:-nx:N0
-	Q5:-nx:N0
-	V5:-nx:N0
-	N0:-qx:Q1
-	N0:-vx:V1
-	N0:-qqqx:Q3
-	Q1:-qqqx:Q3
-	V1:-qqqx:Q3
-	Q5:-qqqx:Q3
-	V5:-qqqx:Q3
-	Q5:-vvvx:V3
-	V5:-vvvx:V3
+  # Normal
+  N0::N0
+  N0:-n:N0
+  N0:-nnn:N0
+  Q1:-n:N0
+  V1:-n:N0
+  # Quiet
+  N0:-q:Q1
+  N0:-qq:Q2
+  N0:-qqq:Q3
+  N0:-qqqq:Q4
+  N0:-qqqqq:Q5
+  N0:-qqqqqqqq:Q5
+  V1:-q:Q1
+  Q1:-q:Q2
+  Q2:-q:Q3
+  Q1:-qq:Q3
+  Q1:-qqqqqqqq:Q5
+  # Verbose
+  N0:-v:V1
+  N0:-vv:V2
+  N0:-vvv:V3
+  N0:-vvvv:V4
+  N0:-vvvvv:V5
+  N0:-vvvvvvvv:V5
+  Q1:-v:V1
+  V1:-v:V2
+  V2:-v:V3
+  V1:-vv:V3
+  V1:-vvvvvvvv:V5
+  # Exact
+  N0:-nx:N0
+  Q5:-nx:N0
+  V5:-nx:N0
+  N0:-qx:Q1
+  N0:-vx:V1
+  N0:-qqqx:Q3
+  Q1:-qqqx:Q3
+  V1:-qqqx:Q3
+  Q5:-qqqx:Q3
+  V5:-qqqx:Q3
+  Q5:-vvvx:V3
+  V5:-vvvx:V3
 )
 
 for p in $provider; do
-	pa=( "${(@s<:>)p}" )
+  pa=( "${(@s<:>)p}" )
 
-	if [[ -n $pa[2] ]]; then
-		like="with option(s) ${pa[2]}"
-	else
-		like='by default'
-	fi
+  if [[ -n $pa[2] ]]; then
+    like="with option(s) ${pa[2]}"
+  else
+    like='by default'
+  fi
 
-	pv="SHU_VERBOSITY_${pa[3]}"
+  pv="SHU_VERBOSITY_${pa[3]}"
 
-	@assert -d "Behaves as expected ${like} given verbosity ${pa[1]}" \
-		-e -- "${(P)pv}" -eq \
-		"
-			SHU_VERBOSITY=\$SHU_VERBOSITY_${pa[1]}
-			${fn} ${pa[2]}
-			print -r -- \$SHU_VERBOSITY
-		"
+  @assert -d "Behaves as expected $like given verbosity ${pa[1]}" \
+    -e -- "${(P)pv}" -eq \
+    "
+      SHU_VERBOSITY=\$SHU_VERBOSITY_${pa[1]}
+      $fn ${pa[2]}
+      print -r -- \$SHU_VERBOSITY
+    "
 done
 
-@assert -d 'Panics with too many arguments' \
-	-r SHU_EX_PANIC -eq \
-	$fn a
+@assert -d 'Panics with too many operands' \
+  -r SHU_EX_PANIC -eq \
+  $fn a
 
 for p in -Y +Y +v; do
-	@assert -d "Panics with illegal option ${p}" \
-		-r SHU_EX_PANIC -eq \
-		$fn $p
+  @assert -d "Panics with illegal option $p" \
+    -r SHU_EX_PANIC -eq \
+    $fn $p
 done
