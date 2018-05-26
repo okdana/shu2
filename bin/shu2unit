@@ -86,9 +86,9 @@ app::main() {
           (( $+test_data[summary] )) &&
           shu:io:putf '%s%s %s%s\n' \
             "${SHU_ANSI[fg:black2]}" \
-            ${${:-[FAIL]}//?/ } \
-            ${test_data[summary]} \
-            "${SHU_ANSI[fg:reset]}"
+            "${${:-[FAIL]}//?/ }" \
+            "${test_data[summary]}" \
+            "${SHU_ANSI[reset]}"
         }
 
         (( ret += test_ret ))
@@ -105,15 +105,17 @@ app::main() {
       shu:io:putf ' ...%s %s[PASS]%s\n' \
         "${(l<$pad2><.>):-}" \
         "${SHU_ANSI[fg:green]}" \
-        "${SHU_ANSI[fg:reset]}"
+        "${SHU_ANSI[reset]}"
     elif [[ $assert_opt == -P ]] && (( test_ret )); then
       pad2=$(( pad - ${#${${t:t}%.test}} ))
       shu:io:putf ' ...%s %s[FAIL]%s\n' \
         "${(l<$pad2><.>):-}" \
         "${SHU_ANSI[fg:red]}" \
-        "${SHU_ANSI[fg:reset]}"
-    elif [[ -n $out ]]; then
+        "${SHU_ANSI[reset]}"
+    elif [[ $assert_opt == -F ]] && [[ -n $out ]]; then
       shu:io:putf '\n%s\n' ${(F)${(@)out:#*\[PASS]*}}
+    elif [[ -n $out ]]; then
+      shu:io:putf '\n%s\n' ${(F)out}
     fi
 
     tmp=${#${(@M)out#*\[PASS]}}
