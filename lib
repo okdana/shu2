@@ -349,10 +349,6 @@
   typeset -g SHU_SCRIPT_NAME=$SHU_ARGZERO_TAIL
   typeset -g SHU_SCRIPT_PATH=$SHU_ARGZERO_ABS
 
-  # Back-ups of standard FDs — see below
-  typeset -g SHU_FD_STDOUT=1
-  typeset -g SHU_FD_STDERR=2
-
   # Output verbosity level
   typeset -g SHU_VERBOSITY=$SHU_VERBOSITY_N0
 
@@ -426,9 +422,12 @@
 # Misc. set-up
 {
   # We create back-ups of these in case we need to bypass redirection later
-  # (see e.g. `shu::panic`)
-  exec {SHU_FD_STDOUT}>&1
-  exec {SHU_FD_STDERR}>&2
+  # (see e.g. `shu::panic`). We specify the descriptor numbers manually, because
+  # FDs > 9 don't persist through `<( ... )` constructs
+  typeset -g SHU_FD_STDOUT=7
+  typeset -g SHU_FD_STDERR=8
+  exec 7>&1
+  exec 8>&2
 
   # Populate SHU_ANSI array by default if we're at a TTY
   if (( SHU_ANSI_ENABLE )); then
