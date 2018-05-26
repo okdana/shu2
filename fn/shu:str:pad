@@ -41,28 +41,28 @@
 local OPTIND OPTARG OPTERR opt chars truncate side len s c
 
 while getopts ':c:ClrtT' opt; do
-	case $opt in
-		# Character(s) to pad with
-		'c') chars=$OPTARG ;;
-		# Auto-select pad character
-		'C') chars='' ;;
-		# Left-pad
-		'l') side=l ;;
-		# Right-pad
-		'r') side=r ;;
-		# Truncate if input is longer than length
-		't') truncate=1 ;;
-		# Never truncate
-		'T') truncate=0 ;;
-		# Error
-		'?') shu::panic "Invalid option: -${OPTARG}" ;;
-		':') shu::panic "Missing argument to option: -${OPTARG}" ;;
-	esac
+  case $opt in
+    # Character(s) to pad with
+    'c') chars=$OPTARG ;;
+    # Auto-select pad character
+    'C') chars='' ;;
+    # Left-pad
+    'l') side=l ;;
+    # Right-pad
+    'r') side=r ;;
+    # Truncate if input is longer than length
+    't') truncate=1 ;;
+    # Never truncate
+    'T') truncate=0 ;;
+    # Error
+    '?') shu::panic "Invalid option: -${OPTARG}" ;;
+    ':') shu::panic "Missing argument to option: -${OPTARG}" ;;
+  esac
 done
 
 shift $(( OPTIND - 1 ))
 
-(( $# )) || shu::panic 'Too few arguments'
+(( $# )) || shu::panic 'Too few operands'
 
 len=$1
 shift
@@ -72,26 +72,26 @@ shift
 (( $#len )) && len=$(( 10#$len ))
 
 for s in "${@}"; do
-	(( ! $#truncate )) &&
-	(( $#s >= len   )) && {
-		print -r -- $s
-		continue
-	}
+  (( ! $#truncate )) &&
+  (( $#s >= len   )) && {
+    print -r -- $s
+    continue
+  }
 
-	if (( $#chars )); then
-		c=$chars
-	else
-		if [[ $s == ${~SHU_PAT_MATH_NUM} ]]; then
-			c=0
-		else
-			c=' '
-		fi
-	fi
+  if (( $#chars )); then
+    c=$chars
+  else
+    if [[ $s == ${~SHU_PAT_MATH_NUM} ]]; then
+      c=0
+    else
+      c=' '
+    fi
+  fi
 
-	if [[ $side == r ]]; then
-		print -r -- "${(pr<$len><$c>)s}"
-	else
-		print -r -- "${(pl<$len><$c>)s}"
-	fi
+  if [[ $side == r ]]; then
+    print -r -- "${(pr<$len><$c>)s}"
+  else
+    print -r -- "${(pl<$len><$c>)s}"
+  fi
 done
 return $?

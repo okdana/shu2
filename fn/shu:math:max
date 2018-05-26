@@ -16,23 +16,23 @@ local max nctx
 
 [[ ${1:-} == -- ]] && shift
 
-(( $# )) || shu::panic 'Too few arguments'
+(( $# )) || shu::panic 'Too few operands'
 
 while (( $# )); do
-	(( nctx )) &&
-	[[ $1 != ${~SHU_PAT_MATH_NUM} ]] &&
-	shu::panic "Invalid arithmetic argument: ${1}"
+  (( nctx )) &&
+  [[ $1 != ${~SHU_PAT_MATH_NUM} ]] &&
+  shu::panic "Invalid arithmetic argument: ${1}"
 
-	: ${max:=$1}
+  : ${max:=$1}
 
-	(( $1 > max )) && max=$1
-	shift
+  (( $1 > max )) && max=$1
+  shift
 done
 
 # Normal context
 (( nctx )) && {
-	printf -r -- $max
-	return 0
+  printf -r -- $max
+  return 0
 }
 # Arithmetic context
 (( max ))

@@ -34,26 +34,26 @@ local    OPTARG OPTIND opt unit integer remainder places
 local -a real_time
 
 while getopts :f:mnsu opt; do
-	case $opt in
-		# Floating-point decimal places
-		f)
-			[[ $OPTARG == ${~SHU_PAT_MATH_INT_POS} ]] ||
-			shu::panic "Invalid precision value: ${OPTARG}"
+  case $opt in
+    # Floating-point decimal places
+    f)
+      [[ $OPTARG == ${~SHU_PAT_MATH_INT_POS} ]] ||
+      shu::panic "Invalid precision value: ${OPTARG}"
 
-			places=$OPTARG
-			;;
-		# Unit
-		m|n|s|u) unit=$opt ;;
-		# Errors
-		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-		*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
-	esac
+      places=$OPTARG
+      ;;
+    # Unit
+    m|n|s|u) unit=$opt ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+  esac
 done
 
 shift $(( OPTIND - 1 ))
 
-(( $# )) && shu::panic 'Too many arguments'
+(( $# )) && shu::panic 'Too many operands'
 
 # We split EPOCHREALTIME here because epochtime behaves strangely sometimes
 # on some operating systems...
@@ -63,24 +63,24 @@ real_time=( ${(@s<.>)EPOCHREALTIME} )
 remainder=${real_time[2]}
 
 case ${unit} in
-	'm')
-		 integer+=${real_time[2]:0:3}
-		remainder=${real_time[2]:3}
-		;;
-	'n')
-		 integer+=${real_time[2]:0:9}
-		remainder=${real_time[2]:9}
-		;;
-	'u')
-		 integer+=${real_time[2]:0:6}
-		remainder=${real_time[2]:6}
-		;;
+  'm')
+     integer+=${real_time[2]:0:3}
+    remainder=${real_time[2]:3}
+    ;;
+  'n')
+     integer+=${real_time[2]:0:9}
+    remainder=${real_time[2]:9}
+    ;;
+  'u')
+     integer+=${real_time[2]:0:6}
+    remainder=${real_time[2]:6}
+    ;;
 esac
 
 (( places )) &&
 (( $#remainder )) && {
-	printf '%s.%s\n' $integer ${(r<$places><0>)remainder}
-	return
+  printf '%s.%s\n' $integer ${(r<$places><0>)remainder}
+  return
 }
 
 print -r -- $integer

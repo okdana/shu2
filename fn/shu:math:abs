@@ -18,19 +18,19 @@
 
 # Normal context
 [[ $0 == shu:math:* ]] && {
-	[[ ${1:-} == -- ]] && shift
+  [[ ${1:-} == -- ]] && shift
 
-	(( $# < 1 )) && shu::panic 'Too few arguments'
+  (( $# < 1 )) && shu::panic 'Too few operands'
 
-	while (( $# )); do
-		[[ $1 == ${~SHU_PAT_MATH_NUM} ]] ||
-		shu::panic "Invalid arithmetic argument: ${1}"
+  while (( $# )); do
+    [[ $1 == ${~SHU_PAT_MATH_NUM} ]] ||
+    shu::panic "Invalid arithmetic argument: ${1}"
 
-		print -r -- ${1#-}
-		shift
-	done
+    print -r -- ${1#-}
+    shift
+  done
 
-	return 0
+  return 0
 }
 # Arithmetic context — not offered by default
 (( abs($1) ))

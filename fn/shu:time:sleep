@@ -23,7 +23,7 @@
 
 local -F csec
 
-(( $# < 1 )) && shu::panic 'Too few arguments'
+(( $# < 1 )) && shu::panic 'Too few operands'
 
 while (( $# )); do
   [[ $1 == ${~SHU_PAT_MATH_NUM_POS}(|s|m|h|d) ]] ||

@@ -77,7 +77,7 @@ local -a ver1_orig ver1 ver2
 
 [[ ${1:-} == -- ]] && shift
 
-(( $# < 2 )) && shu::panic 'Too few arguments'
+(( $# < 2 )) && shu::panic 'Too few operands'
 
 [[ $1 == ${~sep_glob}#[A-Za-z0-9]* ]] ||
 shu::panic "Illegal version: ${1:-?}"

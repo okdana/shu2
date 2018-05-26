@@ -23,7 +23,7 @@ while (( $# )); do
   esac
 done
 
-(( $# )) || shu::panic 'Too few arguments'
+(( $# )) || shu::panic 'Too few operands'
 
 shu:io:puts $opts -- "${(j< >)${(q-)@}}"
 "${@}"

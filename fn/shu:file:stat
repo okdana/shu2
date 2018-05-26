@@ -102,8 +102,8 @@ done
 
 shift $(( OPTIND - 1 ))
 
-(( $# < 1 )) && shu::panic 'Too few arguments'
-(( $# > 2 )) && shu::panic 'Too many arguments'
+(( $# < 1 )) && shu::panic 'Too few operands'
+(( $# > 2 )) && shu::panic 'Too many operands'
 
 (( $# < 2 )) && (( $#to_scalar__ )) && shu::panic 'Field required with +s'
 

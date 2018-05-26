@@ -40,8 +40,8 @@ done
 
 shift $(( OPTIND - 1 ))
 
-(( $# < 1 )) && shu::panic 'Too few arguments'
-(( $# > 1 )) && shu::panic 'Too many arguments'
+(( $# < 1 )) && shu::panic 'Too few operands'
+(( $# > 1 )) && shu::panic 'Too many operands'
 
 (( $+functions[$1] )) || shu::panic "No such function: ${1:--}"
 

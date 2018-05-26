@@ -36,6 +36,8 @@
 # by `#?-` are to be indented an additional two spaces. Hard tabs must **not**
 # be used within usage-help blocks.
 #
+# @todo The `${0}` functionality really makes a mess of things
+#
 # @module meta
 #
 # @param +a <name>
@@ -114,7 +116,7 @@ done
 
 shift $(( OPTIND - 1 ))
 
-(( $# > 1 )) && shu::panic 'Too many arguments'
+(( $# > 1 )) && shu::panic 'Too many operands'
 
 if (( ! $# )); then
   1=$SHU_SCRIPT_PATH
@@ -131,7 +133,7 @@ lines__=( "${(@f)mapfile[$1]:-}" )
  glob__='[[:space:]]#\#\?[:.=?#+-](| *)'
 
 case $only__ in
-  usage)   limit_glob__='[[:space:]]#\#\?\?(| *)' ;;
+  usage)   limit_glob__='[[:space:]]#\#\?[?.](| *)' ;;
   version) limit_glob__='[[:space:]]#\#\?.(| *)' ;;
 esac
 
@@ -146,7 +148,8 @@ for line_raw__ in "${(@)lines__}"; do
     continue
   }
 
-  (( raw__ )) && {
+  (( raw__ )) &&
+  { [[ $only__ != usage ]] || [[ $line_raw__ != [[:space:]]#'#?.'* ]] } && {
      last__=$line_raw__
     help__+=( $line_raw__ )
     continue
@@ -177,6 +180,8 @@ for line_raw__ in "${(@)lines__}"; do
         name__=${${:-${line__} v:}%% v:*}
         exp_vname__=2
       }
+      # Stop here if this is a usage line; we only wanted to parse the name
+      [[ $only__ == usage ]] && continue
       line__=${line__/(#m) v:*(#e)/ version ${MATCH[4,-1]}}
       ;;
     # Description

@@ -54,7 +54,7 @@ done
 
 shift $(( OPTIND - 1 ))
 
-(( $# )) && shu::panic 'Too many arguments'
+(( $# )) && shu::panic 'Too many operands'
 
 [[ -n $to_scalar__ ]] || {
   (( strip_nl__ )) && shu::panic 'Option +s required with +n'

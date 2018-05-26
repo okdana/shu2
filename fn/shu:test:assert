@@ -85,10 +85,11 @@
 #
 # @return 0 on success, >0 on failure.
 
-local    OPTARG OPTIND opt__
-local    to_assoc__ desc__ no_desc__ eval_cmd__
-local    show__=-1 fail_panics__ quiet__ compare_ret__ discard_fd__
-local    expect__ op__ res__ ret__ pass__ cmd_str__ summary__
+local \
+  OPTARG OPTIND opt__ \
+  to_assoc__ desc__ no_desc__ eval_cmd__ \
+  show__=-1 fail_panics__ quiet__ compare_ret__ discard_fd__ \
+  expect__ op__ res__ ret__ pass__ cmd_str__ summary__
 local -a cmd__
 local -A assoc__ ansi__=( "${(@kv)SHU_ANSI}" )
 
@@ -138,7 +139,7 @@ done
 
 shift $(( OPTIND - 1 ))
 
-(( $# >= 3 )) || shu::panic 'Too few arguments'
+(( $# >= 3 )) || shu::panic 'Too few operands'
 
 expect__=$1
     op__=$2
@@ -227,10 +228,10 @@ ret__=$?
 if (( eval_cmd__ )); then
   cmd_str__="${(j< >)cmd__}"
 else
-  cmd_str__="${(j< >)${(@q-)cmd__}}"
+  cmd_str__="${(j< >)${(@q+)cmd__}}"
 fi
 
-summary__="\`${cmd_str__}\`: ${(q-)expect__} -${op__} ${(q-)res__}"
+summary__="\`${cmd_str__}\`: ${(q+)expect__} -${op__} ${(q+)res__}"
 
 (( $#to_assoc__ )) && {
          assoc__[pass]=${pass__:-0}

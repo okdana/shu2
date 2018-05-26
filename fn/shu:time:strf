@@ -84,8 +84,8 @@ done
 
 shift $(( OPTIND - 1 ))
 
-[[ $0 != shu:time:strf ]] && (( $# < 2 )) && shu::panic 'Too few arguments'
-(( $# > 2 )) && shu::panic 'Too many arguments'
+[[ $0 != shu:time:strf ]] && (( $# < 2 )) && shu::panic 'Too few operands'
+(( $# > 2 )) && shu::panic 'Too many operands'
 
 : ${tz__:=${TZ:-}}
 

@@ -30,30 +30,30 @@ local OPTARG OPTIND opt glob c bracket hyphen mode=a
 local -a chars result
 
 while getopts ':ac:lr' opt; do
-	case $opt in
-		# Side mode
-		'a'|'l'|'r') mode=$opt ;;
-		# Character(s) to trim/collapse
-		'c')
-			if (( $#OPTARG )); then
-				for c in ${(s<>u)OPTARG}; do
-					if [[ $c == '-' ]]; then
-						hyphen='-'
-					elif [[ $c == ']' ]]; then
-						bracket=']'
-					else
-						chars+=( $c )
-					fi
-				done
-			else
-				chars=( )
-			fi
-			;;
-		# Errors
-		':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-		'?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-		*)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
-	esac
+  case $opt in
+    # Side mode
+    'a'|'l'|'r') mode=$opt ;;
+    # Character(s) to trim/collapse
+    'c')
+      if (( $#OPTARG )); then
+        for c in ${(s<>u)OPTARG}; do
+          if [[ $c == '-' ]]; then
+            hyphen='-'
+          elif [[ $c == ']' ]]; then
+            bracket=']'
+          else
+            chars+=( $c )
+          fi
+        done
+      else
+        chars=( )
+      fi
+      ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+  esac
 done
 
 shift $(( OPTIND - 1 ))
@@ -63,9 +63,9 @@ shift $(( OPTIND - 1 ))
 chars=( $bracket $chars $hyphen )
 
 if (( $#chars )); then
-	glob="[${(j<>u)chars}]##"
+  glob="[${(j<>u)chars}]##"
 else
-	glob=$'( |\f|\t|\n|\r|\v)##'
+  glob=$'( |\f|\t|\n|\r|\v)##'
 fi
 
 result=( "${@}" )

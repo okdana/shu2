@@ -16,23 +16,23 @@ local min nctx
 
 [[ ${1:-} == -- ]] && shift
 
-(( $# )) || shu::panic 'Too few arguments'
+(( $# )) || shu::panic 'Too few operands'
 
 while (( $# )); do
-	(( nctx )) &&
-	[[ $1 != ${~SHU_PAT_MATH_NUM} ]] &&
-	shu::panic "Invalid arithmetic argument: ${1}"
+  (( nctx )) &&
+  [[ $1 != ${~SHU_PAT_MATH_NUM} ]] &&
+  shu::panic "Invalid arithmetic argument: ${1}"
 
-	: ${min:=$1}
+  : ${min:=$1}
 
-	(( $1 < min )) && min=$1
-	shift
+  (( $1 < min )) && min=$1
+  shift
 done
 
 # Normal context
 (( nctx )) && {
-	print -r -- $min
-	return 0
+  print -r -- $min
+  return 0
 }
 # Arithmetic context
 (( min ))
