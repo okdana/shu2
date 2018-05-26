@@ -94,7 +94,7 @@ app::main() {
   shu::panic "No such function: ${func}"
 
   (( $#mode && $# )) &&
-  shu::panic 'Too many arguments'
+  shu::panic 'Too many operands'
 
   [[ $mode == fnpath ]] && {
     shu:meta:fnpath $func
