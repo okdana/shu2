@@ -75,15 +75,20 @@ esac
 
 1=$( shu:io:putf $vrb_opts__ '%s ' $1 )
 
-[[ -t 0 ]] &&
-setopt local_options no_auto_list menu_complete
+[[ -t 0 ]] && {
+  setopt local_options no_auto_list no_bang_hist no_beep menu_complete
+  bindkey -M ask &> /dev/null || {
+    bindkey -N ask emacs
+    bindkey -M ask '\e[3~' delete-char
+  }
+}
 
 for (( ;; )); do
   reply__=
 
   if [[ -t 0 ]]; then
     trap 'return 2' SIGINT
-    vared -ehp "${1}" reply__ || return 2
+    vared -M ask -ep "${1}" reply__ || return 2
     trap - SIGINT
   else
     print -rn -- $1
