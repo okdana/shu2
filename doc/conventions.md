@@ -34,18 +34,18 @@ This document describes conventions not strictly related to coding style.
   have been standardised:
 
   * `+a <name>` — Assign result to array `<name>`.
- 	* `+A <name>` — Assign result to association `<name>`.
- 	* `+c`        — Forcibly enable ANSI formatting.
- 	* `+C`        — Forcibly disable ANSI formatting.
- 	* `+s <name>` — Assign result to scalar `<name>`.
- 	* `+V <opts>` — Pass verbosity options `<opts>` to another function.
+  * `+A <name>` — Assign result to association `<name>`.
+  * `+c`        — Forcibly enable ANSI formatting.
+  * `+C`        — Forcibly disable ANSI formatting.
+  * `+s <name>` — Assign result to scalar `<name>`.
+  * `+V <opts>` — Pass verbosity options `<opts>` to another function.
 
- 	A `+` variant is automatically accepted by `getopts` for any given spec
- 	character; unsupported `+` variants must be caught by a `*` `case` clause (or
- 	something to that effect).
+  A `+` variant is automatically accepted by `getopts` for any given spec
+  character; unsupported `+` variants must be caught by a `*` `case` clause (or
+  something to that effect).
 
- 	Since `+`-options and `-`-options share the same spec character, it is not
- 	possible to have one that accepts an argument and one that does not.
+  Since `+`-options and `-`-options share the same spec character, it is not
+  possible to have one that accepts an argument and one that does not.
 
- 	Select option letters wisely; do not choose a `-`-option if the function could
- 	conceivably be extended some day with a conflicting `+`-option.
+  Select option letters wisely; do not choose a `-`-option if the function could
+  conceivably be extended some day with a conflicting `+`-option.
