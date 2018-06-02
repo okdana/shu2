@@ -20,11 +20,11 @@
 #   (optional) See `shu:io:puts`.
 #
 # @param $1
-#   (optional) A `printf` format string (e.g., `Hello, %s!\n`). The `*pputf`
-#   variants of the function prepend the script name to the format string, but
-#   otherwise it is taken verbatim, without adding new-lines or similar. If this
-#   argument is not supplied, an empty string will be substituted (this differs
-#   from `printf`).
+#   (optional) A `printf` format string (e.g., `Hello, %s!\n`). The `eputf` and
+#   `uputf` variants of the function prepend the script name to the format
+#   string, but otherwise it is taken verbatim, without adding new-lines or
+#   similar. If this argument is not supplied, an empty string will be
+#   substituted (this differs from `printf`).
 #
 # @param $2 ...
 #   (optional) Zero or more strings to treat as arguments to the format string.
@@ -116,14 +116,14 @@ case $0 in
     ;;
   shu:io:uputf)
     [[ -n $* ]] && {
-      printf -- "${@}" || ret=$?
+      printf -- >&2 "${${${SHU_SCRIPT_NAME}//\%/%%}//\\/\\\\}: ${1}" "${@:2}" ||
+      ret=$?
     }
 
     shu:meta:help +a usage -u
 
     (( $#usage )) && {
-      print -rl -- >&2 "${(@)usage}" ||
-      ret=$?
+      print -rl -- >&2 "${(@)usage}" || ret=$?
     }
 
     return ret
