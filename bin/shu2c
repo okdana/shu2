@@ -50,7 +50,7 @@ app::main() {
 
   shift $(( OPTIND - 1 ))
 
-  (( $# )) || argv=( ${:-${SHU_ARGZERO:A:h}/..} )
+  (( $# )) || argv=( ${SHU_ARGZERO:A:h}/.. )
 
   while (( $# )); do
     shu2=${1:A}
@@ -59,17 +59,17 @@ app::main() {
 
     shift
 
-    [[ -d $shu2 ]] || shu:io:eputs -r "No such directory: ${shu2}"
-    [[ -f $lib  ]] || shu:io:eputs -r "Missing lib file: ${lib}"
-    [[ -d $fn   ]] || shu:io:eputs -r "Missing fn directory: ${fn}"
+    [[ -d $shu2 ]] || shu:io:eputs -r "No such directory: $shu2"
+    [[ -f $lib  ]] || shu:io:eputs -r "Missing lib file: $lib"
+    [[ -d $fn   ]] || shu:io:eputs -r "Missing fn directory: $fn"
 
     lib_zwc=$lib.zwc
      fn_zwc=$fn.zwc
-     fn_fns=( $fn/*:*(-.N) )
+     fn_fns=( $fn/*:*(#q-.N) )
 
-    (( $#fn_fns )) || shu:io:eputs -r "Missing function files: ${fn}"
+    (( $#fn_fns )) || shu:io:eputs -r "Missing function files: $fn"
 
-    delete=( $lib_zwc $fn_zwc $fn/*.zwc(-.N) )
+    delete=( $lib_zwc $fn_zwc $fn/*.zwc(#q-.N) )
 
     (( $#delete )) && {
       if (( del_only && SHU_VERBOSITY >= SHU_VERBOSITY_V1 )); then
@@ -93,7 +93,7 @@ app::main() {
 }
 
 [[ $zsh_eval_context == toplevel ]] && {
-  app::main "${@}"
+  app::main "$@"
   return
 }
 return 0
