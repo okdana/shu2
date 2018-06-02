@@ -69,9 +69,9 @@ app::main() {
       t|x) xtrace=t ;;
       T|X) xtrace=T ;;
       V)   shu:meta:help -V; return 0 ;;
-      ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-      '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-      *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
+      ':') shu:io:uputs -r "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+      '?') shu:io:uputs -r "Invalid option: ${(l:2::-:)OPTARG}" ;;
+      *)   shu:io:uputs -r "Invalid option: ${(l:2::-:)opt}" ;;
     esac
   done
 
@@ -82,19 +82,19 @@ app::main() {
     return
   }
 
-  (( $# )) || shu::panic 'Expected function name'
+  (( $# )) || shu:io:uputs -r 'Expected function name'
 
   func=$1
   shift
 
   [[ $func == ${~SHU2_FNS_PATTERN} ]] ||
-  shu::panic "Unsupported function: ${func}"
+  shu:io:eputs -r "Unsupported function: ${func}"
 
   (( $+functions[$func] )) ||
-  shu::panic "No such function: ${func}"
+  shu:io:eputs -r "No such function: ${func}"
 
   (( $#mode && $# )) &&
-  shu::panic 'Too many operands'
+  shu:io:uputs -r 'Too many operands'
 
   [[ $mode == fnpath ]] && {
     shu:meta:fnpath $func
@@ -108,10 +108,10 @@ app::main() {
 
   for o in $options; do
     [[ $o == [A-Z][A-Z0-9_]##'='* ]] ||
-    shu::panic "Illegal option assignment: ${o}"
+    shu:io:eputs -r "Illegal option assignment: ${o}"
 
     [[ -v ${o%%=*} ]] ||
-    shu::panic "Unrecognised option: ${o%%=*}"
+    shu:io:eputs -r "Unrecognised option: ${o%%=*}"
 
     typeset "${o%%=*}=${o#*=}"
   done
@@ -119,7 +119,8 @@ app::main() {
   (( verbosity > 0 )) &&
   printf >&$SHU_FD_STDERR '%s>>> %s %s%s\n' \
     "${SHU_ANSI[bold:on]}" \
-    $func "${(j< >)${(q-)@}}" \
+    $func \
+    "${(j< >)${(q-)@}}" \
     "${SHU_ANSI[reset]}"
 
   start=$SECONDS
@@ -131,9 +132,9 @@ app::main() {
 
   (( verbosity > 0 )) && {
     if (( ret )); then
-      print -n - "${SHU_ANSI[fg:red]}"
+      print -n - ${SHU_ANSI[fg:red]}
     else
-      print -n - "${SHU_ANSI[fg:green]}"
+      print -n - ${SHU_ANSI[fg:green]}
     fi
 
     printf '<<< %s (%d µs)' $ret $(( (end - start) * 1_000_000 ))
@@ -146,14 +147,14 @@ app::main() {
       printf ' [%s]' "${(j< >)${(f)"$( typeset -p reply_assoc )"}#typeset -A }"
     fi
 
-    print - "${SHU_ANSI[reset]}"
+    print - ${SHU_ANSI[reset]}
   } >&$SHU_FD_STDERR
 
   return ret
 }
 
 [[ $zsh_eval_context == toplevel ]] && {
-  app::main "${@}"
+  app::main "$@"
   return
 }
 return 0
