@@ -13,7 +13,7 @@
 # This function uses `SHU_FD_STDERR` to bypass any redirection of `stderr` which
 # might have taken place since the script was started.
 #
-# Panics send `SIGTERM` to the parent shell instance to ensure that it exits.
+# Panics send `SIGHUP` to the parent shell instance to ensure that it exits.
 #
 # @module core
 #
