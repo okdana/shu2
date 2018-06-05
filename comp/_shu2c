@@ -1,0 +1,8 @@
+#compdef shu2c
+
+_arguments -s -S : \
+  '(: -)-h[display usage help]' \
+  '(: -)-V[display version information]' \
+  '(-q -v)-q[reduce output verbosity]' \
+  '(-q -v)-v[increase output verbosity]' \
+  '-r[delete compiled files only]'
