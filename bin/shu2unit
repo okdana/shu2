@@ -1,12 +1,33 @@
 #!/usr/bin/env zsh
 
-##
-# This script is used to run unit tests.
-#
-# Usage examples:
-#   % shu-unit tests/
+#?. shu2 test runner v:0.0.1
+#?:
+#?= Run shu2 unit tests.
+#?:
+#?# usage:
+#??   ${0} -h|-V
+#??   ${0} [-qv] <test> ...
+#?:
+#?# operands:
+#?+   <test> ...  Zero or more paths to shu2 unit-test files, or directories
+#?+               containing such files ending in a `.test` extension.
+#?:
+#?# options:
+#?+   -h  Display this usage help and exit.
+#?+   -q  Reduce output verbosity.
+#?+   -v  Increase output verbosity.
+#?:
+#?# notes:
+#?:   This script, and the tests it was written to execute, were rather hastily
+#?:   devised. In the future the test system may be completely redesigned.
 
-source "${0:A:h}/../lib"
+if (( $+functions[shu::noop] )); then
+  : # Library already loaded
+elif [[ -e ${0:A:h}/../lib ]]; then
+  source ${0:A:h}/../lib || return 166
+else
+  source /usr/local/lib/shu2/lib || return 166
+fi
 
 app::main() {
   local     OPTARG OPTIND MATCH MBEGIN MEND
@@ -14,19 +35,15 @@ app::main() {
   local     t i ret test_ret tmp passed failed total pad pad2
   local -aU tests out
 
-  while getopts :qv opt; do
+  while getopts :hqvV opt; do
     case $opt in
-      # Decrease output verbosity
-      'q') shu:io:setvrb -q ;;
-      # Increase output verbosity
-      'v')
-          shu:io:setvrb -n
-          assert_opt=
-          ;;
-      # Errors
-      ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-      '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-      *)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+      h)   shu:meta:help; return 0 ;;
+      V)   shu:meta:help -V; return 0 ;;
+      q)   shu:io:setvrb -q ;;
+      v)   shu:io:setvrb -n; assert_opt= ;;
+      ':') shu:io:uputs -r "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+      '?') opt=$OPTARG ;&
+      *)   shu:io:uputs -r "Invalid option: ${(l:2::-:)opt}" ;;
     esac
   done
 
@@ -40,6 +57,7 @@ app::main() {
       continue
     }
 
+    # Don't resolve symlinks — we want to allow tests under different names
     t=${t:a}
 
     [[ -d $t ]] && {
@@ -58,8 +76,7 @@ app::main() {
   pad=${${(On)${${${tests:t}%.test}//(#m)*/$MEND}}[1]}
 
   for t in $tests; do
-    grep -qswF @assert $t &&
-    [[ "$( file -b $t 2> /dev/null )" == *text* ]] || {
+    grep -qswF @assert $t || {
       shu:io:eputs -q "Not a valid test file: ${t}"
       ret=1
       continue
@@ -150,5 +167,8 @@ app::main() {
   return ret
 }
 
-app::main "${@}"
-return $?
+[[ $zsh_eval_context == toplevel ]] && {
+  app::main "$@"
+  return
+}
+return 0

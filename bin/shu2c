@@ -1,24 +1,24 @@
 #!/usr/bin/env zsh
 
-#?. shu2 compiler v:0.1
+#?. shu2 compiler v:0.0.1
 #?:
 #?= Recompile shu2 digest files.
 #?:
 #?# usage:
-#??   ${0} -h
+#??   ${0} -h|-V
 #??   ${0} [-qv] [-r] [<dir> ...]
 #?:
 #?# operands:
-#?+   <dir> ...  Directories containing the shu library to compile. If not
-#?+              specified, the library directory containing the script (often
-#?+              /usr/local/shu2) will be used instead.
+#?+   <dir> ...  Zero or more directories containing the shu2 (or consumer)
+#?+              library to compile. If not specified, the library directory
+#?+              containing the script (often /usr/local/shu2) will be used.
 #?:
 #?# options:
-#?+   -h         Display this usage help and exit.
-#?+   -q         Decrease output verbosity.
-#?+   -r         Delete compiled files only; do not recompile.
-#?+   -v         Increase output verbosity (effective only with -r).
-#?+   -V         Display version information and exit.
+#?+   -h  Display this usage help and exit.
+#?+   -V  Display version information and exit.
+#?+   -q  Reduce output verbosity.
+#?+   -v  Increase output verbosity (effective only with -r).
+#?+   -r  Delete compiled files only; do not recompile.
 
 if (( $+functions[shu::noop] )); then
   : # Library already loaded
@@ -34,17 +34,14 @@ app::main() {
 
   while getopts :hqrvV opt; do
     case $opt in
-      h) shu:meta:help; return 0 ;;
-      q) shu:io:setvrb -q ;;
-      r) del_only=1 ;;
-      v) shu:io:setvrb -v ;;
-      V) shu:meta:help -V; return 0 ;;
-      ':')
-        shu:io:uputs -ar "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-      '?')
-        shu:io:uputs -ar "Invalid option: ${(l:2::-:)OPTARG}" ;;
-      *)
-        shu:io:uputs -ar "Invalid option: ${(l:2::-:)opt}" ;;
+      h)   shu:meta:help; return 0 ;;
+      V)   shu:meta:help -V; return 0 ;;
+      q)   shu:io:setvrb -q ;;
+      v)   shu:io:setvrb -v ;;
+      r)   del_only=1 ;;
+      ':') shu:io:uputs -ar "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+      '?') opt=$OPTARG ;&
+      *)   shu:io:uputs -ar "Invalid option: ${(l:2::-:)opt}" ;;
     esac
   done
 
@@ -86,7 +83,7 @@ app::main() {
 
     shu:io:puts "${fn_zwc}:"
     zcompile -t $fn_zwc | shu:io:cat
-    (( $? )) && return 1
+    (( $pipestatus[1] )) && return 1
   done
 
   return 0

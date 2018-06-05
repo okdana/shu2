@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-#?. shu2 front-end utility v:0.1
+#?. shu2 front-end utility v:0.0.1
 #?:
 #?= Interact with shu2 library features from the command line.
 #?:
@@ -8,24 +8,24 @@
 #??   ${0} -h|-V
 #??   ${0} -l [<pattern>]
 #??   ${0} -H|-p <function>
-#??   ${0} [-qvtTx] [-o <param=val>] <function> [<arg> ...]
+#??   ${0} [-qvtT] [-o <param=val>] <function> [<arg> ...]
 #?:
 #?# operands:
-#?+   <pattern>       A pattern with which to limit `-l` output.
-#?+   <function>      The name of a shu2/consumer function.
-#?+   <arg> ...       Zero or more arguments to the function.
+#?+   <pattern>   A pattern with which to limit `-l` output.
+#?+   <function>  The name of a shu2/consumer function.
+#?+   <arg> ...   Zero or more arguments to the named function.
 #?:
 #?# options:
 #?+   -h              Display this usage help and exit.
+#?+   -V              Display version information and exit.
+#?+   -q              Reduce output verbosity.
+#?+   -v              Increase output verbosity.
 #?+   -H              Display documentation for the specified function and exit.
 #?+   -l              List all shu2/consumer functions and exit.
 #?+   -o <param=val>  Define the value of a special parameter.
 #?+   -p              Display the path of the specified function and exit.
-#?+   -q              Decrease output verbosity.
 #?+   -t, -x          Enable function xtrace (like `typeset -t`).
 #?+   -T, -X          Enable function xtrace (like `typeset -T`).
-#?+   -v              Increase output verbosity.
-#?+   -V              Display version information and exit.
 #?:
 #?# notes:
 #?:   The parameters `reply_scalar`, `reply_array`, and `reply_assoc` are made
@@ -60,17 +60,17 @@ app::main() {
   while getopts :hHlo:pqtTvxXV opt; do
     case $opt in
       h)   shu:meta:help; return 0 ;;
+      V)   shu:meta:help -V; return 0 ;;
+      q)   verbosity=-1 ;;
+      v)   verbosity=1 ;;
       H)   mode=doc ;;
       l)   mode=fns ;;
       o)   options+=( $OPTARG ) ;;
       p)   mode=fnpath ;;
-      q)   verbosity=-1 ;;
-      v)   verbosity=1 ;;
       t|x) xtrace=t ;;
       T|X) xtrace=T ;;
-      V)   shu:meta:help -V; return 0 ;;
       ':') shu:io:uputs -r "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-      '?') shu:io:uputs -r "Invalid option: ${(l:2::-:)OPTARG}" ;;
+      '?') opt=$OPTARG ;&
       *)   shu:io:uputs -r "Invalid option: ${(l:2::-:)opt}" ;;
     esac
   done
