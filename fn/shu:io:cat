@@ -69,7 +69,7 @@ while getopts :anNqQvVxX opt; do
     X) exact=0 ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    '?') opt=$OPTARG ;&
     *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
   esac
   last_opt=$opt
@@ -84,5 +84,4 @@ shift $(( OPTIND - 1 ))
   shu:io:read
   return
 }
-cat -- "${@}"
-return
+cat -- "$@"

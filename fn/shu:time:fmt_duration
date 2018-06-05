@@ -1,5 +1,7 @@
 # vim: set ft=zsh:
 
+# @todo WARNING: This function is untested
+
 ##
 # Convert a duration given in (milli/micro)seconds to hh:mm:ss format.
 #
@@ -29,30 +31,31 @@
 local OPTIND OPTARG OPTERR opt ss places
 local -F divisor=1.0 input
 
-while getopts ':f:msu' opt; do
+while getopts :f:msu opt; do
   case $opt in
     # Output fractional seconds
-    'f')
-      [[ $OPTARG == ${~SHU_PAT_ASCII_DIGIT} ]] ||
-      shu::panic "Invalid precision value: ${OPTARG}"
+    f)
+      [[ $OPTARG == $~SHU_PAT_ASCII_DIGIT ]] ||
+      shu::panic "Invalid precision value: $OPTARG"
 
       places=$OPTARG
       ;;
     # Millisecond input
-    'm')
+    m)
       divisor=1000.0
       ;;
     # Second input
-    's')
+    s)
       divisor=1.0
       ;;
     # Microsecond input
-    'u')
+    u)
       divisor=1_000_000.0
       ;;
-    # Error
-    '?') shu::panic "Invalid option: -${OPTARG}" ;;
-    ':') shu::panic "Missing argument to option: -${OPTARG}" ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') opt=$OPTARG ;&
+    *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
   esac
 done
 
@@ -61,20 +64,19 @@ shift $(( OPTIND - 1 ))
 (( $# < 1 )) && shu::panic 'Too few operands'
 (( $# > 1 )) && shu::panic 'Too many operands'
 
-[[ $1 == ${~SHU_PAT_MATH_NUM_POS} ]] ||
-shu::panic "Invalid operand: ${1}"
+[[ $1 == $~SHU_PAT_MATH_NUM_POS ]] || shu::panic "Invalid operand: $1"
 
 input=$(( $1 / divisor ))
 
 [[ $input == *.* ]] && {
-  ss=".${input##*.}"
+  ss=.${input##*.}
 
   if [[ -n $places ]] && (( places == 0 )); then
     ss=''
   elif [[ -n $places ]]; then
     ss=".${(r.$places..0.)${ss:1:$places}}"
   else
-    ss="${ss%%0##}"
+    ss=${ss%%0##}
     [[ $ss == . ]] && ss=''
   fi
 }

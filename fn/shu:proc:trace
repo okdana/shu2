@@ -25,5 +25,5 @@ done
 
 (( $# )) || shu::panic 'Too few operands'
 
-shu:io:puts $opts -- "${(j< >)${(q-)@}}"
-"${@}"
+shu:io:puts $opts -- "${(j< >)${(q+)@}}"
+"$@"

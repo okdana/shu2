@@ -58,10 +58,10 @@ while getopts :A:F:s:u opt__; do
     # Assign result to association
     +A)
       (( ${(P)+OPTARG} )) ||
-      shu::panic "No such association: ${OPTARG}"
+      shu::panic "No such association: $OPTARG"
 
       if [[ "${(Pt)OPTARG}-" != association-* ]] || [[ $OPTARG == *\[* ]]; then
-        shu::panic "No such association: ${OPTARG}"
+        shu::panic "No such association: $OPTARG"
       fi
 
        to_assoc__=$OPTARG
@@ -70,10 +70,10 @@ while getopts :A:F:s:u opt__; do
     # Assign result to scalar
     +s)
       (( ${(P)+OPTARG} )) ||
-      shu::panic "No such scalar: ${OPTARG}"
+      shu::panic "No such scalar: $OPTARG"
 
       if [[ "${(Pt)OPTARG}-" != scalar-* ]] && [[ $OPTARG != *\[* ]]; then
-        shu::panic "No such scalar: ${OPTARG}"
+        shu::panic "No such scalar: $OPTARG"
       fi
 
        to_assoc__=
@@ -85,7 +85,7 @@ while getopts :A:F:s:u opt__; do
         OPTARG="SHU_TIME_${OPTARG#SHU_TIME_}"
 
         (( ${(P)+OPTARG} )) ||
-        shu::panic "No such time format: ${OPTARG}"
+        shu::panic "No such time format: $OPTARG"
 
         OPTARG=${(P)OPTARG}
       }
@@ -95,7 +95,7 @@ while getopts :A:F:s:u opt__; do
     u) utc_opt__=-g ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    '?') opt__=$OPTARG ;&
     *)   shu::panic "Invalid option: ${(l:2::-:)opt__}" ;;
   esac
 done
@@ -149,7 +149,7 @@ assoc__[gid_s]=${${${assoc__[gid]}#*\(}%\)}
 unset -v 'assoc__[device]' 'assoc__[inode]'
 
 (( $#field__ && ! ${+assoc__[$field__]} )) &&
-shu::panic "No such field: ${field__}"
+shu::panic "No such field: $field__"
 
 (( $#to_scalar__ )) && {
   : ${(P)to_scalar__::=${assoc__[$field__]}}

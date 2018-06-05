@@ -44,7 +44,7 @@ local -a trace
       identifier="${SHU_ANSI[fg:yellow2]}{${identifier}}${SHU_ANSI[fg:reset]}"
 
     elif [[ $identifier == '('*')' ]]; then
-      (( i == 1 )) && caller="${identifier}"
+      (( i == 1 )) && caller=$identifier
       identifier="${SHU_ANSI[fg:yellow2]}${identifier}${SHU_ANSI[fg:reset]}"
 
     else
@@ -52,7 +52,7 @@ local -a trace
       identifier="${SHU_ANSI[fg:yellow2]}${identifier}()${SHU_ANSI[fg:reset]}"
     fi
 
-     trace_line="${identifier}"
+     trace_line=$identifier
     trace_line+=" @ ${SHU_ANSI[fg:magenta2]}${line_no}${SHU_ANSI[fg:reset]}"
 
     # Only add file-level info if requested
@@ -70,6 +70,8 @@ local -a trace
     trace+=( $trace_line )
   done
 }
+
+[[ $1 == -- ]] && shift
 
 printf >&$SHU_FD_STDERR \
   '%s: %sPANIC in %s!%s%s\n' \

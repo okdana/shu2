@@ -21,17 +21,17 @@ while getopts :a: opt__; do
     # Assign result to array
     +a)
       (( ${(P)+OPTARG} )) ||
-      shu::panic "No such array: ${OPTARG}"
+      shu::panic "No such array: $OPTARG"
 
       if [[ "${(Pt)OPTARG}-" != array-* ]] || [[ $OPTARG == *\[* ]]; then
-        shu::panic "No such array: ${OPTARG}"
+        shu::panic "No such array: $OPTARG"
       fi
 
       to_array__=$OPTARG
       ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    '?') opt__=$OPTARG ;&
     *)   shu::panic "Invalid option: ${(l:2::-:)opt__}" ;;
   esac
 done

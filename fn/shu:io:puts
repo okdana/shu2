@@ -156,7 +156,7 @@ while getopts :0123456789alnNqQrR:tT:vVxX opt; do
       elif [[ ${(P)OPTARG:-} == <0-255> ]]; then
         trap_ret=${(P)OPTARG}
       else
-        shu::panic "Illegal return status: ${OPTARG}"
+        shu::panic "Illegal return status: $OPTARG"
       fi
       ;;
     t) time=$SHU_TIME_FMT_STD_A ;;
@@ -165,21 +165,20 @@ while getopts :0123456789alnNqQrR:tT:vVxX opt; do
     X) exact=0 ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    '?') opt=$OPTARG ;&
     *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
   esac
   last_opt=$opt
 done
 
-(( trap_ret > -1 )) &&
-trap "return ${trap_ret}" EXIT
+(( trap_ret > -1 )) && trap "return $trap_ret" EXIT
 
 (( exact )) && op='=='
 (( cmp $op SHU_VERBOSITY )) || return 0
 
 shift $(( OPTIND - 1 ))
 
-msg=( "${@}" )
+msg=( "$@" )
 
 [[ -n $time ]] && {
   shu:time:strf +s time $time

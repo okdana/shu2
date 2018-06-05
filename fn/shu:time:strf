@@ -56,10 +56,10 @@ while getopts :qs:uz: opt__; do
     # Assign result to scalar
     +s)
       (( ${(P)+OPTARG} )) ||
-      shu::panic "No such scalar: ${OPTARG}"
+      shu::panic "No such scalar: $OPTARG"
 
       if [[ "${(Pt)OPTARG}-" != scalar-* ]] && [[ $OPTARG != *\[* ]]; then
-        shu::panic "No such scalar: ${OPTARG}"
+        shu::panic "No such scalar: $OPTARG"
       fi
 
       to_scalar__=$OPTARG
@@ -67,17 +67,15 @@ while getopts :qs:uz: opt__; do
     # Suppress error messages
     q) quiet__=1 ;;
     # UTC time zone
-    u) tz__='UTC' ;;
+    u) tz__=UTC ;;
     # Custom time zone
     z)
-      [[ $OPTARG == *'%'* ]] &&
-      shu::panic "Invalid time zone: ${OPTARG}"
-
+      [[ $OPTARG == *'%'* ]] && shu::panic "Invalid time zone: $OPTARG"
       tz__=$OPTARG
       ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    '?') opt__=$OPTARG ;&
     *)   shu::panic "Invalid option: ${(l:2::-:)opt__}" ;;
   esac
 done
@@ -87,28 +85,28 @@ shift $(( OPTIND - 1 ))
 [[ $0 != shu:time:strf ]] && (( $# < 2 )) && shu::panic 'Too few operands'
 (( $# > 2 )) && shu::panic 'Too many operands'
 
-: ${tz__:=${TZ:-}}
+: ${tz__:=$TZ}
 
 if [[ "SHU_TIME_${1:-}" == [A-Z0-9_]##_TIME_FMT_[A-Z0-9_]## ]]; then
   [[ $1 == FMT_* ]] && 1="SHU_TIME_$1"
 
   (( ${(P)+1} )) ||
-  shu::panic "No such time format: ${1:-}"
+  shu::panic "No such time format: $1"
 
   1=${(P)1}
 
 elif [[ $0 == shu:time:strf ]] && [[ ${1:-%} != *%* ]]; then
-  shu::panic "No time specifier provided: ${1:-}"
+  shu::panic "No time specifier provided: $1"
 
-elif [[ $0 != shu:time:strf ]] && [[ ${1:-} != *%* ]]; then
-  shu::panic "No time specifier provided: ${1:-}"
+elif [[ $0 != shu:time:strf ]] && [[ $1 != *%* ]]; then
+  shu::panic "No time specifier provided: $1"
 fi
 
 (( $#quiet__     )) && args__+=( -q )
 (( $#to_scalar__ )) && args__+=( -s $to_scalar__ )
 
 if [[ $0 == shu:time:strf ]]; then
-  args__+=( -- ${1:-${SHU_TIME_FMT_STD_A}} ${2:-${EPOCHSECONDS}} )
+  args__+=( -- ${1:-$SHU_TIME_FMT_STD_A} ${2:-$EPOCHSECONDS} )
 else
   args__+=( -r -- $1 $2 )
 fi

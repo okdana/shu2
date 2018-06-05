@@ -23,11 +23,13 @@
 
 local -F csec
 
+[[ $1 == -- ]] && shift
+
 (( $# < 1 )) && shu::panic 'Too few operands'
 
 while (( $# )); do
   [[ $1 == ${~SHU_PAT_MATH_NUM_POS}(|s|m|h|d) ]] ||
-  shu::panic "Invalid interval: ${1}"
+  shu::panic "Invalid interval: $1"
 
   case $1 in
     *d) (( csec += ${1%d} * 100.0 * 60 * 60 * 24 )) ;;
@@ -40,7 +42,7 @@ while (( $# )); do
 done
 
 (( csec == 0 )) && return 0
-(( csec < 1  )) && shu::panic "Unsupported interval: ${csec} cs"
+(( csec < 1  )) && shu::panic "Unsupported interval: $csec cs"
 
 zselect -t ${csec%.*}
 return 0

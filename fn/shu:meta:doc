@@ -28,33 +28,33 @@
 # @return 0 on success, >0 on error.
 
 local    OPTARG OPTIND MATCH MBEGIN MEND
-local    __opt __to_array __raw ___fn __line __last
-local -a __lines __doc
-local -A __ansi=( "${(@kv)SHU_ANSI}" )
+local    opt__ to_array__ raw__ fn___ line__ last__
+local -a lines__ doc__
+local -A ansi__=( "${(@kv)SHU_ANSI}" )
 
-while getopts :a:cCr __opt; do
-  case $__opt in
+while getopts :a:cCr opt__; do
+  case $opt__ in
     # Assign result to array
     +a)
       (( ${(P)+OPTARG} )) ||
-      shu::panic "No such array: ${OPTARG}"
+      shu::panic "No such array: $OPTARG"
 
       if [[ "${(Pt)OPTARG}-" != array-* ]] || [[ $OPTARG == *\[* ]]; then
-        shu::panic "No such array: ${OPTARG}"
+        shu::panic "No such array: $OPTARG"
       fi
 
-      __to_array=$OPTARG
+      to_array__=$OPTARG
       ;;
     # Enable ANSI formatting
-    +c) __ansi=( "${(@kv)SHU_ANSI_ACTIVE}" ) ;;
+    +c) ansi__=( "${(@kv)SHU_ANSI_ACTIVE}" ) ;;
     # Disable ANSI formatting
-    +C) __ansi=( "${(@kv)SHU_ANSI_INACTIVE}" ) ;;
+    +C) ansi__=( "${(@kv)SHU_ANSI_INACTIVE}" ) ;;
     # Return raw/unformatted lines
-    r) __raw=1 ;;
+    r) raw__=1 ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-    *)   shu::panic "Invalid option: ${(l:2::-:)__opt}" ;;
+    '?') opt__=$OPTARG ;&
+    *)   shu::panic "Invalid option: ${(l:2::-:)opt__}" ;;
   esac
 done
 
@@ -63,54 +63,54 @@ shift $(( OPTIND - 1 ))
 (( $# < 1 )) && shu::panic 'Too few operands'
 (( $# > 1 )) && shu::panic 'Too many operands'
 
-___fn=$1
+fn___=$1
 
-(( $+functions[$___fn] )) && [[ ! -e $___fn ]] && {
-  shu:meta:fnpath +s ___fn -- $___fn
-  (( $#___fn )) || return 1
+(( $+functions[$fn___] )) && [[ ! -e $fn___ ]] && {
+  shu:meta:fnpath +s fn___ -- $fn___
+  (( $#fn___ )) || return 1
 }
 
-if [[ $___fn == *.zwc/* ]] && [[ -e ${___fn/.zwc\///} ]]; then
-  ___fn=${___fn/.zwc\///}
-elif [[ $___fn == *.zwc ]] && [[ -e ${___fn:r} ]]; then
-  ___fn=${___fn:r}
-elif [[ ! -e $___fn ]]; then
+if [[ $fn___ == *.zwc/* ]] && [[ -e ${fn___/.zwc\///} ]]; then
+  fn___=${fn___/.zwc\///}
+elif [[ $fn___ == *.zwc ]] && [[ -e ${fn___:r} ]]; then
+  fn___=${fn___:r}
+elif [[ ! -e $fn___ ]]; then
   return 1
 fi
 
-__lines=( "${(@f)mapfile[$___fn]:-}" )
+lines__=( "${(@f)mapfile[$fn___]:-}" )
 
-for __line in "${(@)__lines}"; do
-  [[ -n $__last ]] || {
-    [[ $__line == [[:space:]]#\#\# ]] || continue
-    __last=$__line
-    (( __raw )) && __doc+=( $__line )
+for line__ in "${(@)lines__}"; do
+  [[ -n $last__ ]] || {
+    [[ $line__ == [[:space:]]#\#\# ]] || continue
+    last__=$line__
+    (( raw__ )) && doc__+=( $line__ )
     continue
   }
 
-  [[ $__line == [[:space:]]#\#(|\ *) ]] || break
+  [[ $line__ == [[:space:]]#\#(|\ *) ]] || break
 
-  (( __raw )) && {
-    __last=$__line
-    __doc+=( $__line )
+  (( raw__ )) && {
+    last__=$line__
+    doc__+=( $line__ )
     continue
   }
 
-  (( $#__line > 2 )) || {
-    __doc+=( '' )
+  (( $#line__ > 2 )) || {
+    doc__+=( '' )
     continue
   }
 
-  __line=${__line[3,-1]}
-  __line=${__line/(#m)(#s)@[^[:space:]]##/${__ansi[bold:on]}${MATCH}${__ansi[bold:off]}}
+  line__=${line__[3,-1]}
+  line__=${line__/(#m)(#s)@[^[:space:]]##/${ansi__[bold:on]}${MATCH}${ansi__[bold:off]}}
 
-  __doc+=( "${__line}" )
+  doc__+=( "$line__" )
 done
 
-(( $#__to_array )) && {
-  : ${(PA)__to_array::="${(@)__doc}"}
-  return $(( ! $#__doc ))
+(( $#to_array__ )) && {
+  : ${(PA)to_array__::="${(@)doc__}"}
+  return $(( ! $#doc__ ))
 }
 
-(( $#__doc )) || return 1
-print -rl -- "${(@)__doc}"
+(( $#doc__ )) || return 1
+print -rl -- "${(@)doc__}"

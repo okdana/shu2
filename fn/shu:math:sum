@@ -1,5 +1,7 @@
 # vim: set ft=zsh:
 
+# @todo WARNING: This function is untested
+
 ##
 # Give the sum of a series of numbers.
 #
@@ -20,8 +22,8 @@ local sum nctx
 
 while (( $# )); do
   (( nctx )) &&
-  [[ $1 != ${~SHU_PAT_MATH_NUM} ]] &&
-  shu::panic "Invalid arithmetic argument: ${1}"
+  [[ $1 != $~SHU_PAT_MATH_NUM ]] &&
+  shu::panic "Invalid arithmetic argument: $1"
 
   (( sum += $1 ))
   shift

@@ -1,5 +1,7 @@
 # vim: set ft=zsh:
 
+# @todo WARNING: This function is untested
+
 ##
 # Pad a string to the specified length.
 #
@@ -40,23 +42,24 @@
 
 local OPTIND OPTARG OPTERR opt chars truncate side len s c
 
-while getopts ':c:ClrtT' opt; do
+while getopts :c:ClrtT opt; do
   case $opt in
     # Character(s) to pad with
-    'c') chars=$OPTARG ;;
+    c) chars=$OPTARG ;;
     # Auto-select pad character
-    'C') chars='' ;;
+    C) chars='' ;;
     # Left-pad
-    'l') side=l ;;
+    l) side=l ;;
     # Right-pad
-    'r') side=r ;;
+    r) side=r ;;
     # Truncate if input is longer than length
-    't') truncate=1 ;;
+    t) truncate=1 ;;
     # Never truncate
-    'T') truncate=0 ;;
-    # Error
-    '?') shu::panic "Invalid option: -${OPTARG}" ;;
-    ':') shu::panic "Missing argument to option: -${OPTARG}" ;;
+    T) truncate=0 ;;
+    # Errors
+    ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
+    '?') opt=$OPTARG ;&
+    *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
   esac
 done
 

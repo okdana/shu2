@@ -132,7 +132,7 @@ while getopts :A:Cd:DeFpPqrsS opt__; do
     S) discard_fd__=1 ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    '?') opt__=$OPTARG ;&
     *)   shu::panic "Invalid option: ${(l:2::-:)opt__}" ;;
   esac
 done
@@ -143,7 +143,7 @@ shift $(( OPTIND - 1 ))
 
 expect__=$1
     op__=$2
-   cmd__=( "${@:3}" )
+   cmd__=( "${@[3,-1]}" )
 
 (( compare_ret__ )) && {
   [[ $expect__ == $~SHU_PAT_MATH_INT_POS ]] || {
@@ -163,20 +163,20 @@ expect__=$1
 }
 
 case $op__ in
-  (-|)eq|'='|'==')   op__='eq' ;;
-  (-|)ne|'!='|'<>')  op__='ne' ;;
-  (-|)gl(|ob)|'~')   op__='gl' ;;
-  (-|)re(|gex)|'=~') op__='re' ;;
-  (-|)le|'<='|'=<')  op__='le' ;;
-  (-|)lt|'<')        op__='lt' ;;
-  (-|)ge|'>='|'=>')  op__='ge' ;;
-  (-|)gt|'>')        op__='gt' ;;
-  *) shu::panic "Illegal operator: ${op__}" ;;
+  (-|)eq|'='|'==')   op__=eq ;;
+  (-|)ne|'!='|'<>')  op__=ne ;;
+  (-|)gl(|ob)|'~')   op__=gl ;;
+  (-|)re(|gex)|'=~') op__=re ;;
+  (-|)le|'<='|'=<')  op__=le ;;
+  (-|)lt|'<')        op__=lt ;;
+  (-|)ge|'>='|'=>')  op__=ge ;;
+  (-|)gt|'>')        op__=gt ;;
+  *) shu::panic "Illegal operator: $op__" ;;
 esac
 
 [[ $op__ == [gl][et] ]] &&
 (( ! compare_ret__ )) &&
-shu::panic "Operator -${op__} can only be used with return codes"
+shu::panic "Operator -$op__ can only be used with return codes"
 
 res__=$(
   if (( discard_fd__ == 2 )); then
@@ -222,7 +222,7 @@ ret__=$?
   esac
 } always {
   # Explode if we received a bad glob or regex pattern
-  (( TRY_BLOCK_ERROR )) && shu::panic "Error in pattern: ${expect__}"
+  (( TRY_BLOCK_ERROR )) && shu::panic "Error in pattern: $expect__"
 }
 
 if (( eval_cmd__ )); then
@@ -231,7 +231,7 @@ else
   cmd_str__="${(j< >)${(@q+)cmd__}}"
 fi
 
-summary__="\`${cmd_str__}\`: ${(q+)expect__} -${op__} ${(q+)res__}"
+summary__="\`${cmd_str__}\`: ${(q+)expect__} -$op__ ${(q+)res__}"
 
 (( $#to_assoc__ )) && {
          assoc__[pass]=${pass__:-0}

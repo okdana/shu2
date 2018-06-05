@@ -85,10 +85,10 @@ while getopts :a:cCnNruvV opt__; do
     # Assign result to array
     +a)
       (( ${(P)+OPTARG} )) ||
-      shu::panic "No such array: ${OPTARG}"
+      shu::panic "No such array: $OPTARG"
 
       if [[ "${(Pt)OPTARG}-" != array-* ]] || [[ $OPTARG == *\[* ]]; then
-        shu::panic "No such array: ${OPTARG}"
+        shu::panic "No such array: $OPTARG"
       fi
 
       to_array__=$OPTARG
@@ -109,7 +109,7 @@ while getopts :a:cCnNruvV opt__; do
     v|V) only__=version ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    '?') opt__=$OPTARG ;&
     *)   shu::panic "Invalid option: ${(l:2::-:)opt__}" ;;
   esac
 done
@@ -138,7 +138,7 @@ case $only__ in
 esac
 
 for line_raw__ in "${(@)lines__}"; do
-  [[ $line_raw__ == ${~glob__} ]] || {
+  [[ $line_raw__ == $~glob__ ]] || {
     [[ -n $last__ ]] && break
     continue
   }
@@ -228,7 +228,7 @@ for line_raw__ in "${(@)lines__}"; do
   }
 
    last__=$line_raw__
-  help__+=( "${line__}" )
+  help__+=( "$line__" )
 done
 
 [[ $only__ == version ]] && {
@@ -237,6 +237,7 @@ done
     $+commands[gsha1sum]) cmd__=( gsha1sum ) ;;
     $+commands[sha1])     cmd__=( sha1 -r ) ;;
     $+commands[shasum])   cmd__=( shasum -a1 ) ;;
+    $+commands[digest])   cmd__=( digest -a sha1 ) ;;
   esac
 
   (( $#cmd__ )) && {

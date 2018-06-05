@@ -1,5 +1,7 @@
 # vim: set ft=zsh:
 
+# @todo WARNING: This function is untested
+
 ##
 # Return the current epoch time to various precisions.
 #
@@ -37,8 +39,8 @@ while getopts :f:mnsu opt; do
   case $opt in
     # Floating-point decimal places
     f)
-      [[ $OPTARG == ${~SHU_PAT_MATH_INT_POS} ]] ||
-      shu::panic "Invalid precision value: ${OPTARG}"
+      [[ $OPTARG == $~SHU_PAT_MATH_INT_POS ]] ||
+      shu::panic "Invalid precision value: $OPTARG"
 
       places=$OPTARG
       ;;
@@ -46,7 +48,7 @@ while getopts :f:mnsu opt; do
     m|n|s|u) unit=$opt ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    '?') opt=$OPTARG ;&
     *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
   esac
 done
@@ -62,16 +64,16 @@ real_time=( ${(@s<.>)EPOCHREALTIME} )
   integer=${real_time[1]}
 remainder=${real_time[2]}
 
-case ${unit} in
-  'm')
+case $unit in
+  m)
      integer+=${real_time[2]:0:3}
     remainder=${real_time[2]:3}
     ;;
-  'n')
+  n)
      integer+=${real_time[2]:0:9}
     remainder=${real_time[2]:9}
     ;;
-  'u')
+  u)
      integer+=${real_time[2]:0:6}
     remainder=${real_time[2]:6}
     ;;

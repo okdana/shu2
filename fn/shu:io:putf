@@ -34,8 +34,8 @@
 #
 # @return According to `printf`.
 
-local OPTARG OPTIND opt last_opt
-local cmp=$SHU_VERBOSITY_N0 op='<=' trap_ret=-1 exact ret
+local    OPTARG OPTIND opt last_opt
+local    cmp=$SHU_VERBOSITY_N0 op='<=' trap_ret=-1 exact ret
 local -a usage
 
 while getopts :anNqQrR:vVxX opt; do
@@ -81,21 +81,20 @@ while getopts :anNqQrR:vVxX opt; do
       elif [[ ${(P)OPTARG:-} == <0-255> ]]; then
         trap_ret=${(P)OPTARG}
       else
-        shu::panic "Illegal return status: ${OPTARG}"
+        shu::panic "Illegal return status: $OPTARG"
       fi
       ;;
     x) exact=1 ;;
     X) exact=0 ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
+    '?') opt=$OPTARG ;&
     *)   shu::panic "Invalid option: ${(l:2::-:)opt}" ;;
   esac
   last_opt=$opt
 done
 
-(( trap_ret > -1 )) &&
-trap "return ${trap_ret}" EXIT
+(( trap_ret > -1 )) && trap "return $trap_ret" EXIT
 
 (( exact )) && op='=='
 (( cmp $op SHU_VERBOSITY )) || return 0
@@ -106,7 +105,7 @@ shift $(( OPTIND - 1 ))
 
 case $0 in
   shu:io:putf)
-    printf -- "${@}"
+    printf -- "$@"
     return
     ;;
   shu:io:eputf)

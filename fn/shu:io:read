@@ -37,18 +37,18 @@ while getopts :ns: opt__; do
     # Assign result to scalar
     +s)
       (( ${(P)+OPTARG} )) ||
-      shu::panic "No such scalar: ${OPTARG}"
+      shu::panic "No such scalar: $OPTARG"
 
       if [[ "${(Pt)OPTARG}-" != scalar-* ]] && [[ $OPTARG != *\[* ]]; then
-        shu::panic "No such scalar: ${OPTARG}"
+        shu::panic "No such scalar: $OPTARG"
       fi
 
       to_scalar__=$OPTARG
       ;;
     # Errors
     ':') shu::panic "Missing argument to option: ${(l:2::-:)OPTARG}" ;;
-    '?') shu::panic "Invalid option: ${(l:2::-:)OPTARG}" ;;
-    *)   shu::panic "Invalid option: ${(l:2::-:)_opt}" ;;
+    '?') opt__=$OPTARG ;&
+    *)   shu::panic "Invalid option: ${(l:2::-:)opt__}" ;;
   esac
 done
 

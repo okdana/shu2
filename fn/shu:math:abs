@@ -1,5 +1,7 @@
 # vim: set ft=zsh:
 
+# @todo WARNING: This function is untested
+
 ##
 # Give the absolute value of a number.
 #
@@ -23,8 +25,8 @@
   (( $# < 1 )) && shu::panic 'Too few operands'
 
   while (( $# )); do
-    [[ $1 == ${~SHU_PAT_MATH_NUM} ]] ||
-    shu::panic "Invalid arithmetic argument: ${1}"
+    [[ $1 == $~SHU_PAT_MATH_NUM ]] ||
+    shu::panic "Invalid arithmetic argument: $1"
 
     print -r -- ${1#-}
     shift
