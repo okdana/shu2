@@ -20,8 +20,8 @@ _arguments -s -S : \
   '(m)*-o+[define specified parameter]: :->options' \
   '(-t -T -x -X m)'{-t,-x}'[enable function xtrace (like `typeset -ft`)]' \
   '(-t -T -x -X m)'{-T,-X}'[enable function xtrace (like `typeset -fT`)]' \
-  '(-v)-q[decrease output verbosity]' \
-  '(-q)-v[increase output verbosity]' \
+  '(-v)-q[decrease verbosity]' \
+  '(-q)-v[increase verbosity]' \
   '(-)1: :->funcs-pats' \
   '(-)*: :->func-args' \
 && ret=0
