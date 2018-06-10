@@ -16,7 +16,7 @@
 #?# options:
 #?+   -h  Display this usage help and exit.
 #?+   -V  Display version information and exit.
-#?+   -q  Reduce output verbosity.
+#?+   -q  Decrease output verbosity.
 #?+   -v  Increase output verbosity (effective only with -r).
 #?+   -r  Delete compiled files only; do not recompile.
 

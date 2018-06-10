@@ -14,7 +14,7 @@
 #?:
 #?# options:
 #?+   -h  Display this usage help and exit.
-#?+   -q  Reduce output verbosity.
+#?+   -q  Decrease output verbosity.
 #?+   -v  Increase output verbosity.
 #?:
 #?# notes:
