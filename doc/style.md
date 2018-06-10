@@ -62,7 +62,7 @@ required) to use the same style for shu2 consumer libraries and scripts.
   set.
 
 * Parameters MUST be referenced without the `$` operator where-ever allowed in
-  numeric contexts — for example, within arithmetic constructs and as the
+  numeric contexts — for example, within arithmetic constructs and as the
   argument to `return`.
 
 * `getopts` option spec strings MUST be sorted alphabetically, with upper-case

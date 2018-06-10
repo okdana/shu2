@@ -7,7 +7,7 @@
 #
 # Note: The arithmetic function abs() is provided by the `zsh/mathfunc` module;
 # this function is therefore offered only for use in non-arithmetic contexts.
-# One could use `$(( abs(foo) ))` instead — it would be faster — but this
+# One could use `$(( abs(foo) ))` instead — it would be faster — but this
 # function treats inputs as strings, so it doesn't suffer from the same
 # floating-point issues as that method (e.g., `shu:math:abs -3.001` returns
 # `3.001` rather than `3.00099999...`).
@@ -34,5 +34,5 @@
 
   return 0
 }
-# Arithmetic context — not offered by default
+# Arithmetic context — not offered by default
 (( abs($1) ))

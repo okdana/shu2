@@ -33,12 +33,12 @@ This document describes conventions not strictly related to coding style.
   MUST NOT be used for function-specific behaviour. The following `+`-options
   have been standardised:
 
-  * `+a <name>` — Assign result to array `<name>`.
-  * `+A <name>` — Assign result to association `<name>`.
-  * `+c`        — Forcibly enable ANSI formatting.
+  * `+a <name>` — Assign result to array `<name>`.
+  * `+A <name>` — Assign result to association `<name>`.
+  * `+c`        — Forcibly enable ANSI formatting.
   * `+C`        — Forcibly disable ANSI formatting.
-  * `+s <name>` — Assign result to scalar `<name>`.
-  * `+V <opts>` — Pass verbosity options `<opts>` to another function.
+  * `+s <name>` — Assign result to scalar `<name>`.
+  * `+V <opts>` — Pass verbosity options `<opts>` to another function.
 
   A `+` variant is automatically accepted by `getopts` for any given spec
   character; unsupported `+` variants must be caught by a `*` `case` clause (or

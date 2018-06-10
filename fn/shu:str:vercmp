@@ -4,7 +4,7 @@
 # Compare a version number against one or more version constraints.
 #
 # This function is inspired by the Composer\Semver PHP project, and works
-# similarly — however, it is only *partially* compliant with semver semantics.
+# similarly — however, it is only *partially* compliant with semver semantics.
 #
 # Each version string is split into segments divided by one or more characters
 # matching the class `[[:space:]_,.+-]`. In order to properly compare version

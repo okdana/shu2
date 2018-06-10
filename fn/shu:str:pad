@@ -10,7 +10,7 @@
 # @param -c <chars>
 #   (optional) Character(s) to pad the string with. May be a single character or
 #   a multi-character string. May also be an empty string, in which case the
-#   appropriate character will be selected based on the input — `0` if it
+#   appropriate character will be selected based on the input — `0` if it
 #   appears to be a number, ` ` (space) if not.
 #
 # @param -C

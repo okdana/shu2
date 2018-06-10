@@ -6,17 +6,17 @@
 # Usage-help blocks are comment blocks where each line contains one of the
 # following tags, optionally followed by a space and additional text:
 #
-# * `#?.` — Script name and version.
-# * `#?=` — Script description.
-# * `#?#` — Section heading.
-# * `#??` — Script usage synopsis.
-# * `#?-` — Script option or operand description, long form. Each option or
+# * `#?.` — Script name and version.
+# * `#?=` — Script description.
+# * `#?#` — Section heading.
+# * `#??` — Script usage synopsis.
+# * `#?-` — Script option or operand description, long form. Each option or
 #           operand is defined on its own line, with an indented description
 #           following on subsequent lines.
-# * `#?+` — Script option or operand description, short form. Each option or
+# * `#?+` — Script option or operand description, short form. Each option or
 #           operand is defined on the same line as the first line of its
 #           description, separated by two spaces.
-# * `#?:` — Misc. pre-formatted text.
+# * `#?:` — Misc. pre-formatted text.
 #
 # On lines prefixed by `#?.`, `#?=` or `#??`, the special token `${0}` is
 # replaced by the base name of the script. In the former case, the token is

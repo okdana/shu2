@@ -9,14 +9,14 @@
 #   (optional) Assign the result to a pre-defined association with the name
 #   <name>. The following fields are provided:
 #
-#   * pass        — 1 if the assertion passed, 0 if not
+#   * pass        — 1 if the assertion passed, 0 if not
 #   * return      — The return status of the command
-#   * result      — The output of the command
-#   * expected    — The expected result or return status ($1)
-#   * operator    — The normalised operator ($2)
-#   * command     — The command string ($3 ...)
-#   * description — The user's description
-#   * summary     — The summary of the assertion (default description)
+#   * result      — The output of the command
+#   * expected    — The expected result or return status ($1)
+#   * operator    — The normalised operator ($2)
+#   * command     — The command string ($3 ...)
+#   * description — The user's description
+#   * summary     — The summary of the assertion (default description)
 #
 #   Note that, somewhat unusually, use of this option does not disable the
 #   normal output of the function; use `-q` for that.
@@ -69,14 +69,14 @@
 #   An operator indicating the expected relationship between $1 and $3.
 #   Supported operators include:
 #
-#   * `eq`, `=`,  `==` — $1 is equal to $3
-#   * `ne`, `!=`, `<>` — $1 is not equal to $3
-#   * `gl`, `~`        — $1 is an extended glob matching $3
-#   * `re`, `=~`       — $1 is a regular expression matching $3
-#   * `le`, `<=`, `=<` — $1 is equal to or less than $3 (with `-r` only)
-#   * `lt`, `<`        — $1 is less than $3 (with `-r` only)
-#   * `ge`, `>=`, `=>` — $1 is equal to or greater than $3 (with `-r` only)
-#   * `gt`, `>`        — $1 is greater than $3 (with `-r` only)
+#   * `eq`, `=`,  `==` — $1 is equal to $3
+#   * `ne`, `!=`, `<>` — $1 is not equal to $3
+#   * `gl`, `~`        — $1 is an extended glob matching $3
+#   * `re`, `=~`       — $1 is a regular expression matching $3
+#   * `le`, `<=`, `=<` — $1 is equal to or less than $3 (with `-r` only)
+#   * `lt`, `<`        — $1 is less than $3 (with `-r` only)
+#   * `ge`, `>=`, `=>` — $1 is equal to or greater than $3 (with `-r` only)
+#   * `gt`, `>`        — $1 is greater than $3 (with `-r` only)
 #
 # @param $3 ...
 #   The command (and any arguments) to be executed, or (with `-e`) a string to

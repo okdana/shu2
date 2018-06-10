@@ -57,7 +57,7 @@ app::main() {
       continue
     }
 
-    # Don't resolve symlinks — we want to allow tests under different names
+    # Don't resolve symlinks — we want to allow tests under different names
     t=${t:a}
 
     [[ -d $t ]] && {
