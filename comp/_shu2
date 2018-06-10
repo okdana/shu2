@@ -52,7 +52,7 @@ case $state in
     if [[ -n ${opt_args[(i)m--l]} ]]; then
       _message pattern && ret=0
     else
-      tmp=( ${${(f)"$( _call_program functions $words[1] -l )"}//:/\\:} )
+      tmp=( ${${(f)"$( _call_program functions ${(q-)words[1]} -l )"}//:/\\:} )
       if (( $#tmp )); then
         _values function $tmp && ret=0
       else
@@ -62,7 +62,7 @@ case $state in
     ;;
   func-args)
     tmp=( ${(M)${(z)${${(M)${(f)"$(
-      _call_program function-args $words[1] -H $line[1]
+      _call_program function-args ${(q-)words[1]} -H ${(q-)line[1]}
     )"}:#@param [+-]*}//[<>,]/ }}:#[+-]?} )
 
     if (( $#tmp )); then
