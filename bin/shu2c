@@ -81,9 +81,10 @@ app::main() {
     zcompile -U  $lib_zwc $lib    || return $?
     zcompile -Uz $fn_zwc  $fn_fns || return $?
 
-    shu:io:puts "${fn_zwc}:"
-    zcompile -t $fn_zwc | shu:io:cat
-    (( $pipestatus[1] )) && return 1
+    (( SHU_VERBOSITY >= SHU_VERBOSITY_N0 )) && {
+      shu:io:puts "${fn_zwc}:"
+      zcompile -t $fn_zwc || return 1
+    }
   done
 
   return 0
