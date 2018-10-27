@@ -70,9 +70,9 @@ shift $(( OPTIND - 1 ))
 # This is very sensitive to the precise method we use to store each pass;
 # seemingly trivial changes (such as using tmp__[idx++] instead) can have
 # significant performance costs!
-while sysread -s 65535 'tmp__[(#tmp__ + 1)]'; do
+while sysread -s 65535 'tmp__[($#tmp__ + 1)]'; do
   ret__=$?
-  (( ret__ == 5 )) && ret=0
+  (( ret__ == 5 )) && ret__=0
 done
 
 if (( strip_nl__ )); then
