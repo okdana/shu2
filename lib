@@ -326,7 +326,7 @@
   fi
 
   # Absolute paths to the fn/ directory and digest file
-  typeset -gr    SHU_FN_DIR=${${${(%):-%N}:A}:h}/fn
+  typeset -gr    SHU_FN_DIR=${${(%):-%N}:A:h}/fn
   typeset -gr SHU_FN_DIGEST=$SHU_FN_DIR.zwc
 }
 
