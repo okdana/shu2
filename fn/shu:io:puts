@@ -60,7 +60,10 @@
 #   (optional) Set a trap to return from the calling function. This is primarily
 #   useful with the `eputs` and `uputs` variants. The return status is selected
 #   automatically based on the variant used: `SHU_EX_OK` for `puts`,
-#   `SHU_EX_ERR` for `eputs`, and `SHU_EX_USAGE` for `uputs`.
+#   `SHU_EX_ERR` for `eputs`, and `SHU_EX_USAGE` for `uputs`. Note: One must
+#   take care with `-r` and `-R`, as the semantics of function exit traps are
+#   somewhat peculiar. For example, the following command will not work, since
+#   exit traps are not executed recursively: `trap 'shu:io:puts -R123' EXIT`
 #
 # @param -R <ret>
 #   (optional) Like `-r`, but set the trap to return with the status <ret>.
