@@ -93,14 +93,25 @@ printf >&$SHU_FD_STDERR \
   done
 }
 
-if [[ $- == *i* ]] || (( SHU_PANIC_IGNORE )); then
+if [[ -o interactive ]] || (( SHU_PANIC_IGNORE )); then
   # Set an exit trap to force the caller to immediately return, unless we're at
-  # the top level of a script or an interactive shell
+  # the top level of a script or an interactive shell. As always, note that
+  # exit traps can't run inside other exit traps
   (( ZSH_SUBSHELL || $#funcstack > 1 )) &&
   trap 'return SHU_EX_PANIC' EXIT
   return SHU_EX_PANIC
 fi
 
 # die_you_gravy_sucking_pig_dog
-kill -HUP 0
+{
+  # This will fail to properly kill child processes in some cases. For example,
+  # when the panic occurs inside a sub-shell, the parent shell's background
+  # children might not be cleaned up. `kill 0` would take care of whatever the
+  # current process group is, but this can kill parent processes when `monitor`
+  # isn't enabled. And we don't enable `monitor` because it prints those
+  # irritating status messages...
+  kill -HUP -- ${(@)${(@v)jobstates%=*}##*:}
+  kill -HUP -- -$$ $$
+  kill -HUP -- -$sysparams[pid]
+} 2> /dev/null
 exit SHU_EX_PANIC
