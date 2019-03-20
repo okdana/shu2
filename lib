@@ -19,7 +19,6 @@
     -o no_aliases \
     -o extended_glob \
     -o local_traps \
-    -o null_glob \
     -o typeset_silent \
     -o warn_create_global
 
